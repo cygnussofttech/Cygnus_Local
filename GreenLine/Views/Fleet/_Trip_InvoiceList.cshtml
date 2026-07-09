@@ -1,0 +1,182 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@{
+    var trip = Model.CTM;
+}
+
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <div class="fs-11 text-muted text-uppercase fw-semibold letter-spacing-1 mb-1">Dispatch Legals</div>
+        <h5 class="fw-bold text-dark mb-0 fs-17">Consignment Listing</h5>
+    </div>
+    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass btn-label" id="btnAddLREntry">
+        <i class="@ViewBag.UI.Buttons.Add.Icon label-icon"></i> @ViewBag.UI.Buttons.Add.Label LR Entry
+    </button>
+</div>
+
+<!-- LR Upload form panel (hidden by default, shown on Add LR Entry click) -->
+<div id="lrEntryPanel" style="display:none;">
+    <div class="card">
+        <div class="card-header border-bottom-dashed d-flex align-items-center">
+            <h6 class="card-title mb-0 d-flex align-items-center gap-2">
+                <i class="ri-file-add-line fs-16 align-middle"></i> New LR Capture
+            </h6>
+            <button type="button" class="btn-close ms-auto btn-sm" id="btnCloseLREntry" aria-label="Close"></button>
+        </div>
+        <div class="card-body p-3">
+            @Html.Partial("_Trip_Invoice_upload", new GreenLineDataService.Models.CYGNUS_LR_ENTRY {
+                PRNo    = trip.PRNo,
+                VehicleNo = trip.VehicleNo,
+                TripNo  = trip.TripNo
+            })
+        </div>
+    </div>
+</div>
+
+<!-- LR List Grid -->
+<div id="lrListGrid">
+    <!-- LR Cards will be rendered here via AJAX on page load -->
+    <div class="row g-3" id="lrCardsContainer"></div>
+</div>
+
+<script>
+    function initInvoiceListTab() {
+        $('#btnAddLREntry').on('click', function () {
+            $('#lrEntryPanel').slideDown(200);
+            $(this).prop('disabled', true);
+        });
+        $('#btnCloseLREntry').on('click', function () {
+            $('#lrEntryPanel').slideUp(200);
+            $('#btnAddLREntry').prop('disabled', false);
+        });
+
+        // Load existing LRs for this trip
+        loadLRList();
+    }
+
+    function loadLRList() {
+        var tripNo = '@trip.TripNo';
+        var prNo   = '@trip.PRNo';
+        if (!tripNo) return;
+
+        var url = '@Url.Action("GetTripDocketsPartial", "Fleet")' + '?TripNo=' + encodeURIComponent(tripNo) + '&PRNo=' + encodeURIComponent(prNo) + '&StopId=';
+        $('#lrCardsContainer').load(url, function(response, status, xhr) {
+            if (status === "error") {
+                $('#lrCount').text('0');
+                $('#lrCardsContainer').html('<div class="col-12 text-center py-5 text-danger"><i class="ri-error-warning-line align-middle me-2 fs-20"></i> Failed to load consignments.</div>');
+            } else {
+                var cardCount = $('#lrCardsContainer .docket-detail-card').length;
+                $('#lrCount').text(cardCount);
+
+                // Bind click handler to dynamic Upload buttons
+                $('#lrCardsContainer .btn-right-upload-pod').off('click').on('click', function () {
+                    var docket = $(this).data('docket');
+                    var stopId = $(this).data('stopid');
+                    var stageId = $(this).data('stageid');
+                    var title = 'Upload POD - Docket ' + docket;
+                    openInvoiceUploadModal(title, 'POD', docket, stopId, stageId);
+                });
+            }
+        });
+    }
+
+    function openInvoiceUploadModal(title, eventName, docketNo, stopId, stageId) {
+        // Get HTML from partial view container
+        var formHtml = $("#commonUploadPartialContainer").html();
+        $("#glFormContent").html(formHtml);
+
+        // Clear previous form data and validation states from previous opens
+        var formUpload = $('#glFormContent #frmCommonUpload');
+        if (formUpload.length > 0) {
+            formUpload[0].reset();
+            var validator = formUpload.data('validator');
+            if (validator) {
+                validator.resetForm();
+            }
+            formUpload.find('.form-group').removeClass('has-error');
+            formUpload.find('.help-block').remove();
+        }
+
+        var isPODMode = true;
+        var isDOMode = false;
+
+        if (typeof setupUploadModalForm === 'function') {
+            setupUploadModalForm(isDOMode, isPODMode);
+        }
+
+        // Setup modal title
+        $('#glFormModalLabel').html('<i class="ri-upload-cloud-2-line align-middle me-1"></i> ' + title);
+
+        $("#glFormLoader").hide();
+        $("#glFormSaveBtn").prop("disabled", false);
+
+        // Open the common modal
+        var bsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('glFormModal'));
+        bsModal.show();
+
+        // Bind click event to common Save button
+        $('#glFormSaveBtn').off('click').on('click', function () {
+            var formUpload = $('#glFormContent #frmCommonUpload');
+            if (!formUpload.valid()) {
+                return false;
+            }
+
+            var remarksVal = $('#glFormContent #modalEvtRemarks').val();
+            var fileInput = $('#glFormContent #modalEvtFile')[0];
+            var fileBackInput = $('#glFormContent #modalEvtFileBack')[0];
+
+            var piecesVal = $('#glFormContent #modalEvtPieces').val() || '';
+            var qtyVal = $('#glFormContent #modalEvtQty').val() || '';
+
+            var formData = new FormData();
+            if (fileInput.files && fileInput.files.length > 0) {
+                formData.append("evtFile", fileInput.files[0]);
+            }
+            if (fileBackInput && fileBackInput.files && fileBackInput.files.length > 0) {
+                formData.append("evtFileBack", fileBackInput.files[0]);
+            }
+            formData.append("TripNo", '@trip.TripNo');
+            formData.append("ActivityType", "POD");
+            formData.append("DocketNo", docketNo || '');
+            formData.append("Remarks", remarksVal);
+            formData.append("PRNo", '@trip.PRNo');
+            formData.append("Pieces", piecesVal);
+            formData.append("Qty", qtyVal);
+            formData.append("EventId", stageId || '11');
+            formData.append("StopId", stopId || '');
+
+            App.blockUI({ target: '#glFormModal .modal-content', boxed: true, message: 'Saving event...' });
+
+            $.ajax({
+                url: DomainName + '/Fleet/SubmitDoPodUpload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    App.unblockUI('#glFormModal .modal-content');
+                    if (res.Status) {
+                        var bsModalInstance = bootstrap.Modal.getInstance(document.getElementById('glFormModal'));
+                        if (bsModalInstance) bsModalInstance.hide();
+                        TosterNotification('success', 'Document uploaded successfully!', 'Success');
+                        
+                        // Reload the LR list to show the new status badge
+                        loadLRList();
+
+                        // Refresh checklist dynamically without page reload if it exists
+                        if (typeof window.refreshChecklist === 'function') {
+                            window.refreshChecklist();
+                        }
+                    } else {
+                        TosterNotification('error', res.Message || 'Failed to save event', 'Error');
+                    }
+                },
+                error: function () {
+                    App.unblockUI('#glFormModal .modal-content');
+                    TosterNotification('error', 'Failed to save event', 'Error');
+                }
+            });
+        });
+    }
+</script>
+ 

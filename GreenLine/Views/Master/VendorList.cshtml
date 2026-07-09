@@ -1,0 +1,199 @@
+﻿@{
+    ViewBag.Title = "List of Vendors";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-0">Vendor List </h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Vendor List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Vendor</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+               
+                    <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light" id="btnDownloadMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" id="btnAddEdit">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="VendorList">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Vendor Code</th>
+                                <th class="text-center">Vendor Name</th>
+                                <th class="text-center">Vendor Type</th>
+                                <th class="text-center">Vendor City</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    var FormComponents = function (DomainName) {
+
+        var loadData = function (DomainName, tblId) {
+            App.blockUI({ boxed: true });
+            var strUrl = DomainName + '/Master/GetVendorListJson'
+            $.ajax({
+                url: strUrl,
+                type: 'GET',
+                success: function (result) {
+                        var editBtnClass = '@ViewBag.UI.Buttons.Edit.CssClass';
+                         var editBtnIcon = '@ViewBag.UI.Buttons.Edit.Icon';
+                    var tableData = result;
+                    if (typeof result === 'object' && !Array.isArray(result)) {
+                        var tableNames = Object.keys(result);
+                        for (var i = 0; i < tableNames.length; i++) {
+                            if (Array.isArray(result[tableNames[i]])) {
+                                tableData = result[tableNames[i]];
+                                break;
+                            }
+                        }
+                    }
+
+                    GlDataTable.init(tblId, {
+                        data: tableData,
+                        statusFilter: 4,
+                        columns: [
+                            { data: "VENDORCODE" },
+                            { data: "VENDORNAME" },
+                            { data: "Vendor_Type" },
+                            { data: "VENDORCITY" },
+                            { data: "Active", orderable: false },
+                            { data: "VENDORCODE", orderable: false, searchable: false }
+                        ],
+                        columnDefs: [{
+                            targets: [4],
+                            render: function (data, type, full) {
+                                var isActive = full.Active == "Y" ? "checked" : "";
+                                return '<label class="switch">' +
+                                    '<input type="checkbox" ' + isActive +
+                                    ' class="btnToggleStatus" data-id="' + full.VENDORCODE +
+                                    '" data-name="' + full.VENDORNAME + '">' +
+                                    '<span class="slider round"></span></label>';
+                            }
+                        },
+                        {
+                            targets: [5],
+                            orderable: false,
+                            searchable: false,
+                            columnControl: [],
+                            render: function (data, type, full) {
+                                return '<button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass btnVendorEdit me-1" title="EditV0001" data-id="' + data + '"  data-name="' + data + '">' +
+                                    '<i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>';
+
+                                            }
+                        }],
+
+                        createdRow: function (row) {
+                            $(row).find('td').addClass('text-center');
+                        }
+                    });
+
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", 'Opration fail..!! There is some issue please try agian or Contact your administrator for more detail.', "Oppps..!!");
+                    App.unblockUI('#VendorList');
+                    App.unblockUI();
+                }
+            });
+        }
+
+        var Events = function (DomainName) {
+            $(document).on("click", "#VendorList a, .caption a", function (e) {
+                App.blockUI({ boxed: true });
+            });
+            $(document).on('click', ".btnVendorEdit", function () {
+
+                var id = $(this).data('id');
+                window.location.href = DomainName + '/Master/VendorMaster?Id=' + id;
+            });
+            $(document).on("click", ".btnToggleStatus", function (e) {
+                var checkbox = $(this);
+                var id = $(this).data('id');
+                var name = checkbox.data("name");
+                var isChecked = checkbox.is(':checked');
+                var action = isChecked ? "Activate" : "Inactivate";
+                checkbox.prop('checked', !isChecked);
+                showConfirm({
+                    title: action + "Vendor",
+                    message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> vendor for: <strong>' + name + '</strong>?',
+                    type: isChecked ? "success" : "info",
+                    onConfirm: function () {
+                        App.blockUI({ boxed: true });
+
+                        $.post(DomainName + '/Master/ToggleActiveVendor', { id: id }, function (res) {
+                            App.unblockUI();
+                            debugger
+                            if (res) {
+                                GLModal.showSuccess("Status updated successfully!");
+                                if ($.fn.DataTable.isDataTable('#VendorList')) { $('#VendorList').DataTable().clear().destroy(); }
+                                loadData(DomainName, 'VendorList');
+
+                            } else {
+                                GLModal.showError("Failed to update status.");
+                            }
+                        });
+                    }
+                });
+            });
+
+        
+
+
+
+        };
+
+        return {
+            //main function to initiate the module
+            init: function (DomainName) {
+                loadData(DomainName, 'VendorList');
+                Events(DomainName);
+                $(document).on("click", "#btnAddEdit", function () {
+                    App.blockUI({ boxed: true });
+                    window.location.href = DomainName + "/Master/VendorMaster";
+                });
+
+                $(document).on('click', '#btnDownloadMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "VendorMaster", "Vendor_List");
+                });
+            }
+        }
+    }();
+</script>
+

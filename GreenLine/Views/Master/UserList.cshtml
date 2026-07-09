@@ -1,0 +1,224 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_Master_Users>
+@{
+    ViewBag.Title = "User List Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">User List Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">User List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Users</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a  class="@ViewBag.UI.Buttons.Excel.CssClass" id="btnDownload">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </a>
+                    @if (@ViewBag.BaseUserReadWrite == "W")
+                    {
+                        <a class="@ViewBag.UI.Buttons.Add.CssClass btnAddEdit" href="@Url.Content("~/Master/_AddEditUser")">
+                            <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="card-body p-0">
+            <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="UserList">
+                <thead class="table-light">
+                    <tr>
+                        <th class="center">User Id</th>
+                        @*<th class="center">Employee Id</th>*@
+                        <th class="center">Location</th>
+                        <th class="center">User Type</th>
+                        <th class="center">User Status</th>
+                        <th class="center">User Name</th>
+                        <th class="center no-cc">Status</th>
+                        <th class="center no-cc">Action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript">
+    function userView(Id) {
+        var ReportURL = '@ViewBag.ReportURL';
+        var strWinFeature = "menubar=no,toolbar=no,location=no,resizable=yes,scrollbars=yes,width=800 ,height=600,status=no,left=60,top=50"
+        var strPopupURL = ReportURL + DomainName + "/ViewPrint/ViewUserDetails/" + Id;
+        winNew = window.open(strPopupURL, "_blank", strWinFeature);
+        return false;
+    }
+
+    // UI Theme button classes from ViewBag.UI (set by BaseController from UITheme.json)
+    var UI = {
+        editBtn:        '@ViewBag.UI.Buttons.Edit.CssClass',
+        editIcon:       '@ViewBag.UI.Buttons.Edit.Icon',
+        menuBtn:        '@ViewBag.UI.Buttons.MenuRights.CssClass',
+        menuIcon:       '@ViewBag.UI.Buttons.MenuRights.Icon',
+        rptBtn:         '@ViewBag.UI.Buttons.ReportsRights.CssClass',
+        rptIcon:        '@ViewBag.UI.Buttons.ReportsRights.Icon',
+        unblockBtn:     '@ViewBag.UI.Buttons.UnblockUser.CssClass',
+        unblockIcon:    '@ViewBag.UI.Buttons.UnblockUser.Icon',
+        viewBtn:        '@ViewBag.UI.Buttons.View.CssClass',
+        viewIcon:       '@ViewBag.UI.Buttons.View.Icon'
+    };
+
+    var FormComponents = function (DomainName) {
+
+        var loadData = function (DomainName, tblId) {
+            App.blockUI({ boxed: true });
+            var strUrl = DomainName + '/Master/GetUserListJson'
+            $.ajax({
+                url: strUrl,
+                type: 'POST',
+                success: function (result) {
+                    GlDataTable.refresh(tblId, {
+                        data: result,
+                        statusFilter: 5,
+                        columns: [
+                            { data: "UserId" },
+                            { data: "BranchCode" },
+                            { data: "usertypedesc" },
+                            { data: "EmTypDes" },
+                            { data: "Name" },
+                            { data: "Status", columnControl: false },
+                            { data: "UserId", columnControl: false }
+                        ],
+                        columnDefs: [
+                            { orderable: false, targets: [5, 6] },
+                            {
+                                targets: [5],
+                                render: function (data, type, full, meta) {
+                                    var isChecked = data == "100" ? "checked" : "";
+                                    return '<label class="switch"><input class = "btnToggleStatus" type="checkbox" ' + isChecked + ' data-id="' + full.UserId + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [6],
+                                render: function (data, type, full) {
+                                    if ("@ViewBag.BaseUserReadWrite" == "W" || "@ViewBag.BaseUserName" == "CYGNUSTEAM") {
+                                        return '<a href="' + DomainName + '/Master/_AddEditUser/' + data.trim() + '" class="' + UI.editBtn + ' me-1"><i class="' + UI.editIcon + '"></i></a>'
+                                             + '<a href="' + DomainName + '/Master/ChangeRights/' + data.trim() + '" class="' + UI.menuBtn + ' me-1"><i class="' + UI.menuIcon + '"></i> Menu Rights</a>'
+                                             + '<a href="' + DomainName + '/Master/ChangeReportRights/' + data.trim() + '" class="' + UI.rptBtn + ' me-1"><i class="' + UI.rptIcon + '"></i> Reports Rights</a>'
+                                             + '<a href="#" class="' + UI.unblockBtn + ' me-1 UnblockUser" data-id="' + data.trim() + '" data-type="2"><i class="' + UI.unblockIcon + '"></i> Unblock User</a>';
+                                    } else {
+                                        return '<button class="' + UI.viewBtn + '" onclick="userView(\'' + data.trim() + '\')"><i class="' + UI.viewIcon + '"></i> View</button>';
+                                    }
+                                }
+                            }
+                        ],
+                        createdRow: function (row, data) {
+                            $('td:eq(0)', row).addClass('text-uppercase text-center');
+                            $('td:eq(1)', row).addClass('text-uppercase text-center');
+                            $('td:eq(2)', row).addClass('text-uppercase text-center');
+                            $('td:eq(3)', row).addClass('text-center');
+                            $('td:eq(4)', row).addClass('text-center');
+                            $('td:eq(5)', row).addClass('text-center');
+                            $('td:eq(6)', row).addClass('text-center');
+                        }
+                    });
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                    App.unblockUI();
+                }
+            });
+        }
+
+        var Events = function (DomainName) {
+            $(document).on("click", "#UserList a.btnAddEdit", function (e) {
+                App.blockUI({ boxed: true });
+            });
+
+            $(document).on("click", ".PasswordEye", function (e) {
+                var URL = DomainName + "/Home/GetPasswordFromUserID/" + $(this).data('id');
+                window.open(URL, '_blank');
+            });
+
+            $(document).on("click", ".UnblockUser", function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '@Url.Action("PasswordReset", "Master")',
+                    type: "POST",
+                    context: document.body,
+                    data: { id: $(this).data('id'), newPassword: generateRandomString(6), type: $(this).data('type') },
+                    success: function (data) {
+                        if (data) {
+                            TosterNotification("success", "Record has been updated successfully..!!", "Success");
+                        }
+                        else {
+                            TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                        }
+                        $("#btnClosePasswordResetmodal").click();
+                    },
+                    error: function (err) {
+                        TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                        App.unblockUI();
+                    }
+                });
+            });
+        }
+
+        return {
+            //main function to initiate the module
+            init: function (DomainName) {
+                loadData(DomainName, 'UserList');
+                Events(DomainName);
+                 $(document).on("click", ".btnToggleStatus", function (e) {
+                 e.preventDefault();
+                 var checkbox = $(this);
+                 var id = checkbox.data("id");
+                 var name = checkbox.data("name");
+                 var isChecked = checkbox.is(':checked'); // Note: jsGrid checkbox status on click
+     
+                 var action = isChecked ? "Activate" : "Inactivate";
+                 var type = isChecked ? "success" : "info";
+
+                 showConfirm({
+                     title: action + " User",
+                     message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for <strong style="color:#405189">"' + id + '"</strong>?',
+                     type: type,
+                     confirmText: "Yes",
+                     cancelText: "No",
+                     onConfirm: function () {
+                         App.blockUI({ boxed: true });
+                         $.post(DomainName + '/Master/ActiveInActive_User', { id: id }, function(res) {
+                             App.unblockUI();
+                             if (res) {
+                                 GLModal.showSuccess("Status updated successfully!");
+                                 loadData(DomainName, "UserList");
+                             } else {
+                                 GLModal.showError("Failed to update status.");
+                             }
+                         });
+                     }
+                 });
+                 });
+                $(document).on('click', '#btnDownload', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "User", "User Master List");
+                });
+
+            }
+        }
+    }();
+</script>

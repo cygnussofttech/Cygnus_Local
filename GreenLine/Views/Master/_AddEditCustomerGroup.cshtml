@@ -1,0 +1,57 @@
+@model GreenLineDataService.Models.CYGNUS_GRPMST
+@using GreenLineDataService.Models;
+@{
+    var title = (Model.GRPCD != null && Model.GRPCD != "0") ? "Edit Customer Group" : "Add Customer Group";
+    bool isActive = (string.IsNullOrEmpty(Model.ActiveFlag) || Model.ActiveFlag.ToUpper() == "Y");
+}
+
+@using (Html.BeginForm("AddEditCustomerGroup", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-horizontal form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.GRPCD)
+    @Html.HiddenFor(m => m.OLD_GRPCD)
+
+    <!-- Section 1: Group Details -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-team-line align-middle me-1"></i> Group Information
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Group Code</label>
+                    @Html.TextBoxFor(c => c.GRPCD, new { @placeholder = "System Generated", @class = "form-control bg-light", @readonly = "true" })
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Group Name</label>
+                    @Html.TextBoxFor(c => c.GRPNM, new { @class = "form-control required", @placeholder = "Enter Group Name" })
+                    @Html.ValidationMessageFor(m => m.GRPNM)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    if (Model.GRPCD != null && Model.GRPCD != "0")
+    {
+        <!-- Section 2: Configuration -->
+        <div class="section-box">
+            <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+                <i class="ri-settings-2-line align-middle me-1"></i> Configuration
+            </h5>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-check form-switch form-switch-success">
+                        <input type="checkbox" name="ActiveFlag" value="true" class="form-check-input cursor-pointer" id="IsActive" @(isActive ? "checked" : "") />
+                        <label class="form-check-label ms-2 cursor-pointer" for="IsActive">Status</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" name="ActiveFlag" value="true" />
+    }
+}

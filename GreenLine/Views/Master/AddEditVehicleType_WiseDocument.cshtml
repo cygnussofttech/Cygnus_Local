@@ -1,0 +1,245 @@
+@model List<GreenLineDataService.Models.Cygnus_Master_VehicleType_wise_Document>
+@{
+    bool isEdit = !string.IsNullOrEmpty(ViewBag.SelectedVehicleType);
+    var modeText = isEdit ? "Edit" : "Add";
+    ViewBag.Title = modeText + " Type Wise Document";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">@ViewBag.Title</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">Master</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Content("~/Master/VehicleType_WiseDocument")">Type Wise Document List</a></li>
+                    <li class="breadcrumb-item active">@modeText</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h5 class="card-title mb-0 flex-grow-1">
+                    <i class="ri-file-list-3-line align-middle me-1"></i> Type Wise Document Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Vehicle Type Dropdown -->
+                <div class="row g-3 mb-3">
+                    <div class="col-lg-2 col-md-4">
+                        <div class="form-group">
+                            <label class="form-label fw-medium mb-1 mt-2 text-muted required-field">Vehicle Type</label>
+                            @if (!string.IsNullOrEmpty(ViewBag.SelectedVehicleType as string))
+                            {
+                                @Html.DropDownList("ddlVehicleType", ViewBag.VehicleTypeList as SelectList, "", new { @class = "select2 form-control required", id = "ddlVehicleType", disabled = "disabled" })
+                            }
+                            else
+                            {
+                                @Html.DropDownList("ddlVehicleType", ViewBag.VehicleTypeList as SelectList, "", new { @class = "select2 form-control required", id = "ddlVehicleType" })
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Table -->
+                <div id="divDocumentTable" style="@(Model != null && Model.Count > 0 ? "" : "display:none")">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-nowrap mb-0" id="tblDocuments">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center" style="width:50px;">Status</th>
+                                    <th>Document Name</th>
+                                    @*<th class="text-center">Short Name</th>*@
+                                    <th class="text-center">Req. For Own</th>
+                                    <th class="text-center">Req. For Market</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblDocBody">
+                                @if (Model != null && Model.Count > 0)
+                                {
+                                    for (int i = 0; i < Model.Count; i++)
+                                    {
+                                        <tr class="@(Model[i].Is_Active ? "table-light" : "")" data-id="@Model[i].Id" data-docid="@Model[i].Documnet_Id" data-docname="@Model[i].Document_Name">
+                                            <td class="text-center">
+                                                <div class="form-check form-switch form-switch-success justify-content-center d-flex">
+                                                    @Html.CheckBoxFor(m => m[i].Is_Active, new { @class = "form-check-input chk-active", role = "switch" })
+                                                </div>
+                                            </td>
+                                            <td class="fw-medium">@Model[i].Document_Name</td>
+                                            @*<td class="text-center">@Model[i].ShortName</td>*@
+                                            <td class="text-center">
+                                                <div class="form-check form-switch form-switch-primary justify-content-center d-flex">
+                                                    @Html.CheckBoxFor(m => m[i].Is_RequireFor_Own, new { @class = "form-check-input chk-own", role = "switch" })
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="form-check form-switch form-switch-primary justify-content-center d-flex">
+                                                    @Html.CheckBoxFor(m => m[i].Is_RequireFor_Market, new { @class = "form-check-input chk-market", role = "switch" })
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Empty state when no vehicle type selected -->
+                <div id="divEmptyState" style="@(Model != null && Model.Count > 0 ? "display:none" : "")">
+                    <div class="text-center py-2 text-muted">
+                        <i class="ri-file-list-3-line fs-1 opacity-50 text-primary d-block" style="font-size: 3rem !important;"></i>
+                        <p class="fw-medium">Please select a Vehicle Type to view and manage documents.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-actions">
+    <a href="@Url.Content("~/Master/VehicleType_WiseDocument")" class="@ViewBag.UI.Buttons.Cancel.CssClass">
+        <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i> @ViewBag.UI.Buttons.Cancel.Label
+    </a>
+    <button type="button" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass" style="@(Model != null && Model.Count > 0 ? "" : "display:none")">
+        <i class="@ViewBag.UI.Buttons.Submit.Icon"></i> @ViewBag.UI.Buttons.Submit.Label
+    </button>
+</div>
+
+<script>
+    var FormComponents = function (DomainName) {
+        var initEvents = function (DomainName) {
+
+            // Highlight row when active toggle is switched
+            $(document).on('change', '.chk-active', function () {
+                var $row = $(this).closest('tr');
+                if ($(this).is(':checked')) {
+                    $row.addClass('table-light');
+                } else {
+                    $row.removeClass('table-light');
+                    $row.find('.chk-own, .chk-market').prop('checked', false);
+                }
+            });
+
+            // Load documents when vehicle type changes
+            $('#ddlVehicleType').on('change', function () {
+                var vType = $(this).val();
+                if (!vType) {
+                    $('#divDocumentTable').hide();
+                    $('#divEmptyState').show();
+                    $('#btnSubmit').hide();
+                    return;
+                }
+                App.blockUI({ boxed: true });
+                $.ajax({
+                    url: DomainName + '/Master/GetDocumentListByVehicleType?vehicleType=' + vType,
+                    type: 'GET',
+                    success: function (data) {
+                        var tbody = $('#tblDocBody');
+                        tbody.empty();
+                        if (data && data.length > 0) {
+                            $.each(data, function (i, item) {
+                                var activeChecked = item.Is_Active ? 'checked' : '';
+                                var ownChecked = item.Is_RequireFor_Own ? 'checked' : '';
+                                var marketChecked = item.Is_RequireFor_Market ? 'checked' : '';
+                                var rowClass = item.Is_Active ? 'table-light' : '';
+                                tbody.append(
+                                    '<tr class="' + rowClass + '" data-id="' + item.Id + '" data-docid="' + item.Documnet_Id + '" data-docname="' + item.Document_Name + '">' +
+                                    '<td class="text-center"><div class="form-check form-switch form-switch-success justify-content-center d-flex"><input class="form-check-input chk-active" type="checkbox" role="switch" ' + activeChecked + '></div></td>' +
+                                    '<td class="fw-medium">' + item.Document_Name + '</td>' +
+                                    //'<td class="text-center">' + (item.ShortName || '') + '</td>' +
+                                    '<td class="text-center"><div class="form-check form-switch form-switch-primary justify-content-center d-flex"><input class="form-check-input chk-own" type="checkbox" role="switch" ' + ownChecked + '></div></td>' +
+                                    '<td class="text-center"><div class="form-check form-switch form-switch-primary justify-content-center d-flex"><input class="form-check-input chk-market" type="checkbox" role="switch" ' + marketChecked + '></div></td>' +
+                                    '</tr>'
+                                );
+                            });
+                            $('#divDocumentTable').show();
+                            $('#divEmptyState').hide();
+                            $('#btnSubmit').show();
+                        } else {
+                            $('#divDocumentTable').hide();
+                            $('#divEmptyState').show();
+                            $('#btnSubmit').hide();
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        TosterNotification("error", "Failed to load documents. Please try again.", "Error");
+                        App.unblockUI();
+                    }
+                });
+            });
+
+            // Save
+            $('#btnSubmit').on('click', function () {
+                var vType = $('#ddlVehicleType').val();
+                if (!vType) {
+                    TosterNotification("error", "Please select a Vehicle Type.", "Validation");
+                    return;
+                }
+                var rows = [];
+                $('#tblDocuments tbody tr').each(function () {
+                    rows.push({
+                        Id: parseInt($(this).data('id')) || 0,
+                        Documnet_Id: $(this).data('docid').toString(),
+                        Document_Name: $(this).data('docname').toString(),
+                        ShortName: '',
+                        Is_Active: $(this).find('.chk-active').is(':checked'),
+                        Is_RequireFor_Own: $(this).find('.chk-own').is(':checked'),
+                        Is_RequireFor_Market: $(this).find('.chk-market').is(':checked')
+                    });
+                });
+                App.blockUI({ boxed: true });
+                $.ajax({
+                    url: DomainName + '/Master/SaveVehicleType_WiseDocument',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ vehicleDocumentType: vType, docList: rows }),
+                    success: function (result) {
+                        if (result.Status) {
+                            TosterNotification("success", "Documents saved successfully.", "Success");
+                            setTimeout(function () {
+                                window.location = DomainName + '/Master/VehicleType_WiseDocument';
+                            }, 1500);
+                        } else {
+                            TosterNotification("error", result.Message || "Save failed. Please try again.", "Error");
+                            App.unblockUI();
+                        }
+                    },
+                    error: function () {
+                        TosterNotification("error", "Operation failed. Please try again.", "Error");
+                        App.unblockUI();
+                    }
+                });
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                initEvents(DomainName);
+
+                if ($('#ddlVehicleType').data('select2')) {
+                    $('#ddlVehicleType').select2('destroy');
+                }
+                $('#ddlVehicleType').select2({
+                    placeholder: '-- Select Vehicle Type --',
+                    allowClear: true
+                });
+
+                // Mark required labels
+                $('input.required, select.required, textarea.required').each(function () {
+                    var lbl = $('label[for="' + $(this).attr('id') + '"]');
+                    if (lbl.length === 0) lbl = $(this).closest('.form-group').find('label').first();
+                    lbl.addClass('required-field');
+                });
+            }
+        };
+    }();
+</script>

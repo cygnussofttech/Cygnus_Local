@@ -1,0 +1,886 @@
+@model GreenLineDataService.ViewModel.CYGNUS_Master_FuelStationViewModel
+@using GreenLineDataService.Models;
+
+@{
+    var title = Model.FuelStation.Id > 0 ? "Edit Fuel Station" : "Add Fuel Station";
+    ViewBag.Title = title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var type = Model.FuelStation.Id > 0 ? "Edit" : "Add";
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0 text-uppercase fw-bold" style="color: #0ab39c; letter-spacing: 0.6px; font-size: 14px;">@type Fuel Station</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 fs-11">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="text-muted">Master</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Content("~/Master/FuelStation")" class="text-muted">Fuel Station List</a></li>
+                    <li class="breadcrumb-item active fw-medium">@type</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+@using (Html.BeginForm("AddEditFuelStation", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui" }))
+{
+    @Html.HiddenFor(m => m.FuelStation.Id)
+    @Html.HiddenFor(m => m.ShapeType)
+    @Html.HiddenFor(m => m.Radius)
+    @Html.HiddenFor(m => m.Geom)
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-0">
+                <div class="card-header align-items-center d-flex section-header-bg">
+                    <h5 class="card-title mb-0 flex-grow-1">
+                        <i class="ri-gas-station-line align-middle me-1 text-primary"></i> Station Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Station Name</label>
+                                @Html.TextBoxFor(m => m.FuelStation.StationName, new { @class = "form-control required", placeholder = "Station Location" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Ugelro ID</label>
+                                @Html.TextBoxFor(m => m.FuelStation.UgelroId, new { @class = "form-control", placeholder = "Enter Ugelro ID" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Station Address</label>
+                                @Html.TextBoxFor(m => m.FuelStation.GeoAddress, new { @id = "txtAddress", @class = "form-control required", placeholder = "Enter Station Address" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">PinCode</label>
+                                @Html.DropDownListFor(m => m.FuelStation.Pincode, new SelectList(ViewBag.PincodeList, "pincode", "pincode", Model.FuelStation.Pincode), "", new { @class = "required select2", @placeholder = "Select PinCode" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">City</label>
+                                @Html.DropDownListFor(m => m.FuelStation.City, new SelectList(ViewBag.CityList, "city_code", "Location", Model.FuelStation.City), "", new { @class = "required select2", @placeholder = "Select City", @disabled = "disabled" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">State</label>
+                                @Html.DropDownListFor(m => m.FuelStation.State, new SelectList(ViewBag.StateList, "stcd", "stnm", Model.FuelStation.State), "", new { @class = "required select2", @placeholder = "Select State", @disabled = "disabled" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Latitude</label>
+                                @Html.TextBoxFor(m => m.FuelStation.Latitude, new { @id = "txtLatitude", @class = "form-control", placeholder = "0.000000", onkeypress = "return validFloat(event, this.id)", @disabled = "disabled" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Longitude</label>
+                                @Html.TextBoxFor(m => m.FuelStation.Longitude, new { @id = "txtLongitude", @class = "form-control", placeholder = "0.000000", onkeypress = "return validFloat(event, this.id)", @disabled = "disabled" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Contact Person</label>
+                                @Html.TextBoxFor(m => m.FuelStation.ContactPersonName, new { @class = "form-control required", placeholder = "Name of point of contact" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Contact Number</label>
+                                @Html.TextBoxFor(m => m.FuelStation.ContactPersonNumber, new { @class = "form-control Mobile required", placeholder = "Contact Number for 10 digits", maxlength = "10", minlength = "10", onkeypress = "return validDigits(event, this.id)" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Contact Email</label>
+                                @Html.TextBoxFor(m => m.FuelStation.ContactPersonEmail, new { @class = "form-control email", placeholder = "contact@station.com" })
+                            </div>
+                        </div>
+                        @if (Model.FuelStation.Id > 0)
+                        {
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label d-block">Status</label>
+                                    <div class="form-check form-switch form-switch-md d-inline-block">
+                                        @Html.CheckBoxFor(m => m.FuelStation.IsActive, new { @class = "form-check-input" })
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Map Container taking full width below inputs -->
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="border border-dashed rounded-3 shadow-none p-1" style="height: 400px; position: relative;">
+                                <div id="fuelStationMap" class="rounded-3" style="position: absolute; top: 0; bottom: 0; left: 0; right: 0;"></div>
+                            </div>
+                            <span class="text-muted small">
+                                <i class="ri-information-line align-middle me-1 text-info"></i> Interactive Map: Drag the marker or click anywhere on the map to set the fuel station's location.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass" onclick="location.href='@Url.Content("~/Master/FuelStation")'">
+            <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i> @ViewBag.UI.Buttons.Cancel.Label
+        </button>
+        <button type="button" id="btnSave" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon"></i> @ViewBag.UI.Buttons.Submit.Label
+        </button>
+    </div>
+}
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.64&key=@(ViewBag.GoogleMapsApiKey)&libraries=drawing,geometry,places"></script>
+<script type="text/javascript">
+    var searchedLatLng = null;
+    var currentCircle = null;
+    var currentPolygon = null;
+    var clearInvalidShape = null;
+
+    function checkContainment() {
+        var addressText = $("#txtAddress").val() || "";
+        if (addressText.trim() === "") {
+            return true;
+        }
+
+        var latVal = parseFloat($("#txtLatitude").val());
+        var lngVal = parseFloat($("#txtLongitude").val());
+
+        if (isNaN(latVal) || isNaN(lngVal) || latVal === 0 || lngVal === 0) {
+            return true;
+        }
+
+        var currentLatLng = new google.maps.LatLng(latVal, lngVal);
+
+        if (searchedLatLng) {
+            var dist = google.maps.geometry.spherical.computeDistanceBetween(searchedLatLng, currentLatLng);
+            if (dist > 5000) {
+                GLModal.showError("Validation Warning", "The pinpoint location must be within 5000 meters of the searched address location.");
+                return false;
+            }
+        }
+
+        // Validate shape containment if a Circle or Polygon is drawn
+        if (currentCircle || currentPolygon) {
+            var isInside = false;
+            if (currentCircle) {
+                var centerDist = google.maps.geometry.spherical.computeDistanceBetween(currentLatLng, currentCircle.getCenter());
+                if (centerDist <= currentCircle.getRadius()) {
+                    isInside = true;
+                }
+            } else if (currentPolygon) {
+                if (google.maps.geometry.poly.containsLocation(currentLatLng, currentPolygon)) {
+                    isInside = true;
+                }
+            }
+
+            if (!isInside) {
+                GLModal.showError("Validation Warning", "The pinpoint location must be inside the drawn Geofence shape overlay on the map.");
+                if (typeof clearInvalidShape === "function") {
+                    clearInvalidShape();
+                }
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form = $('#form_sample');
+            if (!form.length) return;
+
+            form.validate({
+                errorElement: 'span',
+                errorClass: 'help-block text-danger',
+                focusInvalid: false,
+                ignore: "",
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                },
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible")) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                }
+            });
+        };
+
+        var Events = function (DomainName) {
+            var resolveCityCascade = function (stateCode, targetCityName) {
+                if (!stateCode) {
+                    $('#FuelStation_City').empty().append('<option value="">Select City</option>').trigger('change');
+                    return;
+                }
+                var strUrl = DomainName + "/Master/GetCityByStateJson?Id=" + stateCode;
+                App.blockUI({ boxed: true });
+                $.ajax({
+                    url: strUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        var target = $('#FuelStation_City');
+                        target.empty();
+                        target.append('<option value="">Select City</option>');
+                        var matchedValue = "";
+                        if (data && data.length > 0) {
+                            for (var i = 0; i < data.length; i++) {
+                                target.append(new Option(data[i].Text, data[i].Value));
+                                if (targetCityName) {
+                                    var optText = data[i].Text.trim().toLowerCase();
+                                    var searchVal = targetCityName.trim().toLowerCase();
+                                    if (optText === searchVal || optText.indexOf(searchVal) > -1 || searchVal.indexOf(optText) > -1) {
+                                        matchedValue = data[i].Value;
+                                    }
+                                }
+                            }
+                        }
+                        if (matchedValue) {
+                            target.val(matchedValue).trigger('change');
+                        } else {
+                            target.val('').trigger('change');
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        App.unblockUI();
+                    }
+                });
+            };
+
+            var resolveCityCascadeWithCode = function (stateCode, targetCityCode, targetCityName) {
+                if (!stateCode) {
+                    $('#FuelStation_City').empty().append('<option value="">Select City</option>').trigger('change');
+                    return;
+                }
+                var strUrl = DomainName + "/Master/GetCityByStateJson?Id=" + stateCode;
+                App.blockUI({ boxed: true });
+                $.ajax({
+                    url: strUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        var target = $('#FuelStation_City');
+                        target.empty();
+                        target.append('<option value="">Select City</option>');
+                        var found = false;
+                        if (data && data.length > 0) {
+                            for (var i = 0; i < data.length; i++) {
+                                target.append(new Option(data[i].Text, data[i].Value));
+                                if (String(data[i].Value) === String(targetCityCode)) {
+                                    found = true;
+                                }
+                            }
+                        }
+                        if (targetCityCode) {
+                            if (!found && targetCityName) {
+                                target.append(new Option(targetCityName, targetCityCode));
+                            }
+                            target.val(targetCityCode).trigger('change');
+                        } else {
+                            target.val('').trigger('change');
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        App.unblockUI();
+                    }
+                });
+            };
+
+            // Plugin Initialization
+            $(".dropDown, select").select2({
+                placeholder: "Select",
+                allowClear: true
+            });
+
+            if ($.fn.uniform) {
+                $("input:checkbox, input:radio").uniform();
+            }
+
+            // Google Maps Initialization
+            var map;
+            var marker;
+            var defaultLatLng = new google.maps.LatLng(20.5937, 78.9629); // India Center
+            var hasCoords = false;
+
+            var inputLatVal = $("#txtLatitude").val();
+            var inputLngVal = $("#txtLongitude").val();
+
+            var lat = parseFloat(inputLatVal);
+            var lng = parseFloat(inputLngVal);
+
+            var mapCenter = defaultLatLng;
+            var initialZoom = 5;
+
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                mapCenter = new google.maps.LatLng(lat, lng);
+                initialZoom = 15;
+                hasCoords = true;
+            }
+
+            map = new google.maps.Map(document.getElementById('fuelStationMap'), {
+                center: mapCenter,
+                zoom: initialZoom,
+                mapTypeControl: true,
+                streetViewControl: false
+            });
+
+            marker = new google.maps.Marker({
+                map: map,
+                draggable: false,
+                animation: google.maps.Animation.DROP
+            });
+
+            currentCircle = null;
+            currentPolygon = null;
+            var controlUI = null;
+
+            function updateClearButtonVisibility() {
+                if (!controlUI) return;
+                var hasCircle = currentCircle && currentCircle.getMap() !== null;
+                var hasPolygon = currentPolygon && currentPolygon.getMap() !== null;
+                if (hasCircle || hasPolygon) {
+                    controlUI.style.display = 'block';
+                } else {
+                    controlUI.style.display = 'none';
+                }
+            }
+
+            function clearExistingGeofence() {
+                if (currentCircle) {
+                    currentCircle.setMap(null);
+                    currentCircle = null;
+                }
+                if (currentPolygon) {
+                    currentPolygon.setMap(null);
+                    currentPolygon = null;
+                }
+                $("#ShapeType").val("");
+                $("#Radius").val("");
+                $("#Geom").val("");
+                drawingManager.setMap(map);
+                drawingManager.setOptions({ drawingControl: true });
+                updateClearButtonVisibility();
+            }
+
+            function updateCircleCoords(circ) {
+                if (!circ) return;
+                var center = circ.getCenter();
+                var radius = circ.getRadius();
+
+                // Calculate outer 4 points of the circle (N, E, S, W) using geometry library
+                var topPoint = google.maps.geometry.spherical.computeOffset(center, radius, 0);
+                var rightPoint = google.maps.geometry.spherical.computeOffset(center, radius, 90);
+                var bottomPoint = google.maps.geometry.spherical.computeOffset(center, radius, 180);
+                var leftPoint = google.maps.geometry.spherical.computeOffset(center, radius, 270);
+
+                var geomString =
+                    center.lat().toFixed(6) + "," + center.lng().toFixed(6) + "|" +
+                    topPoint.lat().toFixed(6) + "," + topPoint.lng().toFixed(6) + "|" +
+                    rightPoint.lat().toFixed(6) + "," + rightPoint.lng().toFixed(6) + "|" +
+                    bottomPoint.lat().toFixed(6) + "," + bottomPoint.lng().toFixed(6) + "|" +
+                    leftPoint.lat().toFixed(6) + "," + leftPoint.lng().toFixed(6);
+
+                $("#Geom").val(geomString);
+            }
+
+            function updatePolygonCoords(poly) {
+                var path = poly.getPath();
+                var points = [];
+                path.forEach(function (vertex) {
+                    var latVal = vertex.lat().toFixed(6);
+                    var lngVal = vertex.lng().toFixed(6);
+                    points.push(latVal + "," + lngVal);
+                });
+                $("#Geom").val(points.join("|"));
+            }
+
+            clearInvalidShape = function () {
+                clearExistingGeofence();
+            };
+
+            // Initialize DrawingManager and show circle and polygon icons
+            var drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: null,
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: [
+                        google.maps.drawing.OverlayType.CIRCLE,
+                        google.maps.drawing.OverlayType.POLYGON
+                    ]
+                },
+                circleOptions: {
+                    fillColor: '#FF6F59',
+                    fillOpacity: 0.2,
+                    strokeColor: '#FF3B30',
+                    strokeOpacity: 0.7,
+                    strokeWeight: 2,
+                    clickable: true,
+                    editable: true,
+                    zIndex: 1
+                },
+                polygonOptions: {
+                    fillColor: '#FF6F59',
+                    fillOpacity: 0.2,
+                    strokeColor: '#FF3B30',
+                    strokeOpacity: 0.7,
+                    strokeWeight: 2,
+                    clickable: true,
+                    editable: true,
+                    zIndex: 1
+                }
+            });
+            drawingManager.setMap(map);
+
+            function drawExistingShapeOnLoad() {
+                var savedGeom = $("#Geom").val();
+                var savedShape = $("#ShapeType").val();
+                var savedRadius = parseFloat($("#Radius").val());
+
+                if (savedGeom) {
+                    var normalizedShape = (savedShape || "").toLowerCase();
+
+                    if (normalizedShape === "polygon") {
+                        var coords = savedGeom.split('|');
+                        var pathPoints = [];
+                        coords.forEach(function (pair) {
+                            var parts = pair.split(',');
+                            if (parts.length >= 2) {
+                                var ptLat = parseFloat(parts[0]);
+                                var ptLng = parseFloat(parts[1]);
+                                if (!isNaN(ptLat) && !isNaN(ptLng)) {
+                                    pathPoints.push(new google.maps.LatLng(ptLat, ptLng));
+                                }
+                            }
+                        });
+
+                        if (pathPoints.length > 0) {
+                            currentPolygon = new google.maps.Polygon({
+                                paths: pathPoints,
+                                map: map,
+                                fillColor: '#FF6F59',
+                                fillOpacity: 0.2,
+                                strokeColor: '#FF3B30',
+                                strokeOpacity: 0.7,
+                                strokeWeight: 2,
+                                clickable: true,
+                                editable: true
+                            });
+
+                            var path = currentPolygon.getPath();
+                            google.maps.event.addListener(path, 'set_at', function () { updatePolygonCoords(currentPolygon); checkContainment(); });
+                            google.maps.event.addListener(path, 'insert_at', function () { updatePolygonCoords(currentPolygon); checkContainment(); });
+                            google.maps.event.addListener(path, 'remove_at', function () { updatePolygonCoords(currentPolygon); checkContainment(); });
+
+                            var bounds = new google.maps.LatLngBounds();
+                            pathPoints.forEach(function (pt) { bounds.extend(pt); });
+                            map.fitBounds(bounds);
+
+                            drawingManager.setOptions({ drawingControl: false });
+                        }
+                    } else if (normalizedShape === "circle") {
+                        var centerStr = savedGeom.split('|')[0];
+                        var parts = centerStr.split(',');
+                        if (parts.length >= 2) {
+                            var centerLat = parseFloat(parts[0]);
+                            var centerLng = parseFloat(parts[1]);
+                            if (!isNaN(centerLat) && !isNaN(centerLng)) {
+                                var centerPt = new google.maps.LatLng(centerLat, centerLng);
+                                currentCircle = new google.maps.Circle({
+                                    map: map,
+                                    center: centerPt,
+                                    radius: !isNaN(savedRadius) ? savedRadius : 150,
+                                    fillColor: '#FF6F59',
+                                    fillOpacity: 0.2,
+                                    strokeColor: '#FF3B30',
+                                    strokeOpacity: 0.7,
+                                    strokeWeight: 2,
+                                    clickable: true,
+                                    editable: true
+                                });
+
+                                google.maps.event.addListener(currentCircle, 'radius_changed', function () {
+                                    var r = Math.round(currentCircle.getRadius());
+                                    if (r > 5000) {
+                                        currentCircle.setRadius(5000);
+                                        r = 5000;
+                                        GLModal.showError("Limit Exceeded", "Geofence radius cannot exceed 5000 meters.");
+                                    }
+                                    $("#Radius").val(r);
+                                    updateCircleCoords(currentCircle);
+                                    checkContainment();
+                                });
+                                google.maps.event.addListener(currentCircle, 'center_changed', function () {
+                                    updateCircleCoords(currentCircle);
+                                    checkContainment();
+                                });
+
+                                map.fitBounds(currentCircle.getBounds());
+
+                                drawingManager.setOptions({ drawingControl: false });
+                            }
+                        }
+                    }
+                }
+                updateClearButtonVisibility();
+            }
+
+            google.maps.event.addListener(drawingManager, 'circlecomplete', function (circle) {
+                var locationText = $("#txtAddress").val() || "";
+                if (locationText.trim() === "") {
+                    GLModal.showError("Validation Error", "Please search for and select a Google Location first before drawing a geofence shape.");
+                    circle.setMap(null);
+                    return;
+                }
+
+                var r = Math.round(circle.getRadius());
+                if (r > 5000) {
+                    GLModal.showError("Limit Exceeded", "Geofence radius cannot exceed 5000 meters.");
+                    circle.setMap(null);
+                    return;
+                }
+
+                var existingLat = parseFloat($("#txtLatitude").val());
+                var existingLng = parseFloat($("#txtLongitude").val());
+
+                if (currentCircle) { currentCircle.setMap(null); }
+                if (currentPolygon) { currentPolygon.setMap(null); currentPolygon = null; }
+                currentCircle = circle;
+
+                $("#ShapeType").val("Circle");
+                $("#Radius").val(r);
+                updateCircleCoords(circle);
+
+                var center = circle.getCenter();
+
+                // If no pinpoint was set yet, set the pinpoint to the center of the drawn circle
+                if (isNaN(existingLat) || isNaN(existingLng) || existingLat === 0 || existingLng === 0) {
+                    $("#txtLatitude").val(center.lat().toFixed(6));
+                    $("#txtLongitude").val(center.lng().toFixed(6));
+                    marker.setMap(map);
+                    marker.setPosition(center);
+                }
+
+                google.maps.event.addListener(circle, 'radius_changed', function () {
+                    var r = Math.round(circle.getRadius());
+                    if (r > 5000) {
+                        GLModal.showError("Limit Exceeded", "Geofence radius cannot exceed 5000 meters.");
+                        clearExistingGeofence();
+                    } else {
+                        $("#Radius").val(r);
+                        updateCircleCoords(circle);
+                        checkContainment();
+                    }
+                });
+                google.maps.event.addListener(circle, 'center_changed', function () {
+                    updateCircleCoords(circle);
+                    checkContainment();
+                });
+
+                drawingManager.setDrawingMode(null);
+                drawingManager.setOptions({ drawingControl: false });
+                updateClearButtonVisibility();
+                checkContainment();
+            });
+
+            google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
+                var locationText = $("#txtAddress").val() || "";
+                if (locationText.trim() === "") {
+                    GLModal.showError("Validation Error", "Please search for and select a Google Location first before drawing a geofence shape.");
+                    polygon.setMap(null);
+                    return;
+                }
+
+                var existingLat = parseFloat($("#txtLatitude").val());
+                var existingLng = parseFloat($("#txtLongitude").val());
+
+                if (currentCircle) { currentCircle.setMap(null); currentCircle = null; }
+                if (currentPolygon) { currentPolygon.setMap(null); }
+                currentPolygon = polygon;
+
+                $("#ShapeType").val("Polygon");
+                $("#Radius").val("");
+                updatePolygonCoords(polygon);
+
+                var path = polygon.getPath();
+
+                // If no pinpoint was set yet, set the pinpoint to the geometric center of the drawn polygon
+                if (isNaN(existingLat) || isNaN(existingLng) || existingLat === 0 || existingLng === 0) {
+                    var bounds = new google.maps.LatLngBounds();
+                    path.forEach(function (vertex) {
+                        bounds.extend(vertex);
+                    });
+                    var center = bounds.getCenter();
+                    $("#txtLatitude").val(center.lat().toFixed(6));
+                    $("#txtLongitude").val(center.lng().toFixed(6));
+                    marker.setMap(map);
+                    marker.setPosition(center);
+                }
+
+                google.maps.event.addListener(path, 'set_at', function () { updatePolygonCoords(polygon); checkContainment(); });
+                google.maps.event.addListener(path, 'insert_at', function () { updatePolygonCoords(polygon); checkContainment(); });
+                google.maps.event.addListener(path, 'remove_at', function () { updatePolygonCoords(polygon); checkContainment(); });
+
+                drawingManager.setDrawingMode(null);
+                drawingManager.setOptions({ drawingControl: false });
+                updateClearButtonVisibility();
+                checkContainment();
+            });
+
+            // Clear button on map (Google Maps default control style)
+            var controlDiv = document.createElement('div');
+            controlDiv.style.margin = '10px';
+
+            controlUI = document.createElement('button');
+            controlUI.type = 'button';
+            controlUI.style.backgroundColor = '#fff';
+            controlUI.style.border = '2px solid #fff';
+            controlUI.style.borderRadius = '3px';
+            controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+            controlUI.style.cursor = 'pointer';
+            controlUI.style.textAlign = 'center';
+            controlUI.style.padding = '0 8px';
+            controlUI.style.height = '40px';
+            controlUI.style.display = 'none'; // Hide by default
+            controlUI.title = 'Click to clear geofence';
+            controlDiv.appendChild(controlUI);
+
+            var controlText = document.createElement('div');
+            controlText.style.color = 'rgb(25,25,25)';
+            controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+            controlText.style.fontSize = '12px';
+            controlText.style.fontWeight = '500';
+            controlText.style.lineHeight = '36px';
+            controlText.innerHTML = 'Clear Geofence';
+            controlUI.appendChild(controlText);
+
+            controlUI.addEventListener('click', function () {
+                clearExistingGeofence();
+            });
+
+            map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDiv);
+
+            if (hasCoords) {
+                marker.setPosition(mapCenter);
+            }
+
+            drawExistingShapeOnLoad();
+
+            // Google Places Search Autocomplete
+            var searchInput = document.getElementById('txtAddress');
+            var autocomplete = new google.maps.places.Autocomplete(searchInput);
+            autocomplete.bindTo('bounds', map);
+
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    TosterNotification("warning", "No details available for selected input.", "Warning");
+                    return;
+                }
+
+                clearExistingGeofence();
+
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(16);
+                }
+
+                searchedLatLng = place.geometry.location;
+
+                marker.setMap(map);
+                marker.setPosition(place.geometry.location);
+                $("#txtLatitude").val(place.geometry.location.lat().toFixed(6));
+                $("#txtLongitude").val(place.geometry.location.lng().toFixed(6));
+
+                // Set Address
+                if (place.formatted_address) {
+                    $("#txtAddress").val(place.formatted_address);
+                }
+
+                // Parse Address Components for State, City, Pincode
+                var addressComponents = place.address_components;
+                var stateName = "";
+                var cityName = "";
+                var pincode = "";
+
+                if (addressComponents) {
+                    for (var i = 0; i < addressComponents.length; i++) {
+                        var component = addressComponents[i];
+                        var types = component.types;
+
+                        if (types.indexOf("postal_code") > -1) {
+                            pincode = component.short_name;
+                        }
+                        if (types.indexOf("administrative_area_level_1") > -1) {
+                            stateName = component.long_name;
+                        }
+                        if (types.indexOf("locality") > -1 || types.indexOf("administrative_area_level_2") > -1 || types.indexOf("sublocality_level_1") > -1) {
+                            if (!cityName || types.indexOf("locality") > -1) {
+                                cityName = component.long_name;
+                            }
+                        }
+                    }
+                }
+
+                if (pincode) {
+                    if ($("#FuelStation_Pincode option[value='" + pincode + "']").length === 0) {
+                        $("#FuelStation_Pincode").append(new Option(pincode, pincode));
+                    }
+                    $("#FuelStation_Pincode").val(pincode).trigger("change");
+                }
+
+                // Autofill State select
+                if (stateName) {
+                    var matchedStateValue = "";
+                    $("#FuelStation_State option").each(function () {
+                        var optText = $(this).text().trim().toLowerCase();
+                        if (optText === stateName.toLowerCase() || stateName.toLowerCase().indexOf(optText) > -1 || optText.indexOf(stateName.toLowerCase()) > -1) {
+                            matchedStateValue = $(this).val();
+                            return false;
+                        }
+                    });
+
+                    if (matchedStateValue) {
+                        $("#FuelStation_State").val(matchedStateValue).trigger("change", [true]);
+                        resolveCityCascade(matchedStateValue, cityName);
+                    }
+                }
+            });
+
+            // Save Logic
+            $('#btnSave').on('click', function (e) {
+                e.preventDefault();
+                var form = $('#form_sample');
+                if (!form.valid()) return;
+
+                var geom = $("#Geom").val() || "";
+                var shapeType = $("#ShapeType").val() || "";
+                if (geom.trim() === "" || shapeType.trim() === "") {
+                    GLModal.showError("Validation Error", "Please draw a geofence shape (Circle or Polygon) on the map before saving.");
+                    return;
+                }
+
+                if (!checkContainment()) return;
+
+                var btn = $(this);
+                btn.prop('disabled', true);
+                App.blockUI({ boxed: true, message: 'Saving Station...' });
+
+                // Temporarily enable City, State, Latitude, and Longitude so serialize captures them
+                $('#FuelStation_City, #FuelStation_State, #txtLatitude, #txtLongitude').prop('disabled', false);
+                var formData = form.serialize();
+                // Restore disabled attribute immediately after serialization
+                $('#FuelStation_City, #FuelStation_State, #txtLatitude, #txtLongitude').prop('disabled', true);
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    success: function (res) {
+                        if (res.Status) {
+                            TosterNotification("success", "Station saved successfully!", "Success");
+                            setTimeout(function () {
+                                window.location = DomainName + "/Master/FuelStation";
+                            }, 1000);
+                        } else {
+                            TosterNotification("error", res.Message || "Operation failed.", "Error");
+                            App.unblockUI();
+                            btn.prop('disabled', false);
+                        }
+                    },
+                    error: function () {
+                        TosterNotification("error", "An error occurred while saving.", "Error");
+                        App.unblockUI();
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+
+            // State change resolves City dropdown cascade
+            $(document).on('change', '#FuelStation_State', function (e, isInternal) {
+                if (isInternal) return;
+                var stateCode = $(this).val();
+                resolveCityCascade(stateCode);
+            });
+
+            $(document).on('change', '#FuelStation_Pincode', function () {
+                var pincode = $(this).val();
+                if (!pincode) {
+                    $('#FuelStation_State').val('').trigger('change', [true]);
+                    $('#FuelStation_City').empty().append('<option value="">Select City</option>').trigger('change');
+                    return;
+                }
+                App.blockUI({ boxed: true, message: 'Fetching details...' });
+                $.ajax({
+                    url: DomainName + '/Master/Get_Country_State_City_Zone_on_Pincode?Code=' + pincode + '&Type=P',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response && response.length > 0) {
+                            var stateCode = response[0].StateCode;
+                            if (stateCode) {
+                                $('#FuelStation_State').val(stateCode).trigger('change', [true]);
+
+                                var resolvedCityCode = response[0].CityCode;
+                                var resolvedCityName = response[0].CityName;
+                                resolveCityCascadeWithCode(stateCode, resolvedCityCode, resolvedCityName);
+                            }
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        TosterNotification("error", 'Failed to resolve details for selected pincode.', "Oops..!!");
+                        App.unblockUI();
+                    }
+                });
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                Events(DomainName);
+            }
+        };
+    }();
+</script>

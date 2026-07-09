@@ -1,0 +1,22 @@
+@model GreenLineDataService.Models.CYGNUS_NotesCategory_Mapping
+@using GreenLineDataService.Models
+@using GreenLine.Helpers
+@{
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    var categoryDesc = _masterService.GetGeneralMasterWithParam("NOTESCAT").FirstOrDefault(c => string.Equals(c.CodeId?.Trim(), Model.Category?.Trim(), StringComparison.OrdinalIgnoreCase))?.CodeDesc ?? Model.Category;
+}
+<tr class="editorRow align-middle">
+    @Html.Hidden("hdnblnk", Model.SrNo, new { @class = "iHidden" })
+    @using (Html.BeginCollectionItem("MappingList", Model.SrNo.ToString()))
+    {
+        <td class="text-center">@Model.SrNo</td>
+        <td>
+            @Html.HiddenFor(m => m.Category)
+            <span>@categoryDesc</span>
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.NotesSubCategory, new { placeholder = "Select Notes Sub Category(s)", @class = "form-control form-control-sm required drpNotesSubCat" })
+        </td>
+    }
+</tr>

@@ -1,0 +1,143 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_location>
+
+@{
+    ViewBag.Title = "Location List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+    List<GreenLineDataService.Models.CYGNUS_Master_General> listMst = _masterService.GetGeneralMaster();
+    listMst = listMst.Where(c => c.CodeType == "ZONE").OrderBy(c => c.CodeId).ToList();
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Location Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Location Master</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <!-- Header Bar -->
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Locations</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button id="btnDownloadLocationList" class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </button>
+                    <a href="@Url.Content("~/Master/LocationMaster")" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="tblLocationList">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Code</th>
+                                <th class="text-center">Location Name</th>
+                                <th class="text-center">Region</th>
+                                <th class="text-center">Hierarchy</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center no-cc">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="locationTable">
+                            @foreach (var item in Model)
+                            {
+                                var zone = listMst.FirstOrDefault(c => c.CodeId == item.LocRegion);
+                                string ZoneName = zone != null ? zone.CodeDesc : "N/A";
+                                var isActive = item.ActiveFlag == "Y";
+
+                                <tr>
+                                    <td class="text-center">@item.LocCode</td>
+                                    <td class="text-center">@item.LocName</td>
+                                    <td class="text-center">@ZoneName</td>
+                                    <td class="text-center">
+                                        @( !string.IsNullOrEmpty(item.Loc_Leveldec) ? "Level " + item.Loc_Leveldec : "N/A" )
+                                    </td>
+                                    <td class="text-center">
+                                        <label class="switch">
+                                            <input type="checkbox" class="btnToggleStatus" @(isActive ? "checked" : "") 
+                                                   data-id="@item.LocCode" data-name="@item.LocName">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="@Url.Content("~/Master/LocationMaster/" + item.LocCode)" 
+                                           class="@ViewBag.UI.Buttons.Edit.CssClass" title="Edit">
+                                            <i class="@ViewBag.UI.Buttons.Edit.Icon align-middle"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var FormComponents = function (DomainName) {
+        var selectedId = "";
+        
+        var initEvents = function (DomainName) {
+            $(document).on("click", ".btnToggleStatus", function (e) {
+                e.preventDefault();
+                var chk = $(this);
+                var locId = chk.data("id");
+                var name = chk.data("name");
+                
+                GLModal.showConfirm(
+                    "Change Status?", 
+                    "Are you sure you want to change the status for <b>" + name + "</b>?", 
+                    function() {
+                        $.ajax({
+                            url: DomainName + '/Master/ActiveInActiveLocation',
+                            type: 'POST',
+                            data: { LocCode: locId },
+                            success: function () {
+                                TosterNotification("success", "Status updated successfully!", "Success");
+                                location.reload();
+                            }
+                        });
+                    }
+                );
+            });
+
+            $("#btnDownloadLocationList").click(function () {
+                window.location.href = DomainName + "/Master/ExportReport?MethodName=Location&FileName=Location Master List";
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                initEvents(DomainName);
+                
+                GlDataTable.init('tblLocationList', {
+                    ordering: true,
+                    statusFilter: 4,
+                    columnDefs: [
+                        { orderable: false, targets: [4, 5] },
+                        { className: "text-center", targets: [0, 1, 4, 5] }
+                    ]
+                });
+            }
+        };
+    }();
+</script>

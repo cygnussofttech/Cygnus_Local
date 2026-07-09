@@ -1,0 +1,52 @@
+﻿@model GreenLineDataService.Models.CYGNUS_custcontract_charge_constraint
+@using GreenLineDataService.Models
+@using GreenLine.Helpers
+
+@if (Model.use_rate_type == "Y")
+{
+    Model.useratetype = true;
+}
+else
+{
+    Model.useratetype = false;
+}
+
+<tr class="editorRow">
+    @using (Html.BeginCollectionItem("ChargeMatrixList", Model.chargecode.ToString()))
+    {
+        <td class="center">
+            <div class="form-group">
+                <div class="col-md-12">
+                    @Html.DisplayFor(m => Model.chargename)
+                    @Html.HiddenFor(m => Model.chargename)
+                    @Html.HiddenFor(m => Model.chargecode)
+                </div>
+            </div>
+        </td>
+        <td class="center">
+            <div class="form-group">
+                <div class="col-md-12">
+                    @Html.CheckBoxFor(m => Model.useratetype, new { @class = "form-check-input" })
+                </div>
+            </div>
+        </td>
+        <td class="center">
+            <div class="form-group">
+                <div class="col-md-12">
+                    @Html.CheckBoxFor(m => Model.IsAttachmenRequired, new { @class = "form-check-input" })
+                </div>
+            </div>
+        </td>
+        <td class="center">
+            <div class="col-md-12 radio-list" style="margin-top: -3px;">
+                <label class="radio-inline">
+                    @Html.RadioButtonFor(m => Model.bill_to_customer, "Y", new { @class = "form-check-input" }) <label>Yes</label>
+                </label>
+                <label class="radio-inline">
+                    @Html.RadioButtonFor(m => Model.bill_to_customer, "N", new { @class = "form-check-input" }) <label>No</label>
+                </label>
+            </div>
+
+        </td>
+    }
+</tr>

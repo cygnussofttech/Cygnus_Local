@@ -1,0 +1,115 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@{
+    var displayStages = (Model.listStageActivities ?? new List<GreenLineDataService.ViewModel.CYGNUS_TripStageActivity>())
+        .Where(s => !string.Equals(s.StageName, "In-Transit", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+}
+@if (ViewBag.StrError != null)
+{
+    <div class="alert alert-danger py-2 px-3 mb-3 fs-13">
+        <i class="ri-error-warning-line align-middle me-1"></i> @ViewBag.StrError
+    </div>
+}
+@foreach (var stage in displayStages)
+{
+    bool isDone = stage.IsCompleted;
+    bool isPreviousCompleted = true;
+    string blockedByStageName = "";
+
+    // 1. Check rule-based dependency if it exists
+    if (stage.IsRule && !string.IsNullOrEmpty(stage.PreviousStageId))
+    {
+        var rulePrevStage = displayStages.FirstOrDefault(s => s.StageId.ToString() == stage.PreviousStageId);
+        if (rulePrevStage != null && !rulePrevStage.IsCompleted)
+        {
+            isPreviousCompleted = false;
+            blockedByStageName = rulePrevStage.StageName;
+        }
+    }
+
+    // 2. Also check sequential checklist dependency:
+    // A stage cannot be active if there is an incomplete mandatory stage before it in the list.
+    if (isPreviousCompleted)
+    {
+        int currentIndex = displayStages.IndexOf(stage);
+        for (int j = currentIndex - 1; j >= 0; j--)
+        {
+            var prev = displayStages[j];
+            if (!prev.IsCompleted)
+            {
+                if (prev.IsMandatory)
+                {
+                    isPreviousCompleted = false;
+                    blockedByStageName = prev.StageName;
+                    break;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    // 3. Check if any subsequent stage in the workflow is already completed.
+    bool isNextCompleted = false;
+    if (!isDone)
+    {
+        int currentIndex = displayStages.IndexOf(stage);
+        for (int k = currentIndex + 1; k < displayStages.Count; k++)
+        {
+            if (displayStages[k].IsCompleted)
+            {
+                // If the current stage is a flexible/rule stage, it is only locked
+                // when the actual rule-defined NextStageId (or any stage after it) is completed.
+                if (stage.IsRule && !string.IsNullOrEmpty(stage.NextStageId))
+                {
+                    int nextStageIndex = displayStages.FindIndex(s => s.StageId.ToString() == stage.NextStageId);
+                    if (nextStageIndex != -1 && k < nextStageIndex)
+                    {
+                        // The completed stage k is an intermediate stage before the next stage boundary.
+                        // Do not lock the current stage.
+                        continue;
+                    }
+                }
+
+                isNextCompleted = true;
+                break;
+            }
+        }
+    }
+
+    bool isActiveStep = !isDone && isPreviousCompleted && !isNextCompleted;
+    bool isStepDisabled = isDone || !isPreviousCompleted || isNextCompleted;
+    bool isVisualDisabled = !isDone && (!isPreviousCompleted || isNextCompleted);
+    
+    <div class="event-step-item timeline-step-item d-flex align-items-start @(isDone ? "is-done" : "") @(isActiveStep ? "is-active" : "") @(isStepDisabled ? "disabled-step" : "") @(isVisualDisabled ? "is-disabled" : "")"
+        data-event="@stage.StageName" data-stageid="@stage.StageId"
+        data-stopid="@stage.StopId"
+        data-completed="@(isDone ? "true" : "false")" data-isrule="@(stage.IsRule ? "true" : "false")"
+        data-mandatory="@(stage.IsMandatory ? "true" : "false")"
+        data-nextstageid="@stage.NextStageId" data-prevstageid="@stage.PreviousStageId"
+        data-prevname="@blockedByStageName"
+        data-isprevcompleted="@(isPreviousCompleted ? "true" : "false")"
+        data-isnextcompleted="@(isNextCompleted ? "true" : "false")">
+        
+        <div class="timeline-icon">
+            @if (isDone)
+            {
+                <i class="ri-checkbox-circle-fill text-success fs-15"></i>
+            }
+            else
+            {
+                <i class="ri-play-circle-line text-muted fs-15"></i>
+            }
+        </div>
+
+        <div class="timeline-content d-flex align-items-center text-truncate">
+            <div class="text-truncate">
+                <span class="fs-13 fw-semibold @(isDone ? "text-success" : "text-dark")">
+                    @stage.StageName
+                </span>
+            </div>
+        </div>
+    </div>
+}

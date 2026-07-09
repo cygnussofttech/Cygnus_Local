@@ -1,0 +1,97 @@
+@model GreenLineDataService.Models.CYGNUS_PickUp_Request
+    
+@using (Html.BeginForm("AddEditPickup_Request", "Fleet", FormMethod.Post, new { id = "form_sample_modal", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.PRNo)
+
+    <div class="section-box">
+        <div class="card-body p-0">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">Customer Group</label>
+                        @Html.DropDownListFor(m => m.Customer_Group, new SelectList(ViewBag.CustomerGroupList, "GRPCD", "GRPNM", Model.Customer_Group), "Select Customer Group", new { @class = "form-control select2 required", @disabled = "disabled" })
+                        @Html.HiddenFor(m => m.Customer_Group)
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">Customer Name</label>
+                        @Html.DropDownListFor(m => m.Customer_Code, new SelectList(ViewBag.CustomerList, "Value", "Text", Model.Customer_Code), "Select Customer", new { @class = "form-control select2 required", @disabled = "disabled" })
+                        @Html.HiddenFor(m => m.Customer_Code)
+                    </div>
+                </div>
+
+                @*<div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">PickUp Location</label>
+                        @Html.TextBoxFor(m => m.Location, new { @class = "form-control", @placeholder = "PR Location", @readonly = true })
+                    </div>
+                </div>*@
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">Customer Address</label>
+                        @Html.TextBoxFor(m => m.Pickup_Address, new { @class = "form-control", @placeholder = "Customer Pickup Address", @readonly = true })
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">From Lane</label>
+                        @Html.DropDownListFor(m => m.From_Lane_id, new SelectList(ViewBag.LaneList, "Lane_ID", "Lane_Name", Model.From_Lane_id), "", new { @class = "form-control select2 required", @placeholder = "Select Lane" })
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">To Lane</label>
+                        @Html.DropDownListFor(m => m.To_Lane_id, new SelectList(ViewBag.LaneList, "Lane_ID", "Lane_Name", Model.To_Lane_id), "", new { @class = "form-control select2 required", @placeholder = "Select Lane" })
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">Contract</label>
+                        @Html.DropDownListFor(m => m.Contract_Id, new SelectList(ViewBag.ContractList, "Value", "Text", Model.Contract_Id), "", new { @class = "form-control select2 required", @placeholder = "Select Contract" })
+                    </div>
+                </div>
+
+                <div class="col-md-6 ">
+                    <div class="form-group">
+                        <label class="form-label">Service Type</label>
+                        @Html.DropDownListFor(m => m.ServiceType, new SelectList(ViewBag.ServiceTypeList, "Value", "Text", Model.ServiceType), "", new { @class = "form-control select2", @placeholder = "Select Service Type" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        // Initialize select2 on the modal dropdowns
+        $("#Contract_Id, #ServiceType").select2({
+            placeholder: "Select an option",
+            allowClear: true,
+            dropdownParent: $('#glFormModal')
+        });
+
+        // Update Service Type based on selected Contract text
+        $("#Contract_Id").change(function () {
+            var selectedText = $("#Contract_Id option:selected").text() || "";
+            if (selectedText.toUpperCase().indexOf("PTL") !== -1) {
+                $("#ServiceType").select2("val", "1");
+                $("#ServiceType").val("1").trigger("change");
+            } else if (selectedText.toUpperCase().indexOf("FTL") !== -1) {
+                $("#ServiceType").select2("val", "2");
+                $("#ServiceType").val("2").trigger("change");
+            } else {
+                $("#ServiceType").select2("val", "");
+                $("#ServiceType").val("").trigger("change");
+            }
+        });
+    });
+</script>
+

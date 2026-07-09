@@ -1,0 +1,761 @@
+@model GreenLineDataService.Models.CYGNUS_LR_ENTRY
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Trip Invoice Upload";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+    GreenLineDataService.Helper.Interface.IFleetServices _FS = new GreenLineDataService.Helper.FleetServices();
+
+    List<CYGNUS_Master_General> ListpackegType = _masterService.GetGeneralMasterWithParam("PKGS");
+    List<CYGNUS_Master_General> Listproduct = _masterService.GetGeneralMasterWithParam("PROD");
+    List<CYGNUS_Master_General> Listratetype = _masterService.GetGeneralMasterWithParam("RATETYP");
+    List<SelectListItem> BlankList = new List<SelectListItem>();
+    List<CYGNUS_Master_General> UOMList = _masterService.GetGeneralMasterWithParam("UOM").ToList();
+
+    List<CYGNUS_LaneMaster> ToLaneList = _FS.Get_ContractLane("0").ToList();
+
+}
+
+<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+    <h4 class="mb-sm-0">Trip Invoice Upload</h4>
+
+    <div class="page-title-right">
+        <ol class="breadcrumb m-0 shadow-none bg-transparent">
+            <li class="breadcrumb-item"><a href="javascript: void(0);">Fleet</a></li>
+            @*<li class="breadcrumb-item"><a href="@Url.Content("~/Master/UserList")">User List</a></li>*@
+            <li class="breadcrumb-item active">Invoice Upload</li>
+        </ol>
+    </div>
+</div>
+@using (Html.BeginForm("SubmitLREntry", "Fleet", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.PRNo)
+    @Html.HiddenFor(m => m.VehicleNo)
+    @Html.HiddenFor(m => m.TripNo)
+    @Html.HiddenFor(m => m.EventId)
+
+    @Html.HiddenFor(m => m.consignor_name)
+
+
+
+    @Html.HiddenFor(m => m.consignor_address)
+    @Html.HiddenFor(m => m.consignee_name)
+    @Html.HiddenFor(m => m.consignee_address)
+    @Html.HiddenFor(m => m.consignee_city)
+    @Html.HiddenFor(m => m.consignee_pincode)
+    @Html.HiddenFor(m => m.ship_to_address)
+    @Html.HiddenFor(m => m.ship_to_city)
+    @Html.HiddenFor(m => m.ship_to_pincode)
+    @Html.HiddenFor(m => m.ship_to_gst)
+    @Html.HiddenFor(m => m.userGstin)
+    @Html.HiddenFor(m => m.Consignee_GST)/*gstin_of_consignee*/
+    @Html.HiddenFor(m => m.so_number)
+    @Html.HiddenFor(m => m.do_number)
+    @Html.HiddenFor(m => m.Customer_Code)
+    @Html.HiddenFor(m => m.Contract_Id)
+    @Html.HiddenFor(m => m.Organization)
+    @Html.HiddenFor(m => m.From_Lane_id)
+
+    <div class="clshide">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0 flex-grow-1">
+                            <i class="ri-truck-line align-middle me-1"></i> LR Entry
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">EWayBill No</label>
+                                    @Html.TextBoxFor(m => m.eway_bill_no, new { @class = "form-control", @placeholder = "Enter EWayBill" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Invoice Upload (Image/PDF)</label>
+                                    <input type="file" id="UploadFile" name="UploadFile" class="form-control" accept="image/*,application/pdf" />
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                </div>
+                            </div>   <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">EWayBill Date</label>
+                                    @Html.TextBoxFor(m => m.eway_bill_date, new { @class = "form-control date-picker", @placeholder = "Enter EWayBillDate" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">EWayBill Validity</label>
+                                    @Html.TextBoxFor(m => m.eway_bill_validity, new { @class = "form-control date-picker", @placeholder = "Enter EWayBillValidity" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Invoice No</label>
+                                    @Html.TextBoxFor(m => m.invoice_no, new { @class = "form-control required", @placeholder = "Enter InvoiceNo" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Invoice Date</label>
+                                    @Html.TextBoxFor(m => m.invoice_date, new { @class = "form-control date-picker required", @placeholder = "Enter InvoiceDate" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Ship To</label>
+                                    @Html.TextBoxFor(m => m.ship_to_name, new { @class = "form-control required", @placeholder = "Enter ShipTo" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">To Lane</label>
+                                    @Html.DropDownListFor(m => m.To_Lane_id, new SelectList(BlankList, "Value", "Text", Model.To_Lane_id), "", new { @class = "form-control select2", @placeholder = "Select To Lane" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Rate Type</label>
+                                    @Html.DropDownListFor(c => c.Rate_Type, new SelectList(Listratetype, "CodeId", "CodeDesc", Model.Content), "", new { @class = "form-control select2 required", @placeholder = "Select Rate Type" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Product</label>
+                                    @Html.DropDownListFor(c => c.Content, new SelectList(Listproduct, "CodeId", "CodeDesc", Model.Content), "", new { @class = "form-control select2 required", @placeholder = "Select Product" })
+                                </div>
+                            </div>
+
+                            @*<div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">Packaging Material</label>
+                                        @Html.DropDownListFor(c => c.Material, new SelectList(ListpackegType, "CodeId", "CodeDesc", Model.Material), "", new { @class = "form-control select2 required", @placeholder = "Select Material" })
+                                    </div>
+                                </div>*@
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">UOM</label>
+                                    @Html.DropDownListFor(c => c.UOM, new SelectList(UOMList, "CodeId", "CodeDesc", Model.UOM), "", new { @class = "form-control select2 required", @placeholder = "Select UOM" })
+                                </div>
+                            </div>
+
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Gross Weight</label>
+                                    @Html.TextBoxFor(m => m.gross_weight, new { @class = "form-control required", @placeholder = "Enter GrossWeight" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Net Weight</label>
+                                    @Html.TextBoxFor(m => m.net_weight, new { @class = "form-control required", @placeholder = "Enter NetWeight" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Customer LR No</label>
+                                    @Html.TextBoxFor(m => m.CustLRNo, new { @class = "form-control required", @placeholder = "Enter Customer LRNo" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Reference No</label>
+                                    @Html.TextBoxFor(m => m.reference_no, new { @class = "form-control required", @placeholder = "Enter ReferenceNo" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Freight</label>
+                                    @Html.TextBoxFor(m => m.Freight, new { @class = "form-control required", @placeholder = "Enter Freight" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Total</label>
+                                    @Html.TextBoxFor(m => m.Total, new { @class = "form-control required", @placeholder = "Enter Total" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Sub Total</label>
+                                    @Html.TextBoxFor(m => m.Sub_Total, new { @class = "form-control required", @placeholder = "Enter Sub Total" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">LR Upload (Image/PDF)</label>
+                                    <input type="file" id="LRUpload" name="LRUpload" class="form-control" accept="image/*,application/pdf" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions mt-2">
+                            <button type="button" id="btnSave" class="@ViewBag.UI.Buttons.Submit.CssClass">
+                                <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle me-1"></i>@ViewBag.UI.Buttons.Submit.Label
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    window.onConsigneeAdded = function (response) {
+        var modalEl = document.getElementById('glFormModal');
+        if (modalEl) {
+            var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            bsModal.hide();
+        }
+        TosterNotification("success", "Consignee registered successfully!", "Success");
+        if (typeof FormComponents !== 'undefined' && typeof FormComponents.ConsigneeValidation === 'function') {
+            FormComponents.ConsigneeValidation();
+        }
+    };
+
+
+
+    var FormComponents = function () {
+
+        var Formvalidate = function (DomainName) {
+
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span', //default input error message container
+                errorClass: 'help-block', // default input error message class
+                // errorClass: 'validate-inline',
+                focusInvalid: false, // do not focus the last invalid input
+
+                rules: {
+
+                },
+                messages: {
+
+                },
+                errorPlacement: function (error, element) { // render error placement for each input type
+                    //if (element.parents('.checkbox-list').size() > 0) {
+                    //    error.appendTo(element.parents('.checkbox-list').attr("data-error-container"));
+                    //} else {
+                    error.insertAfter(element); // for other inputs, just perform default behavior
+                    //}
+                },
+                invalidHandler: function (event, validator) { //display error alert on form submit
+                    for (var i = 0; i < validator.errorList.length; i++) {
+
+                    }
+
+                    //validator.errorMap is an object mapping input names -> error messages
+                    for (var i in validator.errorMap) {
+                    }
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+                highlight: function (element) { // hightlight error inputs
+                    $(element)
+                        .closest('.form-group').addClass('has-error'); // set error class to the control group
+                },
+                unhighlight: function (element) { // revert the change done by hightlight
+                    $(element)
+                        .closest('.form-group').removeClass('has-error'); // set error class to the control group
+                },
+                success: function (label) {
+                    label
+                        .closest('.form-group').removeClass('has-error'); // set success class to the control group
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                    //  form1.submit();
+                }
+            });
+        }
+
+        function fetchEWayBillData(ewayBillNo) {
+            App.blockUI({ target: 'body', boxed: true, message: 'Fetching E-Way Bill Data...' });
+
+            $.ajax({
+                url: '@Url.Action("FetchEWayBillData", "Fleet")',
+                type: 'GET',
+                data: { ewayBillNo: ewayBillNo },
+                success: function (res) {
+                    App.unblockUI();
+                    var isSuccess = false;
+                    var ewbData = null;
+                    var errorCode = "";
+                    var errorMsg = "";
+
+                    // Check Shape A (results wrapper)
+                    var status = res.status || (res.results ? res.results.status : null);
+                    if (status === "Success" && res.results && typeof res.results.message === 'object') {
+                        isSuccess = true;
+                        ewbData = res.results.message;
+                    } 
+                    // Check Shape B (data wrapper)
+                    else if (res && res.data) {
+                        if (res.data.status_cd === "0" || res.data.error) {
+                            isSuccess = false;
+                            if (res.data.error) {
+                                errorCode = res.data.error.error_cd || "";
+                                errorMsg = res.data.error.message || "";
+                            }
+                        } else {
+                            isSuccess = true;
+                            ewbData = res.data;
+                        }
+                    }
+
+                    if (isSuccess && ewbData) {
+                        populateEWayBillData(ewbData);
+                        ConsigneeValidation();
+                        TosterNotification("success", "E-Way Bill Data Fetched!", "Success");
+                    } else {
+                        // Extract error details from whichever shape is available
+                        if (!errorCode) {
+                            errorCode = res.nic_code || (res.results ? res.results.nic_code : "") || (res.data && res.data.error ? res.data.error.error_cd : "");
+                        }
+                        if (!errorMsg) {
+                            errorMsg = (res.results && typeof res.results.message === 'string' ? res.results.message : res.message) || (res.data && res.data.error ? res.data.error.message : "") || "Failed to fetch data";
+                        }
+
+                        if (errorCode == "325") {
+                            errorMsg = "E-Way Bill Number is invalid or does not exist (Error 325)";
+                        }
+                        clearEWayBillFields();
+                        TosterNotification("error", errorMsg, "Error");
+                    }
+                },
+                error: function (jqXHR) {
+                    App.unblockUI();
+                    clearEWayBillFields();
+                    TosterNotification("error", "Failed to fetch E-Way Bill data", "Error");
+                }
+            });
+        }
+
+        function clearEWayBillFields() {
+            $("#eway_bill_date").val('');
+            $("#eway_bill_validity").val('');
+            $("#consignor_name").val('');
+            $("#consignor_address").val('');
+            $("#consignee_name").val('');
+            $("#consignee_address").val('');
+            $("#consignee_city").val('');
+            $("#consignee_pincode").val('');
+            $("#invoice_no").val('');
+            $("#invoice_date").val('');
+            $("#net_weight").val('');
+        }
+
+        function handleInvoiceAndEWayBillToggle() {
+            var fileInput = document.getElementById('UploadFile');
+            var hasInvoice = fileInput && fileInput.files && fileInput.files.length > 0;
+
+            if (hasInvoice) {
+                $("#eway_bill_no").val('NA').prop('disabled', true).addClass('bg-light');
+                $("#eway_bill_date").val('NA').prop('disabled', true).addClass('bg-light');
+                $("#eway_bill_validity").val('NA').prop('disabled', true).addClass('bg-light');
+            } else {
+                if ($("#eway_bill_no").val() === 'NA') $("#eway_bill_no").val('');
+                if ($("#eway_bill_date").val() === 'NA') $("#eway_bill_date").val('');
+                if ($("#eway_bill_validity").val() === 'NA') $("#eway_bill_validity").val('');
+
+                $("#eway_bill_no").prop('disabled', false).removeClass('bg-light');
+                $("#eway_bill_date").prop('disabled', false).removeClass('bg-light');
+                $("#eway_bill_validity").prop('disabled', false).removeClass('bg-light');
+            }
+        }
+
+        // Cache for EWayBill consignee data — used to pre-fill the Add Consignee modal
+        var _ewbConsigneeData = {};
+
+        function populateEWayBillData(d) {
+            // Highest Priority: E-Way Bill API Data
+            if (d.eway_bill_number) $("#eway_bill_no").val(d.eway_bill_number);
+            if (d.eway_bill_date) $("#eway_bill_date").val(formatEWBDate(d.eway_bill_date));
+            if (d.eway_bill_valid_date) $("#eway_bill_validity").val(formatEWBDate(d.eway_bill_valid_date));
+            if (d.userGstin) $("#userGstin").val(formatEWBDate(d.userGstin));
+            if (d.gstin_of_consignor) $("#Consignee_GST").val(formatEWBDate(d.gstin_of_consignor));
+
+            if (d.legal_name_of_consignor) $("#ship_to_name").val(d.legal_name_of_consignor);
+            if (d.address1_of_consignor) $("#consignor_address").val(d.address1_of_consignor + (d.address2_of_consignor ? ", " + d.address2_of_consignor : ""));
+
+            if (d.legal_name_of_consignee) $("#consignee_name").val(d.legal_name_of_consignee);
+            if (d.address1_of_consignee) $("#consignee_address").val(d.address1_of_consignee + (d.address2_of_consignee ? ", " + d.address2_of_consignee : ""));
+            if (d.place_of_consignee) $("#consignee_city").val(d.place_of_consignee);
+            if (d.pincode_of_consignee) $("#consignee_pincode").val(d.pincode_of_consignee);
+
+            if (d.document_number) $("#invoice_no").val(d.document_number);
+            if (d.document_date) $("#invoice_date").val(formatEWBDate(d.document_date));
+
+            if (d.total_invoice_value) $("#net_weight").val(d.total_invoice_value);
+
+            // ── Cache consignee fields for pre-filling the modal ──
+            _ewbConsigneeData = {
+                Consignee_GST     : d.gstin_of_consignee  || "",
+                Consignee_Name    : d.legal_name_of_consignee || "",
+                Consignee_Address : (d.address1_of_consignee || "") + (d.address2_of_consignee ? ", " + d.address2_of_consignee : ""),
+                Consignee_Pincode : d.pincode_of_consignee || ""
+            };
+        }
+
+        function formatEWBDate(dateStr) {
+            if (!dateStr) return "";
+            // Input: "12/12/2024 03:41:00 PM" or "12/12/2024"
+            var parts = dateStr.split(' ')[0].split('/');
+            if (parts.length === 3) {
+                var day = parts[0];
+                var month = parseInt(parts[1]);
+                var year = parts[2];
+                var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                return day + " " + months[month - 1] + " " + year;
+            }
+            return dateStr;
+        }
+
+        function ConsigneeValidation() {
+            var Consignor_GST = $("#CustomerGST").val();
+            var Consigor_GST_API = $("#userGstin").val();
+            var Consignee_GST = $("#Consignee_GST").val();
+            if (!Consignee_GST) {
+                return;
+            }
+            var Parameters = {
+                "Consignee_GST": Consignee_GST,
+            }
+            var strUrl = DomainName + "/Account/GetDataWithoutAlias";
+            $.ajax({
+                url: strUrl,
+                type: 'POST',
+                dataType: "json",
+                async: false,
+                data: {
+                    Method: "USP_CheckConsigneeGST",
+                    parameters: Parameters
+                },
+                success: function (data) {
+                    console.log('dt', data);
+                    if (data && data.length > 0) {
+                        if (data[0].Status == 1) {
+                            // Consignee is registered successfully. Nothing more to do.
+                        } else {
+                            // Status 0: Show popup modal for adding consignee
+                            // Set modal to extra large for layout side-by-side
+                            $('#glFormModal .modal-dialog').removeClass('modal-lg').addClass('modal-xl');
+
+                            // Ensure the GST from the EWayBill is always in the cache
+                            if (!_ewbConsigneeData.Consignee_GST && Consignee_GST) {
+                                _ewbConsigneeData.Consignee_GST = Consignee_GST;
+                            }
+
+                            GLModal.showForm({
+                                title: "Add Consignee (GST Not Registered)",
+                                icon: "ri-truck-line",
+                                url: DomainName + '/Master/ConsigneeMaster'
+                            });
+
+                            // Pre-fill the consignee modal form once the partial view has loaded
+                            prefillConsigneeModal();
+                        }
+                    }
+                },
+                error: function (jqXHR, exception) {
+                    TosterNotification("error", errorResult(jqXHR, exception), "Oppps..!!");
+                    return false;
+                }
+            });
+
+        }
+
+        /**
+         * Polls the GLModal container until the consignee form renders,
+         * then injects the EWayBill consignee data into the form fields.
+         */
+        function prefillConsigneeModal() {
+            var maxAttempts = 40;   // 40 × 150ms = 6 seconds max wait
+            var attempts    = 0;
+
+            var timer = setInterval(function () {
+                attempts++;
+
+                // The consignee partial renders inside #glFormModal
+                var $gstField = $('#glFormModal').find('#Consignee_GST');
+
+                if ($gstField.length > 0) {
+                    clearInterval(timer);
+
+                    var d = _ewbConsigneeData;
+
+                    // ── GST ──────────────────────────────────────────────────
+                    if (d.Consignee_GST) {
+                        $gstField.val(d.Consignee_GST).trigger('input');
+                        // Trigger the GST lookup that the form uses (CheckDuplicateGST → GetGSTDetails)
+                        // but only fire the duplicate check; do NOT trigger the full 'change' to avoid
+                        // overwriting the pre-filled name/address from EWayBill.
+                    }
+
+                    // ── Name ─────────────────────────────────────────────────
+                    if (d.Consignee_Name) {
+                        $('#glFormModal').find('#Consignee_Name').val(d.Consignee_Name);
+                    }
+
+                    // ── Address ──────────────────────────────────────────────
+                    if (d.Consignee_Address) {
+                        $('#glFormModal').find('#Consignee_Address').val(d.Consignee_Address);
+                    }
+
+                    // ── Pincode (Select2) ────────────────────────────────────
+                    if (d.Consignee_Pincode) {
+                        var $pin = $('#glFormModal').find('#Consignee_Pincode');
+                        if ($pin.data('select2')) {
+                            $pin.select2('data', { id: d.Consignee_Pincode, text: d.Consignee_Pincode });
+                        } else {
+                            $pin.val(d.Consignee_Pincode);
+                        }
+                        // Trigger the pincode change handler to auto-fill state/city/country
+                        $pin.trigger('change');
+                    }
+
+                    // Show a friendly banner inside the modal so the user knows data was pre-filled
+                    var $fieldsContainer = $('#glFormModal').find('#fieldsContainer');
+                    if ($fieldsContainer.length && !$fieldsContainer.find('#ewb-prefill-banner').length) {
+                        $fieldsContainer.prepend(
+                            '<div id="ewb-prefill-banner" class="alert alert-info alert-dismissible py-2 mb-3" role="alert" style="font-size:13px;">'
+                            + '<i class="ri-magic-line me-1"></i>'
+                            + '<strong>Auto-filled from E-Way Bill data.</strong> Please verify and complete any missing fields.'
+                            + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+                            + '</div>'
+                        );
+                    }
+
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(timer);
+                    console.warn('prefillConsigneeModal: form not found within timeout.');
+                }
+            }, 150);
+        }
+
+        function fillMissingFieldsFromOCR(d) {
+            // Secondary Priority: Only fill if field is empty (Never overwrite EWB values)
+            if (!$("#eway_bill_no").val()) $("#eway_bill_no").val(d.eway_bill_no);
+            if (!$("#invoice_no").val()) $("#invoice_no").val(d.invoice_no);
+            if (!$("#gross_weight").val()) $("#gross_weight").val(d.gross_weight);
+            if (!$("#net_weight").val()) $("#net_weight").val(d.net_weight);
+            if (!$("#CustLRNo").val()) $("#CustLRNo").val(d.lr_no);
+            if (!$("#reference_no").val()) $("#reference_no").val(d.reference_no);
+            if (!$("#ship_to_name").val()) $("#ship_to_name").val(d.ship_to_name);
+            if (!$("#UOM").val()) $("#UOM").val(d.UOM);
+
+            // Hidden fields
+            if (!$("#consignor_name").val()) $("#consignor_name").val(d.consignor_name);
+            if (!$("#consignor_address").val()) $("#consignor_address").val(d.consignor_address);
+            if (!$("#consignee_name").val()) $("#consignee_name").val(d.consignee_name);
+            if (!$("#consignee_address").val()) $("#consignee_address").val(d.consignee_address);
+            if (!$("#consignee_city").val()) $("#consignee_city").val(d.consignee_city);
+            if (!$("#consignee_pincode").val()) $("#consignee_pincode").val(d.consignee_pincode);
+            if (!$("#ship_to_address").val()) $("#ship_to_address").val(d.ship_to_address);
+            if (!$("#ship_to_city").val()) $("#ship_to_city").val(d.ship_to_city);
+            if (!$("#ship_to_pincode").val()) $("#ship_to_pincode").val(d.ship_to_pincode);
+            if (!$("#ship_to_gst").val()) $("#ship_to_gst").val(d.ship_to_gst);
+            if (!$("#so_number").val()) $("#so_number").val(d.so_number);
+            if (!$("#do_number").val()) $("#do_number").val(d.do_number);
+
+            // Handle dates
+            if (!$("#invoice_date").val() && d.invoice_date) $("#invoice_date").val(formatDate(d.invoice_date));
+            if (!$("#eway_bill_date").val() && d.eway_bill_date) $("#eway_bill_date").val(formatDate(d.eway_bill_date));
+            if (!$("#eway_bill_validity").val() && d.eway_bill_validity) $("#eway_bill_validity").val(formatDate(d.eway_bill_validity));
+            if (!$("#lr_date").val() && d.lr_date) $("#lr_date").val(formatDate(d.lr_date));
+        }
+
+        function formatDate(dateValue) {
+            if (!dateValue) return "";
+            var parts = dateValue.split('-');
+            if (parts.length === 3) {
+                var year = parts[0];
+                var month = parseInt(parts[1]);
+                var day = parts[2];
+                var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                return day + " " + months[month - 1] + " " + year;
+            }
+            return dateValue;
+        }
+        return {
+            init: function (DomainName) {
+                $('#glFormModal').on('hidden.bs.modal', function () {
+                    $(this).find('.modal-dialog').removeClass('modal-xl').addClass('modal-lg');
+                });
+                Formvalidate(DomainName);
+                // --- E-Way Bill Auto Fetch ---
+                $(document).on("change", "#eway_bill_no", function () {
+                    var ewayBillNo = $(this).val();
+                    if (ewayBillNo && ewayBillNo.length >= 12) {
+                        fetchEWayBillData(ewayBillNo);
+                    }
+                });
+
+                setTimeout(function () {
+                    var Parameters = {
+                        "PRNo" : $("#PRNo").val(),
+                    }
+
+                    var strUrl = DomainName + "/Account/GetDataWithoutAlias";
+                    $.ajax({
+                        url: strUrl,
+                        type: 'POST',
+                        dataType: "json",
+                        async: false,
+                        data: {
+                            Method: "USP_GetPRDetailsonPR",
+                            parameters: Parameters
+                        },
+                        success: function (data) {
+                            //console.log(data);
+                            $("#Customer_Code").val(data[0].Customer_Code);
+                            $("#Contract_Id").val(data[0].Contract_Id);
+                            $("#Organization").val(data[0].Organization);
+                            $("#From_Lane_id").val(data[0].From_Lane_id);
+                            $("#CustomerGST").val(data[0].CustomerGST);
+                            $("#To_Lane_id").val(data[0].To_Lane_id);
+                            $("#To_Lane_id").select2("data", { id: data[0].To_Lane_id, text: data[0].Lane_Name });
+
+                        },
+                        error: function (jqXHR, exception) {
+                            TosterNotification("error", errorResult(jqXHR, exception), "Oppps..!!");
+                            return false;
+                        }
+                    });
+                },1000);
+
+
+                $('#form_sample').on("change", "#UploadFile", function () {
+                    handleInvoiceAndEWayBillToggle();
+                    var fileInput = document.getElementById('UploadFile');
+                    if (fileInput.files.length > 0) {
+                        if (!validateImageFile(fileInput.files[0], this)) return;
+
+                        var formData = new FormData();
+                        formData.append("UploadFile", fileInput.files[0]);
+
+                        // Use Project's Custom Loader
+                        App.blockUI({ target: 'body', boxed: true, message: 'Scanning Invoice...' });
+
+                        $.ajax({
+                            url: '@Url.Action("ProcessInvoiceOCR", "Fleet")',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            headers: { "X-Skip-ContentType-Override": "true" },
+                            success: function (res) {
+                                App.unblockUI();
+                                if (res.success) {
+                                    var d = res.data;
+                                    fillMissingFieldsFromOCR(d);
+                                    TosterNotification("success", "Invoice Scanned Successfully!", "Success");
+                                } else {
+                                    TosterNotification("error", res.message, "Error");
+                                }
+                                handleInvoiceAndEWayBillToggle();
+                            },
+                            error: function () {
+                                App.unblockUI();
+                                TosterNotification("error", "Failed to connect to the server", "Error");
+                                handleInvoiceAndEWayBillToggle();
+                            }
+                        });
+                    }
+                });
+
+                $('#form_sample').on("change", "#LRUpload", function () {
+                    var file = this.files[0];
+                    if (file) {
+                        validateImageFile(file, this);
+                    }
+                });
+
+                var para = {
+                    "ContractId": 0
+                }
+                FillDropDownfromOtherWithJson("USP_Get_ContractLane", para, "To_Lane_id", "To_Lane_id", false, 0, true);
+
+                if (typeof handleDatePicker === "function") {
+                    handleDatePicker();
+                }
+                handleInvoiceAndEWayBillToggle();
+
+                $("#btnSave").on('click', function (e) {
+                    if ($("#eway_bill_date").val() === 'NA') {
+                        $("#eway_bill_date").val('');
+                    }
+                    if ($("#eway_bill_validity").val() === 'NA') {
+                        $("#eway_bill_validity").val('');
+                    }
+                    $("#eway_bill_no, #eway_bill_date, #eway_bill_validity").prop('disabled', false);
+
+                    App.blockUI({ boxed: true });
+                    if (!$('#form_sample').valid()) {
+                        App.unblockUI();
+                        handleInvoiceAndEWayBillToggle();
+                        return;
+                    }
+                        ////var id = 7;
+                        var id = $("#EventId").val();
+                        var prno = $("#PRNo").val();
+                        var VehicleNo = $("#VehicleNo").val();
+                        var TripNo = $("#TripNo").val();
+                        console.log(id, prno, VehicleNo, TripNo);
+                        //$.post(DomainName + '/Fleet/UpdateEventStatus', {
+                        //    prno: prno,
+                        //    VehicleNo: VehicleNo,
+                        //    eventId: id,
+                        //    TripNo: TripNo
+                        //}, function (res) {
+                        //    App.unblockUI();
+                        //    if (res) {
+                        //        GLModal.showSuccess("Status updated successfully!");
+                        //        window.location.reload();
+                        //    } else {
+                        //        GLModal.showError("Failed to update status.");
+                        //    }
+                        //});
+
+                    if (e.handled !== true) {
+                        e.handled = true;
+                        document.forms["form_sample"].submit();
+                    }
+                });
+            }
+        }
+    }();
+</script>

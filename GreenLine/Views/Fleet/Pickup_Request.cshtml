@@ -1,0 +1,718 @@
+@model GreenLineDataService.Models.CYGNUS_PickUp_Request
+@using GreenLineDataService.Models;
+@{
+    List<SelectListItem> BlankList = new List<SelectListItem>();
+    var j = 1;
+}
+
+<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+    <h4 class="mb-sm-0">Add PickUp Request</h4>
+
+    <div class="page-title-right">
+        <ol class="breadcrumb m-0 shadow-none bg-transparent">
+            <li class="breadcrumb-item"><a href="javascript:void(0);">PickUp Request</a></li>
+            @* <li class="breadcrumb-item"><a href="@Url.Content("~/Fleet/Pickup_RequestList")">Pickup Request List</a></li> *@
+            <li class="breadcrumb-item active">Add</li>
+        </ol>
+    </div>
+</div>
+
+@using (Html.BeginForm("AddEditPickup_Request", "Fleet", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.PRNo)
+    @Html.HiddenFor(m => m.Type)
+    @Html.HiddenFor(m => m.Drop_Lat)
+    @Html.HiddenFor(m => m.Drop_Long)
+
+    <div class="card mb-0">
+        <div class="card-header">
+            <h5 class="card-title mb-0 flex-grow-1"><i class="ri-truck-line align-middle me-1"></i> Pickup Request Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <!-- Left Side: Fields -->
+                <div class="col-xl-12 col-lg-12" id="fieldsContainer">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Customer Group</label>
+                                @Html.DropDownListFor(m => m.Customer_Group, new SelectList(ViewBag.CustomerGroupList, "GRPCD", "GRPNM", Model.Customer_Group), "", new { @class = "form-control select2 required", @placeholder = "Select Customer Group" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Customer Name</label>
+                                @Html.DropDownListFor(m => m.Customer_Code, new SelectList(BlankList, "Value", "Text", Model.Customer_Code), "", new { @class = "form-control select2 required", @placeholder = "Select Customer Code" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Pickup Address</label>
+                                @Html.DropDownListFor(m => m.Pickup_Address, new SelectList(BlankList, "Value", "Text", Model.Pickup_Address), "", new { @class = "form-control required select2", @placeholder = "Select Pickup Address" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">From Lane</label>
+                                @Html.DropDownListFor(m => m.From_Lane_id, new SelectList(BlankList, "Value", "Text", Model.From_Lane_id), "", new { @class = "form-control required select2", @placeholder = "Select From Lane" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRNormal">
+                            <div class="form-group">
+                                <label class="form-label clsPRNormallabel">Contract</label>
+                                @Html.DropDownListFor(m => m.Contract_Id, new SelectList(BlankList, "Value", "Text", Model.Contract_Id), "", new { @class = "form-control select2", @placeholder = "Select Contract" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRNormal">
+                            <div class="form-group">
+                                <label class="form-label clsPRNormallabel">Organization</label>
+                                @Html.DropDownListFor(m => m.Organization, new SelectList(BlankList, "Value", "Text", Model.Organization), "", new { @class = "form-control select2", @placeholder = "Select Organization" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRNormal d-none">
+                            <div class="form-group">
+                                <label class="form-label clsPRNormallabel">Service Type</label>
+                                @Html.DropDownListFor(m => m.ServiceType, new SelectList(ViewBag.ServiceTypeList, "Value", "Text", Model.ServiceType), "", new { @class = "form-control select2", @placeholder = "Select Service Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label clsreq">To Lane</label>
+                                @Html.DropDownListFor(m => m.To_Lane_id, new SelectList(BlankList, "Value", "Text", Model.To_Lane_id), "", new { @class = "form-control select2", @placeholder = "Select To Lane" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRSpot">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabel">Drop Location</label>
+                                @Html.TextBoxFor(m => m.DropLocation, new { @class = "form-control", @placeholder = "Enter Drop Location" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRSpot">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabel">Material</label>
+                                @Html.DropDownListFor(c => c.Material, new SelectList(ViewBag.ListpackegType, "CodeId", "CodeDesc", Model.Material), "", new { @class = "form-control select2", @placeholder = "Select Material" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRSpot">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabel">Rate Type</label>
+                                @Html.DropDownListFor(c => c.RateType, new SelectList(ViewBag.ListRateType, "CodeId", "CodeDesc", Model.RateType), "", new { @class = "form-control select2", @placeholder = "Select RateType" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRSpot">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabel">Total Km</label>
+                                @Html.TextBoxFor(m => m.TotalKMs, new { @class = "form-control", @placeholder = "Enter Total Km", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRSpot">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabel">Weight(ton)</label>
+                                @Html.TextBoxFor(m => m.Weight, new { @class = "form-control", @placeholder = "Enter Weight", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @min = 1 })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRSpot">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabel">Rate</label>
+                                @Html.TextBoxFor(m => m.Rate, new { @class = "form-control", @placeholder = "Enter Rate", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @min = 1 })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRSpot">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabel">Commission(%)</label>
+                                @Html.TextBoxFor(m => m.Commission, new { @class = "form-control", @placeholder = "Enter Commission", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 clsPRSpot">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabel">Freight</label>
+                                @Html.TextBoxFor(m => m.Freight, new { @class = "form-control", @placeholder = "Enter Freight", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @min = 1 })
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 clsPRSpots">
+                            <div class="form-group">
+                                <label class="form-label clsPRSpotlabels">Remarks</label>
+                                @Html.TextAreaFor(m => m.Remarks, new { @class = "form-control", @placeholder = "Enter Remarks", @rows = "2" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Map -->
+                <div class="col-xl-6 col-lg-12 d-none" id="mapContainer">
+                    <div id="googleMap" style="height: 100%; min-height: 450px; width: 100%; border-radius: 6px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-0 mt-3 clsPRSpot">
+        <div class="card-header d-flex align-items-center py-2">
+            <!-- Added d-flex and padding -->
+            <h5 class="card-title mb-0 flex-grow-1 text-uppercase fw-bold text-primary">
+                <i class="ri-truck-line align-middle me-1"></i> Trip Expenses
+            </h5>
+
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" id="btnAddRows" class="@ViewBag.UI.Buttons.Add.CssClass btn-label">
+                    <i class="@ViewBag.UI.Buttons.Add.Icon label-icon align-middle fs-16 me-2"></i> Add Route Expenses
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-borderless table-nowrap align-middle m-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width: 30%;">Type</th>
+                            <th class="text-center" style="width: 30%;">Amount (&#8377;)</th>
+                            <th class="text-center" style="width: 20%;">Billed ?</th>
+                            <th class="text-center" style="width: 20%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="EnrouteEx">
+                        @if (Model.EnrtExpList == null || Model.EnrtExpList.Count == 0)
+                        {
+                            <tr class="no-data-row">
+                                <td colspan="4" class="text-center text-muted py-3">No data available</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model.EnrtExpList)
+                            {
+                                item.SRNO = j;
+                                Html.RenderPartial("_TripExpenses", item);
+                                j++;
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="button" id="btnSave" class="@ViewBag.UI.Buttons.Submit.CssClass">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i>@ViewBag.UI.Buttons.Submit.Label
+        </button>
+    </div>
+}
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.64&key=@(ViewBag.GoogleMapsApiKey)&libraries=drawing,geometry,places"></script>
+
+<script type="text/javascript">
+    var enrtExpList = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.ExpenseMasterList));
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span', //default input error message container
+                errorClass: 'help-block', // default input error message class
+                // errorClass: 'validate-inline',
+                focusInvalid: false, // do not focus the last invalid input
+                rules: {
+
+                },
+                messages: {
+
+                },
+                errorPlacement: function (error, element) {
+                    error.insertAfter(element);
+                },
+                invalidHandler: function (event, validator) {
+                    for (var i = 0; i < validator.errorList.length; i++) {
+
+                    }
+
+                    for (var i in validator.errorMap) {
+                    }
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+                highlight: function (element) { // hightlight error inputs
+                    $(element)
+                        .closest('.form-group').addClass('has-error'); // set error class to the control group
+                },
+                unhighlight: function (element) { // revert the change done by hightlight
+                    $(element)
+                        .closest('.form-group').removeClass('has-error'); // set error class to the control group
+                },
+                success: function (label) {
+                    label
+                        .closest('.form-group').removeClass('has-error'); // set success class to the control group
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                    //  form1.submit();
+                }
+            });
+        }
+        var map;
+        var directionsService;
+        var directionsRenderer;
+        var geocoder;
+        var pickupMarker;
+
+        function loadmapOnCreate() {
+            var defaultLat = 21.2140032; // Default latitude
+            var defaultLong = 72.843264; // Default longitude
+
+            var myCenter = new google.maps.LatLng(defaultLat, defaultLong);
+            var mapProp = {
+                center: myCenter,
+                zoom: 12
+            };
+            map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map
+            });
+            geocoder = new google.maps.Geocoder();
+        }
+
+        function pinpointPickupAddress() {
+            if ($("#Type").val() !== 'RETAIL') {
+                return;
+            }
+
+            var pickup = $("#Pickup_Address option:selected").text().trim();
+            var destination = $("#DropLocation").val().trim();
+
+            if (!pickup || pickup.indexOf('Select') === 0 || pickup === "") {
+                return;
+            }
+
+            // If drop location is also filled, let calculateRoute handle drawing the full path instead of just a pinpoint
+            if (destination && destination !== "") {
+                if (pickupMarker) {
+                    pickupMarker.setMap(null);
+                }
+                calculateRoute();
+                return;
+            }
+
+            if (geocoder && map) {
+                geocoder.geocode({ 'address': pickup }, function (results, status) {
+                    if (status === google.maps.GeocoderStatus.OK) {
+                        if (directionsRenderer) {
+                            directionsRenderer.setMap(null);
+                        }
+                        
+                        map.setCenter(results[0].geometry.location);
+                        map.setZoom(15);
+
+                        if (pickupMarker) {
+                            pickupMarker.setPosition(results[0].geometry.location);
+                            pickupMarker.setMap(map);
+                        } else {
+                            pickupMarker = new google.maps.Marker({
+                                position: results[0].geometry.location,
+                                map: map,
+                                title: "Pickup Location"
+                            });
+                        }
+                    } else {
+                        console.error('Geocode was not successful for the following reason: ' + status);
+                    }
+                });
+            }
+        }
+
+        function calculateRoute() {
+            if ($("#Type").val() !== 'RETAIL') {
+                return;
+            }
+
+            var origin = $("#Pickup_Address option:selected").text().trim();
+            var destination = $("#DropLocation").val().trim();
+
+            if (!origin || origin.indexOf('Select') === 0 || origin === "") {
+                return;
+            }
+            if (!destination || destination === "") {
+                return;
+            }
+
+            if (directionsService && directionsRenderer) {
+                if (pickupMarker) {
+                    pickupMarker.setMap(null);
+                }
+
+                directionsRenderer.setMap(map);
+                directionsService.route(
+                    {
+                        origin: origin,
+                        destination: destination,
+                        travelMode: google.maps.TravelMode.DRIVING
+                    },
+                    function (response, status) {
+                        if (status === google.maps.DirectionsStatus.OK) {
+                            directionsRenderer.setDirections(response);
+                            var route = response.routes[0];
+                            if (route.legs && route.legs[0]) {
+                                var distanceInKm = route.legs[0].distance.value / 1000;
+                                $("#TotalKMs").val(distanceInKm.toFixed(2));
+                                calculateFreight();
+                            }
+                        } else {
+                            console.error('Directions request failed due to ' + status);
+                        }
+                    }
+                );
+            }
+        }
+
+        function calculateFreight() {
+            var rateType = $("#RateType option:selected").text().toLowerCase().trim();
+            var rate = parseFloat($("#Rate").val()) || 0;
+            var weight = parseFloat($("#Weight").val()) || 0;
+            var totalKms = parseFloat($("#TotalKMs").val()) || 0;
+            var freight = 0;
+
+            if (rateType.indexOf("trip") > -1) {
+                freight = rate;
+            } else if (rateType.indexOf("ton") > -1 || rateType.indexOf("ron") > -1) {
+                freight = weight * rate * totalKms;
+            } else if (rateType.indexOf("per km") > -1) {
+                freight = totalKms * rate;
+            } else if (rateType.indexOf("unit") > -1) {
+                freight = weight * rate;
+            }
+
+            $("#Freight").val(freight.toFixed(2));
+        }
+        var Select2Id = function (ID) {
+            $("#" + ID).select2({
+                placeholder: "Select an Option",
+            });
+        }
+
+        function AddQuestions(DomainName, SRNO) {
+            var strUrl = DomainName + "/Fleet/AddTripExpenses";
+            $.ajax({
+                url: strUrl,
+                type: 'GET',
+                data: {
+                    "SRNO": SRNO
+                },
+                success: function (data) {
+                    $('#EnrouteEx .no-data-row').remove();
+                    $('#EnrouteEx').append(data);
+                    var $lastRow = $('#EnrouteEx tr:last');
+                    $lastRow.find('select.select2').select2({
+                        placeholder: "Select Type",
+                        allowClear: true
+                    });
+
+                    // Bind change event for the toggle label
+                    $lastRow.find('.expense-billed').on('change', function () {
+                        if ($(this).is(':checked')) {
+                            $(this).siblings('label').text('YES').removeClass('text-danger').addClass('text-success');
+                        } else {
+                            $(this).siblings('label').text('NO').removeClass('text-success').addClass('text-danger');
+                        }
+                    });
+                },
+                error: function (jqXHR, exception) {
+                    TosterNotification("error", errorResult(jqXHR, exception), "Oops..!!");
+                }
+            });
+        }
+
+
+        return {
+            //main function to initiate the module
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                loadmapOnCreate();
+
+                // Add one default row on page load
+                // if ($('#EnrouteEx tr').length == 0) {
+                //     AddQuestions(DomainName, 1);
+                // }
+                $(document).on('click', '.deleteRow', function () {
+                    $(this).closest('tr').remove();
+                    if ($('#EnrouteEx tr').not('.no-data-row').length == 0) {
+                        $('#EnrouteEx').append('<tr class="no-data-row"><td colspan="4" class="text-center text-muted py-3">No data available</td></tr>');
+                    }
+                });
+                var dropLocationInput = document.getElementById('DropLocation');
+                if (dropLocationInput) {
+                    var autocomplete = new google.maps.places.Autocomplete(dropLocationInput);
+                    $('#DropLocation').on('keydown', function (e) {
+                        if (e.keyCode === 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                    autocomplete.addListener('place_changed', function () {
+                        var place = autocomplete.getPlace();
+                        if (place.geometry && place.geometry.location) {
+                            $('#Drop_Lat').val(place.geometry.location.lat());
+                            $('#Drop_Long').val(place.geometry.location.lng());
+                        } else {
+                            $('#Drop_Lat').val('');
+                            $('#Drop_Long').val('');
+                        }
+                        calculateRoute();
+                    });
+                }
+
+                $(document).on('change', '#Pickup_Address, #DropLocation', function () {
+                    calculateRoute();
+                });
+
+                $(document).on('change keyup input', '#RateType, #Rate, #Weight, #TotalKMs', function () {
+                    calculateFreight();
+                });
+
+                $(document).on('change', '.clsNOE', function () {
+                    var selectedValue = $(this).val();
+                    if (!selectedValue) return;
+
+                    var row = $(this).closest('tr');
+                    var isBilledCheckbox = row.find('.expense-billed');
+                    var expenseItem = (enrtExpList || []).find(function(item) {
+                        return item.CodeId == selectedValue;
+                    });
+                    var isBillable = expenseItem ? expenseItem.BillableToCustomer : false;
+                    isBilledCheckbox.prop('checked', isBillable).trigger('change');
+
+                    var currentSelect = this;
+                    var isDuplicate = false;
+
+                    $('.clsNOE').not(currentSelect).each(function () {
+                        if ($(this).val() === selectedValue) {
+                            isDuplicate = true;
+                        }
+                    });
+
+                    if (isDuplicate) {
+                        TosterNotification("error", "This expense type has already been selected!", "Duplicate Expense");
+                        $(this).select2("data", null).trigger("change");
+                        isBilledCheckbox.prop('checked', false).trigger('change');
+                    }
+                });
+
+                $("#btnAddRows").click(function () {
+                    var itemIndex1 = $('#EnrouteEx tr').not('.no-data-row').length + 1;
+                    AddQuestions(DomainName, itemIndex1);
+                });
+
+                $(".clsPRSpot").hide();
+                $(".clsPRNormal").hide();
+                $(".clsPRSpots").hide();
+
+                $("#Customer_Group").change(function () {
+                    var GRPCD = $("#Customer_Group").val();
+                    var Parameters = {
+                        "GRPCD": GRPCD
+                    }
+                    FillDropDownfromOtherWithJson("USP_Get_CustomerOn_CustomerGroup", Parameters, "Customer_Code", "Customer Code", false, 0, true);
+                    $("#Pickup_Address").select2("data", null);
+                    $("#From_Lane_id").select2("data", null);
+                    $("#To_Lane_id").select2("data", null);
+                });
+                $("#btnSave").on('click', function (e) {
+                    App.blockUI({ boxed: true });
+                    if (!$('#form_sample').valid()) {
+                        App.unblockUI();
+                        return;
+                    }
+                    
+                    $("#form_sample").find(":disabled").prop("disabled", false);
+                    
+                    document.forms['form_sample'].submit();
+                });
+
+                $("#Customer_Code").change(function () {
+                    var Parameters = {
+                        "CUSTCD": $("#Customer_Code").val()
+                    }
+
+                    var strUrl = DomainName + "/Account/GetDataWithoutAlias";
+                    $.ajax({
+                        url: strUrl,
+                        type: 'POST',
+                        dataType: "json",
+                        data: {
+                            Method: "USP_Get_AddressLocationOn_Customer",
+                            parameters: Parameters
+                        },
+                        success: function (data) {
+                            //console.log(data);
+                            if (data[0]) {
+                                 if (data[0].Customer_Category == "N1") {
+                                    $(".clsPRNormal").show();
+                                    $(".clsPRSpot").hide();
+                                     $("#Type").val('ENTERPRISE');
+                                    $('.clsPRSpotlabel').removeClass('required-label');
+                                    $('.clsPRNormallabel').addClass('required-label');
+                                    $('.clsPRNormal .form-control').addClass('required');
+                                    $('.clsPRSpot .form-control').removeClass('required');
+                                     $('#To_Lane_id').removeClass('required');
+                                     $('.clsreq').removeClass('required-label');
+                                    // Hide Map and make fields full width for normal booking
+                                    $("#fieldsContainer").removeClass("col-xl-6").addClass("col-xl-12");
+                                    $("#mapContainer").addClass("d-none");
+                                    $("#fieldsContainer > .row > div.col-temp-6").removeClass("col-md-6 col-temp-6").addClass("col-md-3");
+                                }
+                                else if (data[0].Customer_Category == "N2") {
+                                    $(".clsPRNormal").hide();
+                                    $(".clsPRSpot").show();
+                                    $(".clsPRSpots").show();
+                                    $("#Type").val('RETAIL');
+                                    $('.clsPRSpotlabel').addClass('required-label');
+                                    $('.clsreq').addClass('required-label');
+                                    $('.clsPRNormallabel').removeClass('required-label');
+                                    $('.clsPRSpotlabels').removeClass('required-label');
+                                    $('.clsPRSpots').removeClass('required-label');
+                                    $('#Remarks').removeClass('required');
+                                    $('.clsPRSpot .form-control').addClass('required');
+                                    $('#To_Lane_id').addClass('required');
+                                    $('.clsPRNormal .form-control').removeClass('required');
+                                    var para = {
+                                        "ContractId": 0
+                                    }
+                                    FillDropDownfromOtherWithJson("USP_Get_ContractLane", para, "To_Lane_id", "To_Lane_id", false, 0, true);
+                                     
+                                    // Show Map and make fields 6/12 width for spot booking
+                                    $("#fieldsContainer").removeClass("col-xl-12").addClass("col-xl-6");
+                                    $("#mapContainer").removeClass("d-none");
+                                    $("#fieldsContainer > .row > div.col-md-3").removeClass("col-md-3").addClass("col-md-6 col-temp-6");
+                                    if (map) {
+                                        google.maps.event.trigger(map, 'resize');
+                                        var defaultLat = 21.2140032;
+                                        var defaultLong = 72.843264;
+                                        map.setCenter(new google.maps.LatLng(defaultLat, defaultLong));
+                                    }
+                                }
+                            } else {
+                                //$("#Address").val("");
+                                //$("#Location").val("");
+                            }
+
+                            FillDropDownfromOtherWithJson("USP_Get_CustomerContract", Parameters, "Contract_Id", "Contract", false, 0, true);
+                            FillDropDownfromOtherWithJson("USP_Get_CustomerPickUpAddress", Parameters, "Pickup_Address", "Pickup Address", false, 0, true);
+                            var nonEmtpyOptionsPickup = $("#Pickup_Address option[value!='']");
+                            if (nonEmtpyOptionsPickup.length === 1) {
+                                var firstOpt = nonEmtpyOptionsPickup.val();
+                                $("#Pickup_Address").select2("val", firstOpt);
+                                $("#Pickup_Address").val(firstOpt).trigger("change");
+                                $("#Pickup_Address").valid();
+                            } else {
+                                $("#Pickup_Address").select2("val", "");
+                                $("#Pickup_Address").val("").trigger("change");
+                            }
+
+                            App.unblockUI();
+                        },
+                        error: function (jqXHR, exception) {
+                            TosterNotification("error", errorResult(jqXHR, exception), "Oops..!!");
+                            App.unblockUI();
+                        }
+                    });
+                });
+
+                $("#Pickup_Address").change(function () {
+                    var Parameters = {
+                        "Pickup_Address": $("#Pickup_Address").val()
+                    }
+                    FillDropDownfromOtherWithJson("USP_Get_LaneDetailsof_Customer", Parameters, "From_Lane_id", "Lane", false, 0, true);
+                    var nonEmtpyOptionsLane = $("#From_Lane_id option[value!='']");
+                    if (nonEmtpyOptionsLane.length === 1) {
+                        var firstOpt = nonEmtpyOptionsLane.val();
+                        $("#From_Lane_id").select2("val", firstOpt).prop("disabled", true);
+                        $("#From_Lane_id").val(firstOpt).trigger("change").prop("disabled", true);
+                        $("#From_Lane_id").valid();
+                    } else {
+                        $("#From_Lane_id").select2("val", "").prop("disabled", false);
+                        $("#From_Lane_id").val("").trigger("change").prop("disabled", false);
+                    }
+
+                    // Dynamically pinpoint the selected pickup address on the map
+                    pinpointPickupAddress();
+                });
+                //$('#Organization').prop('disabled', true);
+                $("#Contract_Id").change(function () {
+                    var Parameters = {
+                        "ContractId": $("#Contract_Id").val()
+                    }
+
+                    FillDropDownfromOtherWithJson("USP_Get_ContractOrganization", Parameters, "Organization", "Organization", false, 0, true);
+                    var nonEmtpyOptionsOrg = $("#Organization option[value!='']");
+                    if (nonEmtpyOptionsOrg.length === 1) {
+                        var firstOpt = nonEmtpyOptionsOrg.val();
+                        $("#Organization").select2("val", firstOpt).prop("disabled", true);
+                        $("#Organization").val(firstOpt).trigger("change").prop("disabled", true);
+                        $("#Organization").valid();
+                    } else {
+                        $("#Organization").select2("val", "").prop("disabled", false);
+                        $("#Organization").val("").trigger("change").prop("disabled", false);
+                    }
+
+                    FillDropDownfromOtherWithJson("USP_Get_ContractLane", Parameters, "To_Lane_id", "To_Lane_id", false, 0, true);
+                    var nonEmtpyOptionsToLane = $("#To_Lane_id option[value!='']");
+                    if (nonEmtpyOptionsToLane.length === 1) {
+                        var firstOpt = nonEmtpyOptionsToLane.val();
+                        $("#To_Lane_id").select2("val", firstOpt);
+                        $("#To_Lane_id").val(firstOpt).trigger("change");
+                        $("#To_Lane_id").valid();
+                    } else {
+                        $("#To_Lane_id").select2("val", "");
+                        $("#To_Lane_id").val("").trigger("change");
+                    }
+                    $('#To_Lane_id').removeClass('required');
+                    $('.clsreq').removeClass('required-label');
+
+                    var selectedText = $("#Contract_Id option:selected").text() || "";
+                    if (selectedText.toUpperCase().indexOf("PTL") !== -1) {
+                        $("#ServiceType").select2("val", "1");
+                        $("#ServiceType").val("1").trigger("change");
+                    } else if (selectedText.toUpperCase().indexOf("FTL") !== -1) {
+                        $("#ServiceType").select2("val", "2");
+                        $("#ServiceType").val("2").trigger("change");
+                    } else {
+                        $("#ServiceType").select2("val", "");
+                        $("#ServiceType").val("").trigger("change");
+                    }
+                });
+
+                // Remove auto-generated MVC validation attributes for optional lane fields
+                $("#To_Lane_id").removeAttr("data-val").removeAttr("data-val-required");
+      
+                // Pinpoint, calculate route, and calculate freight on load if values are pre-filled
+                pinpointPickupAddress();
+                calculateRoute();
+                calculateFreight();
+                if ($("#Customer_Code").val()) {
+                    $("#Customer_Code").trigger("change");
+                }
+            }
+        }
+    }();
+</script>

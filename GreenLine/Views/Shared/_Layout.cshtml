@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-layout="vertical" data-topbar="light" data-sidebar="light" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable" data-layout-width="fluid" data-layout-position="fixed" data-layout-style="default">
+@using System.Web
+@using System.Configuration
+@using GreenLine.Security
+@using GreenLine.Classes
+@using GreenLineDataService.Models
+@using Newtonsoft.Json
+<head>
+    @{
+        var controllerName = ViewContext.RouteData.Values["controller"].ToString();
+    }
+    <meta charset="utf-8" />
+    <title>:: @ViewBag.Title :: ERP by CYGNUX Softtech Pvt Ltd.</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="@Url.Content("~/assets/img/logos/favicon.png")">
+    @RenderSection("styles", required: false)
+    @Html.Partial("~/Views/Shared/_HeadCss.cshtml")
+    @Html.Partial("~/Views/Shared/_UIThemeStyles.cshtml")
+</head>
+<body>
+    @Html.Partial("~/Views/Shared/_GlobalLoader.cshtml")
+
+    <!-- Begin page -->
+    <div id="layout-wrapper">
+        @Html.Partial("~/Views/Shared/_Header.cshtml")
+        @Html.Action("RenderDynamicSidebar")
+
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    @RenderSection("featured", required: false)
+                    @RenderBody()
+                </div>
+            </div>
+
+            @Html.Partial("~/Views/Shared/_Footer.cshtml")
+        </div>
+
+    </div>
+    <!-- END layout-wrapper -->
+    @Html.Partial("~/Views/Shared/_CustomModal.cshtml")
+    @Html.Partial("~/Views/Shared/_FormModal.cshtml")
+    @Html.Partial("~/Views/Shared/_BackToTop.cshtml")
+
+    @Html.Partial("~/Views/Shared/_Scripts.cshtml")
+    @RenderSection("scripts", required: false)    
+
+    <div id="removeNotificationModal" style="display: none;"></div>
+</body>
+</html>

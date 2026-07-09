@@ -1,0 +1,887 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@using GreenLineDataService.Models
+
+@{
+    var trip = Model.CTM;
+}
+
+<style>
+    /* ── Expense inner sub-tabs ──────────────────────────── */
+    .exp-subtab-nav {
+        border-bottom: 2px solid var(--vz-border-color, #e9ebec);
+        margin-bottom: 20px;
+    }
+
+    .exp-subtab-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 18px;
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--vz-text-muted, #878a99);
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: color .15s, border-color .15s;
+    }
+
+        .exp-subtab-link.active {
+            color: var(--vz-primary, #405189);
+            border-bottom-color: var(--vz-primary, #405189);
+        }
+
+        .exp-subtab-link:hover:not(.active) {
+            color: var(--vz-body-color, #495057);
+        }
+
+    .exp-subpane {
+        display: none;
+    }
+
+        .exp-subpane.active {
+            display: block;
+        }
+
+    /* ── LR accordion row ─────────────────────────────────── */
+    .lr-exp-row {
+        border: 1px solid var(--vz-border-color, #e9ebec);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .lr-exp-header {
+        padding: 11px 16px;
+        background: var(--vz-card-bg, #fff);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .lr-exp-header:hover {
+            background: var(--vz-light, #f3f6f9);
+        }
+
+    .lr-exp-body {
+        padding: 14px 16px;
+        background: var(--vz-light, #f3f6f9);
+        border-top: 1px solid var(--vz-border-color, #e9ebec);
+        display: none;
+    }
+
+    .lr-exp-row.open .lr-exp-body {
+        display: block;
+    }
+
+    .lr-exp-row.open .lr-exp-chevron {
+        transform: rotate(180deg);
+    }
+
+    .lr-exp-chevron {
+        transition: transform .2s;
+        color: var(--vz-text-muted);
+    }
+
+    .btn-doc-view {
+        color: var(--vz-info);
+        border: 1px solid var(--vz-info);
+        background: transparent;
+        font-size: 11px;
+        padding: 1px 8px;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+    .btn-doc-view:hover,
+    .btn-doc-view:focus {
+        color: var(--vz-info) !important;
+        background: transparent !important;
+        border-color: var(--vz-info) !important;
+        text-decoration: none;
+    }
+    
+    /* Premium Hover & Select states for LR card list */
+    .lr-exp-card {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid var(--vz-border-color, #e9ebec) !important;
+        background-color: var(--vz-card-bg, #fff);
+    }
+    .lr-exp-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: var(--vz-primary, #405189) !important;
+    }
+    .lr-exp-card.border-primary.bg-soft-primary {
+        background-color: rgba(64, 81, 137, 0.05) !important;
+        border-color: var(--vz-primary, #405189) !important;
+        box-shadow: 0 4px 12px rgba(64, 81, 137, 0.1);
+    }
+</style>
+
+<!-- ── Page Header ──────────────────────────────────────── -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <div class="fs-11 text-muted fw-semibold letter-spacing-1 mb-1">Expense Management</div>
+        <h5 class="fw-bold text-dark mb-0 fs-16">Expense Entry</h5>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="badge bg-soft-primary text-primary fs-11 px-2">Trip: @trip.TripNo</span>
+        <span class="badge bg-soft-success text-success fs-11 px-2">PR: @trip.PRNo</span>
+    </div>
+</div>
+
+<!-- ── Inner Sub-Tabs ───────────────────────────────────── -->
+<div class="exp-subtab-nav">
+    <button class="exp-subtab-link active" data-exptab="trip">
+        Trip Expenses
+    </button>
+    <button class="exp-subtab-link" data-exptab="consignment">
+        <i class="ri-file-list-3-line"></i> Consignment (LR) Expenses
+    </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SUB-PANE 1 : TRIP EXPENSES                            -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="exp-subpane active form-modern-ui" id="exppane-trip">
+    <div class="row g-3">
+        <!-- Entry Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header border-bottom-dashed py-2 px-3">
+                    <h6 class="card-title mb-0 fw-bold fs-13">
+                        <i class="ri-add-circle-line me-1 text-primary"></i> New Trip Expense
+                    </h6>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label fs-12 fw-semibold text-muted">Category</label>
+                                @Html.DropDownListFor(m => m.EnrtExp.id, new SelectList(ViewBag.ExpenseMasterList, "CodeId", "CodeDesc"), "", new { @class = "form-control required select2 clsNOE" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label fs-12 fw-semibold text-muted">Amount (INR)</label>
+                                @Html.TextBoxFor(m => m.EnrtExp.Amount_Spent, new { @class = "form-control totalExp required", @placeholder = "0", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @number = "true", @min = "1" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label fs-12 fw-semibold text-muted">Payment Type</label>
+                                @Html.DropDownListFor(m => m.EnrtExp.PymentType, new SelectList(ViewBag.PaymentTypeList, "Value", "Text"), "", new { @class = "form-control required select2 clsNOE" })
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="form-label fs-12 fw-semibold text-muted d-block">Billed?</label>
+                                <div class="form-check form-switch mt-1">
+                                    @Html.CheckBoxFor(m => m.EnrtExp.IsBilled, new { @class = "form-check-input expense-billed", @id = "tripExpBilled", @disabled = "disabled", @style = "width:2.2em;height:1.1em;" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fs-12 fw-semibold text-muted ">
+                            <i class="ri-attachment-line me-1"></i> Attachment
+                        </label>
+                        <input type="file" id="tripExpFile" class="form-control" accept="image/*,application/pdf" />
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" id="btnAddTripExpense" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave">
+                            @ViewBag.UI.Buttons.Submit.Label <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>
+                        </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- Summary Card -->
+        <div class="col-lg-4">
+            <div class="card border-0" style="background:linear-gradient(135deg,var(--vz-primary,#405189) 0%,#2c3a6e 100%);">
+                <div class="card-body p-3 text-white d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="fs-10 text-white-50 mb-1">Trip Reference</div>
+                        <div class="fw-bold fs-15">@trip.TripNo</div>
+                        <div class="fs-12 text-white-50 mt-1">@trip.VehicleNo &bull; @trip.PRNo</div>
+                    </div>
+                    <div class="mt-3 pt-2 border-top border-white border-opacity-25">
+                        <div class="fs-10 text-white-50">Total Trip Expenses</div>
+                        <div class="fw-bold fs-20" id="tripExpTotal">INR 0.00</div>
+                        <div class="fs-11 text-white-50" id="tripExpCount">0 entries</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trip Expense Ledger -->
+    <div class="card">
+        <div class="card-header">
+            <h6 class="card-title mb-0 fw-bold fs-14 text-dark">
+                <i class="ri-list-check me-1 text-primary align-middle"></i> Trip Expense List
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-nowrap align-middle mb-0">
+                    <thead class="table-light fs-11 text-muted">
+                        <tr>
+                            <th scope="col" style="width: 30%;">Expense Type</th>
+                            <th scope="col" class="text-end">Amount</th>
+                            <th scope="col" class="text-center">Billed</th>
+                            <th scope="col" class="text-center">Payment</th>
+                            <th scope="col" class="text-center">Attachment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tripExpLedger">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No data available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SUB-PANE 2 : CONSIGNMENT (LR) EXPENSES               -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="exp-subpane form-modern-ui" id="exppane-consignment">
+    <div class="row g-3">
+        <!-- LEFT: LR List -->
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header bg-light py-2 d-flex align-items-center justify-content-between">
+                    <span class="fw-bold fs-12 text-muted">
+                        <i class="ri-file-list-3-line me-1"></i> Docket List (LR)
+                    </span>
+                    <span class="badge bg-primary rounded-pill fs-11" id="lrExpCount">0</span>
+                </div>
+                <div class="card-body p-2" id="lrExpList" style="max-height:460px; overflow-y:auto;">
+                    <div class="text-center text-muted py-5 fs-13" id="lrExpEmpty">
+                        <i class="ri-loader-4-line fs-1 opacity-50 d-block mb-2"></i> Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Expense Entry Form -->
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header bg-light py-2 d-flex align-items-center justify-content-between">
+                    <span class="fw-bold fs-12 text-muted">
+                        <i class="ri-add-circle-line me-1"></i> New Expense Entry
+                    </span>
+                    <span class="fs-12 fw-bold text-primary" id="lrSelectedBadge" style="display:none;"><i class="ri-file-paper-line me-1"></i><span id="lrSelectedBadgeText"></span></span>
+                </div>
+                <div class="card-body p-3">
+                    <input type="hidden" id="hdnSelLRNo" />
+                    <input type="hidden" id="hdnLRExpId" value="0" />
+
+                    <!-- Placeholder -->
+                    <div id="lrExpFormPlaceholder" class="text-center text-muted py-5 fs-13">
+                        <i class="ri-hand-point-left-line fs-1 opacity-50 d-block mb-2"></i>
+                        Select a Docket from the left to add expense
+                    </div>
+
+                    <!-- Form -->
+                    <div id="lrExpFormPanel" style="display:none;">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label fs-12 fw-semibold text-muted">Category</label>
+                                    @Html.DropDownList("lrExpCategory", new SelectList(ViewBag.LrExpenseMasterList, "CodeId", "CodeDesc"), "", new { @class = "form-control select2 clsNOE required", @id = "lrExpCategory", @data_placeholder = "Select Category" })
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label fs-12 fw-semibold text-muted">Amount (INR)</label>
+                                    <input type="number" id="lrExpAmount" class="form-control required" placeholder="0" min="0" step="0.01" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label fs-12 fw-semibold text-muted">Payment</label>
+                                    @Html.DropDownList("lrExpPayment", new SelectList(ViewBag.PaymentTypeList, "Value", "Text"), "", new { @class = "form-control select2 clsNOE required", @id = "lrExpPayment" })
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label class="form-label fs-12 fw-semibold text-muted d-block">Billed?</label>
+                                    <div class="form-check form-switch mt-1">
+                                        <input type="checkbox" class="form-check-input expense-billed" id="lrExpBilled" disabled="disabled" style="width:2.2em;height:1.1em;" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fs-12 fw-semibold text-muted">
+                                <i class="ri-attachment-line me-1"></i> Attachment
+                            </label>
+                            <div class="input-group">
+                                <input type="file" id="lrExpFile" class="form-control" accept="image/*,application/pdf" />
+                                <a id="lrExpFileLink" href="#" target="_blank" class="btn btn-outline-primary" style="display:none;" title="View Current Attachment">
+                                    <i class="ri-attachment-2"></i> View
+                                </a>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="@ViewBag.UI.Buttons.Clear.CssClass" id="btnLRExpClear">
+                                <i class="@ViewBag.UI.Buttons.Clear.Icon"></i>@ViewBag.UI.Buttons.Clear.Label
+                            </button>
+                            <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass" id="btnAddLRExpense">
+                                <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>@ViewBag.UI.Buttons.Submit.Label
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ledger below form -->
+                    <div id="lrExpLedgerSection" class="card border shadow-none mt-4" style="display:none;">
+                        <div class="card-header bg-light py-2">
+                            <span class="fw-bold fs-11 text-muted">
+                                <i class="ri-list-check me-1"></i> Expense Ledger
+                            </span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-nowrap align-middle mb-0 fs-12">
+                                    <thead class="table-light fs-10 text-muted">
+                                        <tr>
+                                            <th>LR No</th>
+                                            <th>Category</th>
+                                            <th class="text-end">Amount</th>
+                                            <th class="text-center">Billed</th>
+                                            <th class="text-center">Payment</th>
+                                            <th class="text-center">Attachment</th>
+                                            <th class="text-center" style="width: 80px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lrExpLedgerBody">
+                                        <tr><td colspan="7" class="text-center text-muted py-3">No expenses logged yet.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── Expense Category options (shared, for LR rows) ── -->
+<script id="expCategoryOptions" type="text/template">
+    <option value="">Select Category</option>
+    @*@foreach (var exp in expenseTypes)
+    {
+        <option value="@exp.CodeId">@exp.CodeDesc</option>
+    }*@
+</script>
+
+<script>
+    var enrtExpList = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.ExpenseMasterList));
+    var lrExpList = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.LrExpenseMasterList));
+
+    function validateForm(container) {
+        var isValid = true;
+        $(container).find('input.required, select.required').each(function () {
+            var elem = $(this);
+            var val = elem.val();
+            var isInvalid = false;
+            
+            if (!val) {
+                isInvalid = true;
+            } else if (elem.hasClass('totalExp') || elem.attr('type') === 'number' || elem.attr('number') === 'true') {
+                var num = parseFloat(val);
+                if (isNaN(num) || num <= 0) {
+                    isInvalid = true;
+                }
+            }
+            
+            var formGroup = elem.closest('.form-group');
+            if (isInvalid) {
+                isValid = false;
+                formGroup.addClass('has-error');
+                
+                if (formGroup.find('.help-block').length === 0) {
+                    $('<span class="help-block">This field is required.</span>').appendTo(formGroup);
+                }
+            } else {
+                formGroup.removeClass('has-error');
+                formGroup.find('.help-block').remove();
+            }
+        });
+        return isValid;
+    }
+
+    function clearValidation(container) {
+        $(container).find('.form-group').removeClass('has-error');
+        $(container).find('.help-block').remove();
+    }
+
+    function initExpenseTab() {
+        // Highlight required fields correctly with asterisk
+        $('input.required, select.required').closest('.form-group').find('label.form-label').addClass('required-field');
+
+        $(document).on('change', '#tripExpFile', function () {
+            var file = this.files[0];
+            if (file) {
+                validateImageFile(file, this);
+            }
+        });
+
+        $(document).on('change', '#lrExpFile', function () {
+            var file = this.files[0];
+            if (file) {
+                validateImageFile(file, this);
+            }
+        });
+
+        $(document).on('change input', 'input.required, select.required', function () {
+            var elem = $(this);
+            var val = elem.val();
+            var isValid = true;
+            if (!val) {
+                isValid = false;
+            } else if (elem.hasClass('totalExp') || elem.attr('type') === 'number' || elem.attr('number') === 'true') {
+                var num = parseFloat(val);
+                if (isNaN(num) || num <= 0) {
+                    isValid = false;
+                }
+            }
+            
+            var formGroup = elem.closest('.form-group');
+            if (isValid) {
+                formGroup.removeClass('has-error');
+                formGroup.find('.help-block').remove();
+            }
+        });
+        
+        $(document).on('change', '#EnrtExp_id', function () {
+            var selectedValue = $(this).val();
+            if (!selectedValue) {
+                $('#tripExpBilled').prop('checked', false);
+                return;
+            }
+            var expenseItem = (enrtExpList || []).find(function(item) {
+                return item.CodeId == selectedValue;
+            });
+            var isBillable = expenseItem ? expenseItem.BillableToCustomer : false;
+            $('#tripExpBilled').prop('checked', isBillable);
+        });
+
+        $(document).on('change', '#lrExpCategory', function () {
+            var selectedValue = $(this).val();
+            if (!selectedValue) {
+                $('#lrExpBilled').prop('checked', false);
+                return;
+            }
+            var expenseItem = (lrExpList || []).find(function(item) {
+                return item.CodeId == selectedValue;
+            });
+            var isBillable = expenseItem ? expenseItem.BillableToCustomer : false;
+            $('#lrExpBilled').prop('checked', isBillable);
+        });
+
+        $(document).on('click', '.btnEditLRExp', function () {
+            var id = $(this).data('id');
+            var amount = $(this).data('amount');
+            var payment = $(this).data('payment');
+            var billed = $(this).data('billed') === true || $(this).data('billed') === 'true';
+            var recordId = $(this).data('recordid');
+            var docPath = $(this).data('docpath');
+
+            // Clear validation styles first
+            clearValidation('#lrExpFormPanel');
+
+            $('#hdnLRExpId').val(recordId || '0');
+            $('#lrExpCategory').val(id).trigger('change');
+            $('#lrExpAmount').val(amount);
+            $('#lrExpPayment').val(payment).trigger('change');
+            $('#lrExpBilled').prop('checked', billed);
+            $('#lrExpFile').data('existing', docPath || '');
+
+            if (docPath) {
+                $('#lrExpFileLink').attr('href', DomainName + docPath).show();
+            } else {
+                $('#lrExpFileLink').hide().attr('href', '#');
+            }
+
+            $('#lrExpCategory').focus();
+            TosterNotification('info', 'LR Expense entry loaded for editing', 'Edit Mode');
+        });
+
+
+        // ── Inner sub-tab switching ────────────────────────
+        $(document).on('click', '.exp-subtab-link', function () {
+            var tab = $(this).data('exptab');
+            $('.exp-subtab-link').removeClass('active');
+            $(this).addClass('active');
+            $('.exp-subpane').removeClass('active');
+            $('#exppane-' + tab).addClass('active');
+
+            if (tab === 'consignment') { loadLRExpList(); }
+        });
+
+        // ── Trip Expense: Add (with file upload) ──────────
+        $('#btnAddTripExpense').on('click', function () {
+            var cat     = $('#EnrtExp_id').val();
+            var amt     = $('#EnrtExp_Amount_Spent').val();
+            var payment = $('#EnrtExp_PymentType').val();
+            var container = $(this).closest('.card-body');
+            if (!validateForm(container)) {
+                return;
+            }
+            var fd = new FormData();
+            fd.append('TripNo',      '@trip.TripNo');
+            fd.append('PRNo',        '@trip.PRNo');
+            fd.append('VehicleNo',   '@trip.VehicleNo');
+            fd.append('ExpenseCode', cat);
+            fd.append('Amount',      amt);
+            fd.append('PaymentType', payment || '');
+            fd.append('IsBilled',    $('#tripExpBilled').is(':checked') ? 'true' : 'false');
+            var fileInput = $('#tripExpFile')[0];
+            if (fileInput.files.length > 0) { fd.append('ExpFile', fileInput.files[0]); }
+            $.ajax({
+                url: DomainName + '/Fleet/SaveTripExpense',
+                type: 'POST', processData: false, contentType: false,
+                data: fd,
+                success: function (res) {
+                    if (res.Status) {
+                        TosterNotification('success', 'Trip expense saved', 'Success');
+                        $('#EnrtExp_id').val('').trigger('change');
+                        $('#EnrtExp_Amount_Spent').val('');
+                        $('#EnrtExp_PymentType').val('').trigger('change');
+                        $('#tripExpFile').val('');
+                        clearValidation('#exppane-trip');
+                        loadTripExpLedger();
+                    } else {
+                        TosterNotification('error', res.Message || 'Failed to save', 'Error');
+                    }
+                },
+                error: function () { TosterNotification('error', 'Failed to save expense', 'Error'); }
+            });
+        });
+
+        // ── LR card: select → show expense form on right ──
+        $(document).on('click', '.btnSelectLRExp', function (e) {
+            e.stopPropagation();
+            var lrNo   = $(this).data('lr');
+            var custLR = $(this).data('custlr');
+            $('.lr-exp-card').removeClass('border-primary bg-soft-primary');
+            $(this).closest('.lr-exp-card').addClass('border-primary bg-soft-primary');
+            $('#hdnSelLRNo').val(lrNo);
+            $('#lrSelectedBadgeText').text(lrNo + (custLR ? '  (' + custLR + ')' : ''));
+            $('#lrSelectedBadge').show();
+            $('#lrExpFormPlaceholder').hide();
+            $('#lrExpFormPanel').show();
+            
+            // Clear entry form data
+            $('#hdnLRExpId').val('0');
+            $('#lrExpCategory').val('').trigger('change');
+            $('#lrExpAmount').val('');
+            $('#lrExpPayment').val('').trigger('change');
+            $('#lrExpFile').val('').data('existing', '');
+            $('#lrExpBilled').prop('checked', false);
+            $('#lrExpFileLink').hide().attr('href', '#');
+
+            // Clear validation styles
+            clearValidation('#lrExpFormPanel');
+
+            $('#lrExpLedgerSection').show();
+            loadLRExpLedger(lrNo);
+        });
+
+        // ── LR Expense: Clear ─────────────────────────────
+        $(document).on('click', '#btnLRExpClear', function () {
+            $('#hdnLRExpId').val('0');
+            $('#lrExpCategory').val('').trigger('change');
+            $('#lrExpAmount').val('');
+            $('#lrExpPayment').val('').trigger('change');
+            $('#lrExpFile').val('').data('existing', '');
+            $('#lrExpBilled').prop('checked', false);
+            $('#lrExpFileLink').hide().attr('href', '#');
+
+            // Clear validation styles
+            clearValidation('#lrExpFormPanel');
+        });
+
+        // ── LR Expense: Add ───────────────────────────────
+        $(document).on('click', '#btnAddLRExpense', function () {
+            var lrNo    = $('#hdnSelLRNo').val();
+            var cat     = $('#lrExpCategory').val();
+            var catName = $('#lrExpCategory option:selected').text();
+            var amt     = $('#lrExpAmount').val();
+            var payment = $('#lrExpPayment').val();
+            var payName = $('#lrExpPayment option:selected').text();
+            var isBilled = $('#lrExpBilled').is(':checked');
+            if (!lrNo) { 
+                TosterNotification('warning', 'Please select an LR first', 'Required'); 
+                return; 
+            }
+            if (!validateForm('#lrExpFormPanel')) {
+                return;
+            }
+            
+            var fileInput = $('#lrExpFile')[0];
+            var recordId = $('#hdnLRExpId').val() || '0';
+            var existingDoc = $('#lrExpFile').data('existing') || '';
+
+            var expenseItem = (lrExpList || []).find(function(item) {
+                return item.CodeId == cat;
+            });
+            var op = (expenseItem && expenseItem.Operator) ? expenseItem.Operator : '';
+
+            var fd = new FormData();
+            fd.append('Id', recordId);
+            fd.append('DockNo', lrNo);
+            fd.append('ChargeCode', cat);
+            fd.append('PaymentType', payment);
+            fd.append('IsBilled', isBilled);
+            fd.append('Amount', amt);
+            fd.append('Operator', op);
+            fd.append('ExistingAttachment', existingDoc);
+
+            if (fileInput && fileInput.files.length > 0) {
+                fd.append('ExpFile', fileInput.files[0]);
+            }
+
+            App.blockUI({ boxed: true });
+
+            $.ajax({
+                url: DomainName + '/Fleet/SaveDocketExpense',
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                data: fd,
+                success: function (res) {
+                    if (res.Status) {
+                        TosterNotification('success', res.Message || 'Expense logged successfully', 'Success');
+                        $('#lrExpCategory').val('').trigger('change');
+                        $('#lrExpAmount').val('');
+                        $('#lrExpPayment').val('').trigger('change');
+                        $('#lrExpFile').val('').data('existing', '');
+                        $('#hdnLRExpId').val('0');
+                        $('#lrExpFileLink').hide().attr('href', '#');
+                        clearValidation('#lrExpFormPanel');
+                        
+                        loadLRExpLedger(lrNo);
+                        loadLRExpList(true);
+                    } else {
+                        TosterNotification('error', res.Message || 'Failed to save expense', 'Error');
+                    }
+                    App.unblockUI();
+                },
+                error: function () {
+                    TosterNotification('error', 'Failed to save expense', 'Error');
+                    App.unblockUI();
+                }
+            });
+        });
+
+        // Load trip ledger on init
+        loadTripExpLedger();
+    }
+
+    @* function loadLRChargeList() {
+        $.ajax({
+            url: DomainName + '/Account/GetPRQData',
+            type: 'POST',
+            data: { Method: 'USP_GetChargeList' },
+            success: function (data) {
+                var list = JSON.parse(data);
+                var $sel = $('#lrExpCategory');
+                $sel.find('option:not(:first)').remove();
+                if (!list || !list.length) return;
+                $.each(list, function (i, c) {
+                    var code = c.ChargeCode || c.chargecode || '';
+                    var name = c.ChargeName || c.chargename || '';
+                    $sel.append('<option value="' + code + '">' + name + '</option>');
+                });
+                if ($.fn.select2 && $sel.hasClass('select2-hidden-accessible')) {
+                    $sel.trigger('change');
+                }
+            },
+            error: function () {
+                TosterNotification('error', 'Failed to load charge list', 'Error');
+            }
+        });
+    } *@
+
+    function loadTripExpLedger() {
+        $.ajax({
+            url: DomainName + '/Fleet/GetTripExpenses',
+            type: 'GET', dataType: 'json',
+            data: { TripNo: '@trip.TripNo' },
+            success: function (res) {
+                var data = (res && res.Status) ? res.Data : [];
+                if (!data || !data.length) {
+                    var emptyRow = '<tr><td colspan="5" class="text-center text-muted py-3">No data available</td></tr>';
+                    $('#tripExpLedger').html(emptyRow);
+                    $('#tripExpTotal').text('INR 0.00');
+                    $('#tripExpCount').text('0 entries');
+                    return;
+                }
+                var paymentMap = { 'O': 'Online', 'C': 'Cash', 'P': 'To Be Paid' };
+                var total = 0, rows = '';
+                $.each(data, function (i, e) {
+                    total += parseFloat(e.Amount_Spent || 0);
+                    var docCell = e.DocPath
+                        ? '<a href="' + DomainName + e.DocPath + '" target="_blank" class="btn-doc-view">View</a>'
+                        : '-';
+                    var billedText = e.IsBilled ? 'Yes' : 'No';
+                    var payLabel = paymentMap[e.PymentType] || e.PymentType || '-';
+                    rows += '<tr>'
+                        + '<td class="fw-semibold">' + (e.ExpenseName || e.id || '-') + '</td>'
+                        + '<td class="text-end fw-bold">' + parseFloat(e.Amount_Spent || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + '</td>'
+                        + '<td class="text-center">' + billedText + '</td>'
+                        + '<td class="text-center">' + payLabel + '</td>'
+                        + '<td class="text-center">' + docCell + '</td>'
+                        + '</tr>';
+                });
+                $('#tripExpLedger').html(rows);
+                $('#tripExpTotal').text('INR ' + total.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+                var countText = data.length + ' ' + (data.length === 1 ? 'entry' : 'entries');
+                $('#tripExpCount').text(countText);
+            },
+            error: function () {}
+        });
+    }
+
+    function loadLRExpList(force) {
+        if (!force && $('#lrExpList .lr-exp-card').length) return;
+        $.ajax({
+            url: DomainName + '/Account/GetDataWithoutAlias',
+            type: 'POST', dataType: 'json',
+            data: { Method: 'USP_GetLRListByTrip', parameters: { TripNo: '@trip.TripNo', PRNo: '@trip.PRNo' } },
+            success: function (data) {
+                if (!data || !data.length) {
+                    $('#lrExpList').html('<div class="text-center text-muted py-5 fs-13"><i class="ri-file-list-3-line fs-1 opacity-50 d-block mb-2"></i> No LR entries found for this trip.</div>');
+                    return;
+                }
+                var html = '';
+                $.each(data, function (i, lr) {
+                    var lrNo   = lr.LR_No || ('LR-' + (i + 1));
+                    var custLR = lr.CustLRNo || '';
+                    html += '<div class="lr-exp-card border rounded p-2 mb-2 d-flex align-items-center gap-2" data-lr="' + lrNo + '" style="cursor:pointer;">'
+                        + '<i class="ri-file-paper-line text-primary fs-16 flex-shrink-0"></i>'
+                        + '<div class="flex-grow-1">'
+                        + '<div class="fw-semibold fs-13 text-dark">' + lrNo + '</div>'
+                        + (custLR ? '<div class="fs-11 text-muted">' + custLR + '</div>' : '')
+                        + '<div class="fs-11 text-muted">' + (lr.Consignee_Name || lr.consignee_name || '') + (lr.Consignee_City ? ' &bull; ' + lr.Consignee_City : '') + '</div>'
+                        + '<div class="fs-11 text-muted">Wt: ' + (lr.net_weight || 0) + ' | &#x20B9;' + parseFloat(lr.Total || 0).toLocaleString('en-IN') + '</div>'
+                        + '</div>'
+                        + '<button type="button" class="btn btn-soft-primary btn-sm btnSelectLRExp flex-shrink-0" data-lr="' + lrNo + '" data-custlr="' + custLR + '" style="width:30px;height:30px;padding:0;"><i class="ri-add-line fs-14"></i></button>'
+                        + '</div>';
+                });
+                $('#lrExpList').html(html);
+                $('#lrExpCount').text(data.length);
+            },
+            error: function () {
+                $('#lrExpList').html('<div class="text-center text-muted py-4 fs-13">Failed to load LR list.</div>');
+            }
+        });
+    }
+
+    function loadLRExpLedger(lrNo) {
+        if (!lrNo) return;
+        var tbody = $('#lrExpLedgerBody');
+        tbody.html('<tr><td colspan="7" class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>');
+        $.ajax({
+            url: DomainName + '/Account/GetDataWithoutAlias',
+            type: 'POST',
+            dataType: 'json',
+            data: { Method: 'USP_Get_Docket_Expense', parameters: { DockNo: lrNo } },
+            success: function (data) {
+                tbody.empty();
+                if (!data || !data.length) {
+                    tbody.html('<tr><td colspan="7" class="text-center text-muted py-3">No expenses logged yet.</td></tr>');
+                    return;
+                }
+                var paymentMap = { 'O': 'Online', 'C': 'Cash', 'P': 'To Be Paid' };
+                $.each(data, function (i, val) {
+                    var id = val.ChargeCode || val.chargecode || '';
+                    var amount = val.Amount || val.amount || 0;
+                    var payment = val.PaymentType || val.paymenttype || '';
+                    var billed = val.IsBillable || val.isbillable || 'N';
+                    var recordId = val.Id || val.id || '0';
+                    var docPath = val.Attachment || val.attachment || '';
+                    
+                    var expenseItem = (lrExpList || []).find(function(item) {
+                        return item.CodeId == id;
+                    });
+                    var catName = expenseItem ? expenseItem.CodeDesc : id;
+
+                    var isBilled = (billed === 'Y' || billed === 'true' || billed === true || billed === '1' || billed === 1);
+                    var billedText = isBilled 
+                        ? '<span class="badge bg-soft-success text-success fs-11">Yes</span>' 
+                        : '<span class="badge bg-soft-danger text-danger fs-11">No</span>';
+
+                    var docCell = docPath
+                        ? '<a href="' + DomainName + docPath + '" target="_blank" class="btn btn-sm btn-soft-info py-0 px-2 fs-11"><i class="ri-attachment-2"></i> View</a>'
+                        : '-';
+
+                    var actionCell = '<button type="button" class="btn btn-soft-warning btn-sm btnEditLRExp py-0 px-2 fs-11" '
+                        + 'data-id="' + id + '" '
+                        + 'data-amount="' + amount + '" '
+                        + 'data-payment="' + payment + '" '
+                        + 'data-billed="' + (isBilled ? 'true' : 'false') + '" '
+                        + 'data-recordid="' + recordId + '" '
+                        + 'data-docpath="' + docPath + '">'
+                        + '<i class="ri-pencil-fill me-1"></i>Edit</button>';
+
+                    var payLabel = paymentMap[payment] || payment || '-';
+
+                    tbody.append('<tr>'
+                        + '<td class="fs-12">' + lrNo + '</td>'
+                        + '<td class="fs-12">' + catName + '</td>'
+                        + '<td class="fs-12 text-end fw-semibold">&#x20B9;' + parseFloat(amount).toFixed(2) + '</td>'
+                        + '<td class="fs-12 text-center">' + billedText + '</td>'
+                        + '<td class="fs-12 text-center">' + payLabel + '</td>'
+                        + '<td class="fs-12 text-center">' + docCell + '</td>'
+                        + '<td class="fs-12 text-center">' + actionCell + '</td>'
+                        + '</tr>');
+                });
+            },
+            error: function () {
+                tbody.html('<tr><td colspan="7" class="text-center text-danger py-3">Failed to load expenses.</td></tr>');
+            }
+        });
+    }
+
+    function appendLRExpLedger(lrNo, catName, amt, payName, isBilled, docPath, catId, payVal, recordId) {
+        var tbody = $('#lrExpLedgerBody');
+        if (tbody.find('td[colspan]').length) tbody.empty();
+        var billedText = isBilled 
+            ? '<span class="badge bg-soft-success text-success fs-11">Yes</span>' 
+            : '<span class="badge bg-soft-danger text-danger fs-11">No</span>';
+        var docCell = docPath
+            ? '<a href="' + DomainName + docPath + '" target="_blank" class="btn btn-sm btn-soft-info py-0 px-2 fs-11"><i class="ri-attachment-2"></i> View</a>'
+            : '-';
+        var actionCell = '<button type="button" class="btn btn-soft-warning btn-sm btnEditLRExp py-0 px-2 fs-11" '
+            + 'data-id="' + (catId || '') + '" '
+            + 'data-amount="' + (amt || '') + '" '
+            + 'data-payment="' + (payVal || '') + '" '
+            + 'data-billed="' + (isBilled ? 'true' : 'false') + '" '
+            + 'data-recordid="' + (recordId || '0') + '" '
+            + 'data-docpath="' + (docPath || '') + '">'
+            + '<i class="ri-pencil-fill me-1"></i>Edit</button>';
+
+        tbody.append('<tr>'
+            + '<td class="fs-12">' + lrNo + '</td>'
+            + '<td class="fs-12">' + catName + '</td>'
+            + '<td class="fs-12 text-end fw-semibold">&#x20B9;' + parseFloat(amt).toFixed(2) + '</td>'
+            + '<td class="fs-12 text-center">' + billedText + '</td>'
+            + '<td class="fs-12 text-center">' + payName + '</td>'
+            + '<td class="fs-12 text-center">' + docCell + '</td>'
+            + '<td class="fs-12 text-center">' + actionCell + '</td>'
+            + '</tr>');
+    }
+</script>

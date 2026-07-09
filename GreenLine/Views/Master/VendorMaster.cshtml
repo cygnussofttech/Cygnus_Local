@@ -1,0 +1,289 @@
+﻿@model GreenLineDataService.ViewModel.VendorViewModel
+@{
+    ViewBag.Title = "VendorMaster";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Vendor Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Vendor Add</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    Html.RenderPartial("_Vendor", Model);
+}
+<!-- end page title -->
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span', //default input error message container
+                errorClass: 'help-block', // default input error message class
+                focusInvalid: false, // do not focus the last invalid input
+                ignore: "",
+                rules: {
+                },
+                messages: {
+                },
+                invalidHandler: function (event, validator) { //display error alert on form submit
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+                highlight: function (element) { // hightlight error inputs
+                    $(element)
+                        .closest('.form-group').addClass('has-error'); // set error class to the control group
+                },
+                unhighlight: function (element) { // revert the change done by hightlight
+                    $(element)
+                        .closest('.form-group').removeClass('has-error'); // set error class to the control group
+                },
+                success: function (label) {
+                    label
+                        .closest('.form-group').removeClass('has-error'); // set success class to the control group
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                }
+            });
+        }
+
+        var Events = function (DomainName) {
+            $('#btnSubmit').click(function () {
+                if ($('#form_sample').valid()) {
+                    App.blockUI({ boxed: true });
+                    document.forms["form_sample"].submit()
+                }
+                else {
+                    return false
+                }
+            });
+
+            $(document).on('click', '#btnAddRow', function () {
+                AddRow(DomainName, 0);
+            });
+
+            $(document).off("click", ".btnDeleteExistingDoc").on("click", ".btnDeleteExistingDoc", function () {
+                var id = $(this).data("id");
+                var $row = $(this).closest("tr");
+                $row.remove();
+            });
+
+            $("#BLACKLISTED").change(function () {
+                $("#VendorDET_BLACKLISTED").val(
+                    $(this).is(":checked") ? "Y" : "N"
+                );
+            });
+
+            $("#GstEnable, #VendorHDR_VendorGST").change(function () {
+
+                if ($("#GstEnable").is(':checked')) {
+                    $("#VendorHDR_IsGstEnable").val('Y');
+                    Gstdetail(DomainName);
+                }
+                else {
+                    $("#VendorHDR_IsGstEnable").val('N');
+                    Clear();
+                }
+
+            });
+
+            $('#Active').change(function () {
+                $('#VendorHDR_Active').val($(this).is(':checked') ? 'Y' : 'N')
+            });
+
+            $(".GSTNo").change(function () {
+                if ($.trim($(this).val()) == "") {
+                    $(this).removeClass("error input-validation-error");
+                    $(this).closest("td").find("span.help-block").remove();
+                }
+            });
+
+            $(document).on("click", ".btnViewDoc", function () {
+                var imagePath = $(this).data("imagepath");
+
+                if (imagePath) {
+                    window.open(DomainName+imagePath, "_blank");
+                }
+            });
+
+            var Gstdetail = function (DomainName) {
+                var Parameters = {
+                    'GSTNo': $("#VendorHDR_VendorGST").val().toUpperCase(),
+                    'Type': 'V'
+                }
+                var strUrl = DomainName + "/Account/GetDataWithoutAlias";
+                $.ajax({
+                    url: strUrl,
+                    type: 'POST',
+                    dataType: "json",
+                    async: false,
+                    data: {
+                        Method: "USP_Get_TypeWise_GST_Details_API",
+                        parameters: Parameters
+                    },
+                    success: function (data) {
+                        if (data.Table1.length > 0) {
+                            if (data.Table[0].Error == '' || data.Table[0].Error == 'true') {
+                                TosterNotification("error", "Please Check GST Number", "Oppps..!!");
+                                Clear();
+
+                            } else {
+                                $("#VendorHDR_VENDORNAME").val(data.Table1[0].lgnm);
+                                $("#VendorHDR_Default_Addr").val(data.Table1[0].Address);
+                                $("#VendorHDR_PAN_NO").val(data.Table1[0].Panno);
+                                $("#VendorDET_VENDORCITY").val(data.Table1[0].cityname.toUpperCase()).trigger('change');
+                                $("#VendorDET_VENDORPIN").val(data.Table1[0].pncd);
+                                $("#VendorHDR_Taxpayer").val(data.Table1[0].Taxpayer).trigger('change');
+                                $("#VendorHDR_EInvo_App").val(data.Table1[0].EInvo_App);
+                                $("#VendorHDR_BusinessNature").val(data.Table1[0].BusinessNature);
+                                $("#VendorHDR_LegalName").val(data.Table1[0].LegalName);
+                                $("#VendorHDR_Ownership").val(data.Table1[0].Ownership).trigger('change');
+                              
+                            }
+                        }
+                        App.unblockUI();
+                    },
+                    error: function (jqXHR, exception) {
+                        return false;
+                    }
+                });
+            }
+
+            $('#VendorHDR_PAN_NO').change(function () {
+                var VENDORCODE = $("#VendorHDR_VENDORCODE").val();
+                var PANNo = $("#VendorHDR_PAN_NO").val();
+                var strUrl = "@Url.Action("GetData", "Account")";
+                var parameters = {};
+                parameters['VENDORCODE'] = VENDORCODE;
+                parameters['PANNo'] = PANNo;
+                $.ajax({
+                    url: strUrl,
+                    type: 'POST',
+                    dataType: "json",
+                    data: {
+                        Method: 'CheckPANNumberFromVendorMaster',
+                        parameters: parameters
+                    },
+                    success: function (result) {
+                        if (result[0].Status == "1") {
+                            $("#PANNoError").show();
+                            $("#PANNoError").html("PAN Number Already Exist");
+                            $("#VendorHDR_PAN_NO").val('');
+                        } else {
+                            $("#PANNoError").hide();
+                        }
+                        App.unblockUI();
+                    },
+                    error: function (req, status, error) {
+                        TosterNotification("error", 'Opration fail..!! There is some issue while update candidate status... Please try again later..', "Oppps..!!");
+                        App.unblockUI();
+                    }
+                });
+            });
+
+            $("#VendorHDR_PAN_NO").inputmask("AAAAA9999A", { clearMaskOnLostFocus: true });
+            $("#VendorHDR_SERVTAXNO").inputmask("AAAAA9999AAA999", { clearMaskOnLostFocus: true });
+
+            $('#VendorDET_VENDORPHONE').change(function () {
+                var VENDORCODE = $("#VendorHDR_VENDORCODE").val();
+                var VENDORPHONE = $("#VendorDET_VENDORPHONE").val();
+                var strUrl = "@Url.Action("GetData", "Account")";
+                var parameters = {};
+                parameters['VENDORCODE'] = VENDORCODE;
+                parameters['VENDORPHONE'] = VENDORPHONE;
+                $.ajax({
+                    url: strUrl,
+                    type: 'POST',
+                    dataType: "json",
+                    data: {
+                        Method: 'CheckPhoneNoFromVendorMaster',
+                        parameters: parameters
+                    },
+                    success: function (result) {
+                        if (result[0].Status == "1") {
+                            $("#VENDORPHONEError").show();
+                            $("#VENDORPHONEError").html("Phone Number Already Exist");
+                            $("#VendorDET_VENDORPHONE").val('');
+                        } else {
+                            $("#VENDORPHONEError").hide();
+                        }
+                        App.unblockUI();
+                    },
+                    error: function (req, status, error) {
+                        TosterNotification("error", 'Opration fail..!! There is some issue while update candidate status... Please try again later..', "Oppps..!!");
+                        App.unblockUI();
+                    }
+                });
+            });
+        }
+
+        var AddRow = function (DomainName, itemIndex) {
+            App.blockUI({ boxed: true });
+
+            var StrURL1 = DomainName + '/Master/UploadDoc?Id=' + itemIndex;
+
+            $.ajax({
+                url: StrURL1,
+                cache: false,
+                data: {},
+                type: 'POST',
+                success: function (html) {
+                    $("#tblUploadDocument").append(html);
+
+                    $('select').select2();
+                    App.unblockUI();
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                }
+            });
+        }
+
+        var Clear = function () {
+            $("#VendorDET_VENDORCITY").val("");
+            $("#VendorDET_VENDORCITY").select2("val", "");
+            $("#VendorHDR_VENDORNAME").val("")
+            $("#pan_no").val("");
+            $("#VendorHDR_Default_Addr").val("");
+            $("#VendorHDR_Taxpayer").val("");
+            $("#VendorHDR_EInvo_App").val("");
+            $("#VendorHDR_BusinessNature").val("");
+            $("#VendorHDR_LegalName").val("");
+            $("#VendorHDR_Ownership").val("");
+            $("#VendorDET_VENDORPIN").val("");
+            
+        }
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                Events(DomainName);
+                GetType("VendorDET_VENDORBRCD", "CUSTLOC", DomainName + "/Master/GetCustomerLocationListJson")
+
+            }
+        }
+    }();
+</script>
+
+
+
+

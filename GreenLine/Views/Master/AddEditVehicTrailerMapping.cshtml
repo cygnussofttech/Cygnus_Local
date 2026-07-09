@@ -1,0 +1,588 @@
+@model GreenLineDataService.Models.CYGNUS_TRAILER_MAPPING
+@using GreenLineDataService.Models
+@{
+    ViewBag.Title = "Vehicle Trailer Mapping";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    GreenLineDataService.Helper.MasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    //List<CYGNUS_Vehicle_Master> VehicleList = _masterService.GetVehicleListForMapping(Model.VehicleId);
+    List<CYGNUS_Vehicle_Master> VehicleList = _masterService.GetVehicleList(Model.VehicleId, ViewBag.BaseUserName, "Vehicle_Trailer_Map");
+    List<CYGNUS_Vehicle_Master> TrailerList = _masterService.GetTrailerListForMapping();
+    List<CYGNUS_CUSTHDR> CUSTLIST = _masterService.GetCustomerList();
+    List<CYGNUS_location> locationList = _masterService.GetLocationDetails().Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList();
+    List<CYGNUS_Master_Users> UserList = _masterService.GetUserList().ToList();
+}
+
+@using (Html.BeginForm("VehicleTrailerMappingSubmit", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Vehicle Trailer Mapping</h4>
+
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Content("~/Master/VehicTrailerMapping")">Vehicle Trailer Mapping List</a></li>
+                        <li class="breadcrumb-item active">@(Model.Id == 0 ? "Add" : "Edit")</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0 flex-grow-1">
+                <i class="ri-roadster-line align-middle me-1"></i>Basic Details
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Vehicle No</label>
+                        @Html.DropDownListFor(model => model.VehicleId, new SelectList(VehicleList, "ID", "VehicleNo", Model.VehicleId), "", new { @class = "select2 required", @placeholder = "Select Vehicle No" })
+                        @Html.HiddenFor(model => model.Id)
+                    </div>
+                </div>
+                <div class="col-md-3" id="Trailer">
+                    <div class="form-group">
+                        <label class="form-label required-label">Trailer No</label>
+                        @Html.DropDownListFor(model => model.TrailerId, new SelectList(TrailerList, "ID", "VehicleNo", Model.TrailerId), "", new { @class = "select2 required", @placeholder = "Select Trailer" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Target Customer</label>
+                        @Html.DropDownListFor(model => model.Target_Customer, new SelectList(CUSTLIST, "CUSTCD", "CUSTNM", Model.Target_Customer), "", new { @class = "select2 required", @placeholder = "Select Customer" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Branch</label>
+                        @Html.DropDownListFor(model => model.Branch, new SelectList(locationList, "LocCode", "LocName", Model.Branch), "", new { @class = "select2 required", @placeholder = "Select Branch" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Primary Supervisor</label>
+                        @Html.DropDownListFor(model => model.Primary_Supervisor, new SelectList(UserList, "UserId", "Name", Model.Primary_Supervisor), "", new { @class = "select2 required", @placeholder = "Select Primary Supervisor" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Secondary Supervisor</label>
+                        @Html.DropDownListFor(model => model.Secondary_Supervisor, new SelectList(UserList, "UserId", "Name", Model.Secondary_Supervisor), "", new { @class = "select2 required", @placeholder = "Select Secondary Supervisor" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Cluster Head</label>
+                        @Html.DropDownListFor(model => model.Cluster_Head, new SelectList(UserList, "UserId", "Name", Model.Cluster_Head), "", new { @class = "select2 required", @placeholder = "Select Cluster Head" })
+                    </div>
+                </div>      
+            </div>
+        </div>
+    </div>
+    <div class="card mb-0">
+        <div class="card-header d-flex align-items-center">
+            <h5 class="card-title mb-0 flex-grow-1">
+                <i class="ri-bank-card-line align-middle me-1"></i> Card Assignment List
+            </h5>
+            <div class="flex-shrink-0">
+                <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" id="addCardAssign">
+                    <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="CardAssignmentTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Assign Type</th>
+                            <th class="text-center">Assign To</th>
+                            <th class="text-center">Card Type</th>
+                            <th class="text-center">From Date</th>
+                            <th class="text-center">To Date</th>
+                            @*<th class="text-center">Status</th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No data available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>    
+    <div class="form-actions">
+        <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass" onclick="location.href='@Url.Content("~/Master/VehicTrailerMapping")'">
+            <i class="@ViewBag.UI.Buttons.Cancel.Icon me-1"></i> @ViewBag.UI.Buttons.Cancel.Label
+        </button>
+        <button type="button" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon me-1"></i> @ViewBag.UI.Buttons.Submit.Label
+        </button>
+    </div>
+}
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: "",
+
+                rules: {
+                    // Custom rules if needed
+                },
+                messages: {
+                    // Custom messages if needed
+                },
+                invalidHandler: function (event, validator) {
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-offscreen") || element.hasClass("select2-hidden-accessible") || element.hasClass("select2")) {
+                        var container = element.next(".select2-container");
+                        if (container.length > 0) {
+                            error.insertAfter(container);
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                    form.submit();
+                }
+            });
+
+            $(document).on('change', '.select2', function () {
+                $(this).valid();
+            });
+        }
+
+        var Events = function (DomainName) {
+            $('#TrailerId').on('change', function () {
+                var TrailerId = $('#TrailerId').val();
+                if (TrailerId != "") {
+                    App.blockUI({ boxed: true });
+                    var StrURL1 = DomainName + '/Account/GetData';
+                    var Trailer = $("#TrailerId option:selected").text();
+                    var Currentvehicle = $("#VehicleId option:selected").text();
+                    var parameters = {};
+                    parameters['TrailerId'] = $(this).val();
+                    parameters['vehicleId'] = $("#VehicleId").val();
+                    $.ajax({
+                        url: StrURL1,
+                        cache: false,
+                        type: 'POST',
+                        data: {
+                            Method: 'ChekTrailerAllready_Map',
+                            parameters: parameters
+                        },
+                        success: function (Data) {
+                            var parsedData = JSON.parse(Data);
+                            if (parsedData.length > 0) {
+                                var VehicleNo = parsedData[0].VehicleNo;
+                                if (parsedData[0].VehicleNo != "" && parsedData[0].IsAttached == 1) {
+                                    GLModal.showPopup({
+                                        title: 'Trailer Attach Restriction',
+                                        message: `<strong>Trailer :</strong> ${Trailer} - In Transit With <strong>Vehicle :</strong> ${VehicleNo} So You Can't Attach this Trailer.`,
+                                        type: 'error',
+                                        buttonText: 'OK',
+                                        onClose: function () {
+                                            $("#TrailerId").val(null).trigger('change');
+                                        }
+                                    });
+                                }
+                                else if (parsedData[0].VehicleNo != "" && parsedData[0].IsAttached == 0) {
+                                    GLModal.showConfirm({
+                                        title: 'Trailer Attach Warning',
+                                        message: `<strong>Trailer:</strong> ${Trailer}<br>Already Attached With <strong>Vehicle : </strong> ${VehicleNo}<br>Do you want to attach this vehicle (${Currentvehicle}) with this (${Trailer}) Trailer?`,
+                                        type: 'warning',
+                                        confirmText: 'Continue',
+                                        cancelText: 'Cancel',
+                                        onConfirm: function () {
+                                            // Keep selection
+                                        },
+                                        onCancel: function () {
+                                            $("#TrailerId").val(null).trigger('change');
+                                        }
+                                    });
+                                }
+                                App.unblockUI();
+                            }
+                        },
+                        error: function (req, status, error) {
+                            TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                            App.unblockUI();
+                        }
+                    });
+                    App.unblockUI();
+                }
+            });
+            $("#btnSubmit").on("click", function () {
+                if ($('#form_sample').valid()) {
+                    var dataRows = $('#CardAssignmentTable tbody tr').not(':has(td[colspan])');
+                    if (dataRows.length === 0) {
+                        TosterNotification("warning", "Please assign at least one card to this vehicle before saving.", "Card Assignment Required");
+                        return false;
+                    }
+                    App.blockUI({ boxed: true });
+                    document.forms["form_sample"].submit();
+                }
+                else {
+                    return false;
+                }
+            });
+            $('#VehicleId').on('change', function () {
+                var VehicleId = $('#VehicleId').val();
+                if (VehicleId != "") {
+                    App.blockUI({ boxed: true });
+                    var StrURL1 = DomainName + '/Account/GetData';
+                    var parameters = {};
+                    parameters['vehicleId'] = $("#VehicleId").val();
+                    $.ajax({
+                        url: StrURL1,
+                        cache: false,
+                        type: 'POST',
+                        data: {
+                            Method: 'Get_VehicleTrailerMapping_Details',
+                            parameters: parameters
+                        },
+                        success: function (Data) {
+                            var parsedData = JSON.parse(Data);
+                            if (parsedData.length > 0) {
+                                if (parsedData[0].TrailerId != "") {
+                                    $('#TrailerId').val(parsedData[0].TrailerId).change();
+                                }
+                                if (parsedData[0].Target_Customer != "") {
+                                    $('#Target_Customer').val(parsedData[0].Target_Customer).change();
+                                }
+                                if (parsedData[0].Branch != "") {
+                                    $('#Branch').val(parsedData[0].Branch).change();
+                                }
+                                if (parsedData[0].Primary_Supervisor != "") {
+                                    $('#Primary_Supervisor').val(parsedData[0].Primary_Supervisor).change();
+                                }
+                                if (parsedData[0].Secondary_Supervisor != "") {
+                                    $('#Secondary_Supervisor').val(parsedData[0].Secondary_Supervisor).change();
+                                }
+                                if (parsedData[0].Cluster_Head != "") {
+                                    $('#Cluster_Head').val(parsedData[0].Cluster_Head).change();
+                                }
+                                if (parsedData[0].VehicleCode == "FT") {
+                                    $("#Trailer").hide();
+                                    $("#TrailerId").removeClass("required");
+
+                                }
+                                else {
+                                    $("#Trailer").show();
+                                    $("#TrailerId").addClass("required");
+
+                                }
+                                App.unblockUI();
+                            }
+                            else {
+                                if ($('#TrailerId').val() != "") {
+                                    $('#TrailerId').select2("data", null);
+                                }
+                                $('#Target_Customer').select2("data", null);
+                                $('#Branch').select2("data", null);
+                                $('#Primary_Supervisor').select2("data", null);
+                                $('#Secondary_Supervisor').select2("data", null);
+                                $('#Cluster_Head').select2("data", null);
+
+                            }
+                        },
+                        error: function (req, status, error) {
+                            TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                            App.unblockUI();
+                        }
+                    });
+                    var parameter = {};
+                    parameter['vehicleId'] = $("#VehicleId").val();
+                    parameter['EntryBy'] = "@ViewBag.BaseUserName";
+                    parameter['Type'] = "Vehicle_List";
+                    $.ajax({
+                        url: StrURL1,
+                        cache: false,
+                        type: 'POST',
+                        data: {
+                            Method: 'Get_VehicleMaster_List_New',
+                            parameters: parameter
+                        },
+                        success: function (Data) {
+                            var parsedData = JSON.parse(Data);
+                            if (parsedData.length > 0) {
+                                
+                                if (parsedData[0].VehicleCode == "FT") {
+                                    $("#Trailer").hide();
+                                    $("#TrailerId").removeClass("required");
+
+                                }
+                                else {
+                                    $("#Trailer").show();
+                                    $("#TrailerId").addClass("required");
+
+                                }
+                                App.unblockUI();
+                            }
+                          
+                        },
+                        error: function (req, status, error) {
+                            TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                            App.unblockUI();
+                        }
+                    });
+
+                    // Load Card Assignments for selected Vehicle
+                    loadCardAssignments(VehicleId, DomainName);
+
+                    App.unblockUI();
+                }
+            });
+        };
+
+        var loadCardAssignments = function (vehicleId, DomainName) {
+            $.ajax({
+                url: DomainName + '/Master/GetCardAssignmentByVehicle',
+                type: 'GET',
+                data: { vehicleId: vehicleId },
+                success: function (data) {
+                    var tbody = $('#CardAssignmentTable tbody');
+                    tbody.empty();
+                    if (data && data.length > 0) {
+                        $.each(data, function (i, item) {
+                            var typeLabel = item.AssignType === 'VEH' ? '<span class="badge bg-info">Vehicle</span>'
+                                          : item.AssignType === 'EMP' ? '<span class="badge bg-primary">Employee</span>'
+                                          : '<span class="badge bg-secondary">Driver</span>';
+                            var statusBadge = item.IsActive
+                                ? '<span class="badge bg-success">Active</span>'
+                                : '<span class="badge bg-danger">Inactive</span>';
+                            tbody.append('<tr>' +
+                                '<td class="text-center">' + typeLabel + '</td>' +
+                                '<td class="text-center">' + (item.AssignPersonId || '-') + '</td>' +
+                                '<td class="text-center">' + (item.CardType || '-') + '</td>' +
+                                '<td class="text-center">' + (item.FromDate || '-') + '</td>' +
+                                '<td class="text-center">' + (item.ToDate || '-') + '</td>' +
+                                //'<td class="text-center">' + statusBadge + '</td>' +
+                                '</tr>');
+                        });
+                    } else {
+                        tbody.append('<tr><td colspan="6" class="text-center text-muted py-3">No data available</td></tr>');
+                    }
+                },
+                error: function () {
+                    TosterNotification("error", "Error loading card assignments.", "Error");
+                }
+            });
+        };
+
+        var initCardAssignEvents = function (DomainName) {
+            $('#addCardAssign').on('click', function () {
+                var vehicleId = $('#VehicleId').val();
+                if (!vehicleId) {
+                    TosterNotification("warning", "Please select a vehicle first.", "Warning");
+                    return;
+                }
+                GLModal.showForm({
+                    title: "Add Card Assignment",
+                    icon: 'ri-links-line',
+                    url: DomainName + '/Master/_AddCardAssignmentForVehicle?vehicleId=' + vehicleId,
+                    onLoaded: function () {
+                        $('#glFormModal .select2').select2({
+                            placeholder: "Select an option",
+                            allowClear: true,
+                            dropdownParent: $('#glFormModal')
+                        });
+                        if ($.fn.datepicker) {
+                            $('#glFormModal .datepicker').datepicker({
+                                format: 'dd M yyyy',
+                                autoclose: true,
+                                todayHighlight: true,
+                                todayBtn: 'linked',
+                                container: '#glFormModal',
+                                orientation: "bottom"
+                            });
+                        }
+                        if ($.validator && $.validator.unobtrusive) {
+                            $.validator.unobtrusive.parse("#card_assignment_form");
+                        } else if ($.fn.validate) {
+                            $("#card_assignment_form").validate({
+                                errorElement: 'span',
+                                errorClass: 'field-validation-error',
+                                highlight: function (element) { $(element).closest('.form-group').addClass('has-error'); },
+                                unhighlight: function (element) { $(element).closest('.form-group').removeClass('has-error'); },
+                                errorPlacement: function (error, element) {
+                                    if (element.parent('.input-group').length) {
+                                        error.insertAfter(element.parent());
+                                    } else if (element.hasClass('select2-hidden-accessible')) {
+                                        error.insertAfter(element.next('.select2-container'));
+                                    } else {
+                                        error.insertAfter(element);
+                                    }
+                                }
+                            });
+                        }
+
+                        // Register custom validation method if not already registered
+                        if ($.validator) {
+                            if (!$.validator.methods.greaterThanOrEqualDate) {
+                                $.validator.addMethod("greaterThanOrEqualDate", function (value, element, params) {
+                                    var fromDateVal = $(params).val();
+                                    if (!value || !fromDateVal) return true;
+
+                                    var fromDate = new Date(fromDateVal);
+                                    var tillDate = new Date(value);
+                                    if (!isNaN(fromDate.getTime()) && !isNaN(tillDate.getTime())) {
+                                        return tillDate >= fromDate;
+                                    }
+                                    return true;
+                                }, "To date must be greater than from date.");
+                            }
+
+                            // Add greaterThanOrEqualDate rule dynamically to ToDate field
+                            if ($("#Assignment_ToDate").length) {
+                                $("#Assignment_ToDate").rules("add", {
+                                    greaterThanOrEqualDate: "#Assignment_FromDate",
+                                    messages: {
+                                        greaterThanOrEqualDate: "To date must be greater than from date."
+                                    }
+                                });
+                            }
+                        }
+
+                        // Function to dynamically update ToDate limits based on FromDate selection
+                        var updateToDateLimit = function (selectedDate) {
+                            var fromDate = selectedDate || $('#Assignment_FromDate').datepicker('getDate');
+                            var today = new Date();
+                            today.setHours(0, 0, 0, 0);
+
+                            if (fromDate) {
+                                var minDate = (fromDate < today) ? today : fromDate;
+                                $('#Assignment_ToDate').datepicker('setStartDate', minDate);
+
+                                var toDate = $('#Assignment_ToDate').datepicker('getDate');
+                                if (toDate && toDate < minDate) {
+                                    $('#Assignment_ToDate').val('');
+                                    $('#Assignment_ToDate').datepicker('update');
+                                }
+                            } else {
+                                $('#Assignment_ToDate').datepicker('setStartDate', null);
+                            }
+                        };
+
+                        // Bind change/changeDate events on FromDate
+                        $('#Assignment_FromDate').on('changeDate change', function (e) {
+                            var selectedDate = (e.type === 'changeDate') ? e.date : $('#Assignment_FromDate').datepicker('getDate');
+                            updateToDateLimit(selectedDate);
+                            var form = $('#card_assignment_form');
+                            if (form.data('validator')) {
+                                form.validate().element('#Assignment_ToDate');
+                            }
+                        });
+
+                        // Bind change/changeDate events on ToDate
+                        $('#Assignment_ToDate').on('changeDate change', function () {
+                            var form = $('#card_assignment_form');
+                            if (form.data('validator')) {
+                                form.validate().element('#Assignment_ToDate');
+                            }
+                        });
+
+                        // Set initial limits on load
+                        updateToDateLimit();
+                    },
+                    onSave: function () {
+                        if (!$('#card_assignment_form').valid()) {
+                            return false;
+                        }
+                        return $.ajax({
+                            url: DomainName + '/Master/AddEditCardAssignment',
+                            data: $("#card_assignment_form").serialize(),
+                            type: 'POST',
+                            success: function (data) {
+                                if (data.success) {
+                                    TosterNotification("success", data.message, "Success");
+                                    loadCardAssignments($('#VehicleId').val(), DomainName);
+                                } else {
+                                    TosterNotification("error", data.message, "Error");
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            $(document).on('change', '#Assignment_CardType', function () {
+                var type = $(this).val();
+                if (type) {
+                    var vehicleId = $('#VehicleId').val();
+                    var isDuplicate = false;
+                    $('#CardAssignmentTable tbody tr').not(':has(td[colspan])').each(function () {
+                        var rowPerson = $(this).find('td:eq(1)').text().trim();
+                        var rowCardType = $(this).find('td:eq(2)').text().trim();
+                        if (rowPerson === vehicleId && rowCardType === type) {
+                            isDuplicate = true;
+                            return false;
+                        }
+                    });
+                    if (isDuplicate) {
+                        TosterNotification("warning", "Card Type '" + type + "' is already assigned to this vehicle.", "Duplicate Assignment");
+                        $('#Assignment_CardType').select2("data", null);
+
+                    }
+                    else {
+                        var strUrl = DomainName + '/Master/GetCardsByType?type=' + type;
+                        FillDropDownfromOther('Assignment_CardNoId', strUrl, 'Card');
+                    }
+                    
+                } 
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                Events(DomainName);
+                initCardAssignEvents(DomainName);
+
+                // Auto-load if vehicle already selected (edit mode)
+                var existingVehicle = $('#VehicleId').val();
+                if (existingVehicle) {
+                    loadCardAssignments(existingVehicle, DomainName);
+                }
+            }
+        };
+    }();
+</script>

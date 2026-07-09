@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenLine", "GreenLine\GreenLine.csproj", "{808A0255-1EC8-456C-9DCD-1834C9548F56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenLineDataService", "GreenLineDataService\GreenLineDataService.csproj", "{C354F6C1-2FF8-4C6B-B637-4E20FBF7049E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenLineApi", "GreenLineApi\GreenLineApi.csproj", "{06C59CB6-2647-4793-B1FD-B1151DBCEDB8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{808A0255-1EC8-456C-9DCD-1834C9548F56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{808A0255-1EC8-456C-9DCD-1834C9548F56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{808A0255-1EC8-456C-9DCD-1834C9548F56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{808A0255-1EC8-456C-9DCD-1834C9548F56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C354F6C1-2FF8-4C6B-B637-4E20FBF7049E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C354F6C1-2FF8-4C6B-B637-4E20FBF7049E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C354F6C1-2FF8-4C6B-B637-4E20FBF7049E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C354F6C1-2FF8-4C6B-B637-4E20FBF7049E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06C59CB6-2647-4793-B1FD-B1151DBCEDB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06C59CB6-2647-4793-B1FD-B1151DBCEDB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06C59CB6-2647-4793-B1FD-B1151DBCEDB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06C59CB6-2647-4793-B1FD-B1151DBCEDB8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

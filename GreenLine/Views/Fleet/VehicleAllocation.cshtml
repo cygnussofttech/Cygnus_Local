@@ -1,0 +1,721 @@
+@model GreenLineDataService.Models.CYGNUS_Vehicle_Allocation
+
+@{
+    ViewBag.Title = "Vehicle Allocation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+    <h4 class="mb-sm-0">Vehicle Allocation</h4>
+
+    <div class="page-title-right">
+        <ol class="breadcrumb m-0 shadow-none bg-transparent">
+            <li class="breadcrumb-item"><a href="javascript: void(0);">Fleet</a></li>
+            <li class="breadcrumb-item active">Vehicle Allocation</li>
+        </ol>
+    </div>
+</div>
+
+@using (Html.BeginForm("AddEditVehicleAllocation", "Fleet", FormMethod.Post, new { id = "form_VehicleAllocation", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.PRNo)
+    
+    <div class="row">
+        <!-- Request List (Master) -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 flex-grow-1 allocation-title"><i class="ri-list-check align-middle me-1"></i> List of PickUp Request</h5>
+
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="WCM_Vehicle_AllocationList" class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center no-cc"></th>
+                                    <th class="text-center">Request</th>
+                                    <th>Customer</th>
+                                    <th>Lane</th>
+                                    <th>Pickup Address</th>
+                                    <th class="text-center no-cc">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.AllocationList != null)
+                                {
+                                    foreach (var item in ViewBag.AllocationList as List<GreenLineDataService.Models.CYGNUS_PickUp_Request>)
+                                    {
+                                        string TrId = "TR" + item.PRNo.ToString();
+                                        <tr id="@TrId" class="pointer-cursor" onclick="selectRequest('@item.PRNo')">
+                                            <td>
+                                                <div class="form-check text-center d-flex justify-content-center">
+                                                    <input class="form-check-input chkAllocation" type="checkbox" value="@item.PRNo" id="chk_@item.PRNo" onclick="event.stopPropagation();">
+                                                </div>
+                                            </td>
+                                            <td class="fw-medium text-primary">@item.PRNo</td>
+                                            <td>
+                                                <span class="d-block fw-medium text-uppercase">@item.Customer</span>
+                                                <small class="text-muted text-uppercase">@item.CustomerGroup</small>
+                                            </td>
+                                            <td>@item.Lane</td>
+                                            <td>@item.Pickup_Address</td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-soft-danger btn-sm btn-icon" title="Cancel Request" onclick="CancelRequest('@item.PRNo', event);">
+                                                    <i class="ri-close-circle-line fs-16"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Allocation Details (Detail) -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 flex-grow-1 allocation-title text-uppercase"><i class="ri-truck-line align-middle me-1"></i> Allocation Details</h5>
+                </div>
+                <div class="card-body">
+                    <div id="emptyState" class="text-center py-5">
+                        <i class="ri-checkbox-blank-circle-line display-4 text-muted"></i>
+                        <p class="mt-2 text-muted">Select a request from the list to begin allocation</p>
+                    </div>
+
+                    <div id="allocationForm" style="display:none;">
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Vehicle No</label>
+                                    @Html.DropDownListFor(m => m.VehicleId, new SelectList(ViewBag.ListVehicle, "ID", "VehicleNo", Model.VehicleId), "", new { @class = "form-control select2 required", @placeholder = "Select VehicleNo" })
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label">Trailer No</label>
+                                    @Html.TextBoxFor(m => m.TrailerNo, new { @class = "form-control", @placeholder = "Enter Trailer No" })
+                                </div>
+                            </div>
+
+                            <!-- Vehicle Telemetry Info -->
+                            <div id="vehicleInfoBox" class="col-12" style="display:none;">
+                                <div class="card bg-light shadow-none mb-0">
+                                    <div class="card-body p-3">
+                                        <div class="row g-3">
+                                            <div class="col-12 col-md-6">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-xs flex-shrink-0 me-2">
+                                                        <span class="avatar-title bg-soft-info text-info rounded-circle fs-16">
+                                                            <i class="ri-map-pin-2-line"></i>
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <p class="text-muted mb-0 fs-11 text-uppercase fw-medium">Last Location</p>
+                                                        <h6 id="infoLocation" class="mb-0 fs-13">-</h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-xs flex-shrink-0 me-2">
+                                                        <span class="avatar-title bg-soft-success text-success rounded-circle fs-16">
+                                                            <i class="ri-dashboard-3-line"></i>
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <p class="text-muted mb-0 fs-11 text-uppercase fw-medium">Odometer</p>
+                                                        <h6 id="infoOdometer" class="mb-0 fs-13">-</h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-xs flex-shrink-0 me-2">
+                                                        <span class="avatar-title bg-soft-warning text-warning rounded-circle fs-16">
+                                                            <i class="ri-gas-station-line"></i>
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <p class="text-muted mb-0 fs-11 text-uppercase fw-medium">Fuel Status</p>
+                                                        <h6 id="infoFuel" class="mb-0 fs-13">-</h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-xs flex-shrink-0 me-2">
+                                                        <span class="avatar-title bg-soft-primary text-primary rounded-circle fs-16">
+                                                            <i class="ri-truck-line"></i>
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <p class="text-muted mb-0 fs-11 text-uppercase fw-medium">Trailer Ref</p>
+                                                        <h6 id="infoTrailer" class="mb-0 fs-13">-</h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">First Driver</label>
+                                    @* @Html.TextBoxFor(m => m.FirstDriver, new { @class = "form-control required", @placeholder = "Enter First Driver" })
+                                    @Html.HiddenFor(m => m.FirstDriverId) *@
+                                    @Html.DropDownListFor(m => m.FirstDriverId, new SelectList(ViewBag.DriverList, "Driver_Id", "Driver_Name", Model.FirstDriverId), "", new { @class = "form-control select2 required", @placeholder = "Select First Driver" })
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label">Second Driver</label>
+                                    @* @Html.TextBoxFor(m => m.SecondDriver, new { @class = "form-control", @placeholder = "Enter Second Driver" })
+                                    @Html.HiddenFor(m => m.SecondDriverId) *@
+                                    @Html.DropDownListFor(m => m.SecondDriverId, new SelectList(ViewBag.DriverList, "Driver_Id", "Driver_Name", Model.SecondDriverId), "", new { @class = "form-control select2", @placeholder = "Select Second Driver" })
+                                </div>
+                            </div>
+                            
+                            <div class="col-12 col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Placement Date</label>
+                                    <div class="input-group">
+                                        @Html.TextBoxFor(m => m.PlacementDate, new { @class = "form-control required", type = "datetime-local", @Value = (Model != null && Model.PlacementDate.Year > 1900) ? Model.PlacementDate.ToString("yyyy-MM-ddTHH:mm") : DateTime.Now.ToString("yyyy-MM-ddTHH:mm") })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="form-group">
+                                    <label class="form-label">Allocation Type</label>
+                                    @Html.DropDownListFor(m => m.AllocationType, new SelectList(ViewBag.AllocationTypeList, "Value", "Text", Model.AllocationType), "", new { @class = "form-control select2", @placeholder = "Select Allocation Type", @disabled = "disabled" })
+                                    @Html.HiddenFor(m => m.AllocationType)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass btnCancel" onclick="location.reload();">
+                                <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i> @ViewBag.UI.Buttons.Cancel.Label
+                            </button>
+                            <button type="button" id="btnSave" class="@ViewBag.UI.Buttons.Submit.CssClass">
+                                <i class="@ViewBag.UI.Buttons.Submit.Icon"></i> @ViewBag.UI.Buttons.Submit.Label
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    var FormComponents = function () {
+        var Formvalidate = function (DomainName) {
+            var formElement = $('#form_VehicleAllocation');
+            if (formElement.length > 0 && $.fn.validate) {
+                formElement.validate({
+                    rules: {
+                        VehicleId: { required: true },
+                        PlacementDate: { required: true },
+                        FirstDriver: { required: true }
+                    },
+                    highlight: function (element) { $(element).closest('.form-group').addClass('has-error'); },
+                    unhighlight: function (element) { $(element).closest('.form-group').removeClass('has-error'); }
+                });
+            }
+        }
+
+        window.selectRequest = function(id) {
+            var row = $("#TR" + id);
+            if (row.length === 0) return;
+            
+            $("#PRNo").val(id);
+            $("#emptyState").hide();
+            $("#allocationForm").fadeIn();
+            
+            $(".chkAllocation").prop('checked', false);
+            $("#chk_" + id).prop('checked', true);
+            
+            $("#WCM_Vehicle_AllocationList tbody tr").removeClass("table-active");
+            row.addClass("table-active");
+        }
+
+        window.GetObjectDet = function (id, DomainName) {
+            if (DomainName.endsWith('/')) DomainName = DomainName.slice(0, -1);
+            GLModal.showForm({
+                title: "Edit Pickup Request",
+                icon: 'ri-edit-box-line',
+                url: DomainName + '/Fleet/AddEditPickup_Request?PRNo=' + id,
+                onLoaded: function () {
+                    if ($.fn.select2) {
+                        $("#From_Lane_id,#To_Lane_id,#Contract_Id").select2({
+                            placeholder: "Select an option",
+                            allowClear: true,
+                            dropdownParent: $('#glFormModal'),
+                            width: '100%'
+                        });
+                    }
+                    CallSubmitClick(DomainName);
+                }
+            });
+        };
+
+        var CallSubmitClick = function (DomainName) {
+            $("#glFormSaveBtn").off('click').on('click', function (e) {
+                if (!$('#form_sample_modal').valid()) return;
+
+                App.blockUI({ boxed: true });
+                
+                var PickUpRequest = {
+                    "PRNo": $("#PRNo").val(),
+                    "Customer_Group": $("#Customer_Group").val(),
+                    "Customer_Code": $("#Customer_Code").val(),
+                    "Pickup_Address": $("#Pickup_Address").val(),
+                    "Lane_id": $("#Lane_id").val(),
+                    "ContractId": $("#ContractId").val()
+                };
+
+                $.ajax({
+                    url: DomainName + '/Fleet/AddEditPickup_Request',
+                    data: JSON.stringify(PickUpRequest),
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.Status) {
+                            TosterNotification("success", "PickUp Request updated!", "Success");
+                            var modalEl = document.getElementById('glFormModal');
+                            if (modalEl) {
+                                var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                                bsModal.hide();
+                            }
+                            location.reload();
+                        } else {
+                            TosterNotification("error", data.Message || 'Operation failed.', "Error");
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        TosterNotification("error", 'Post failed.', "Error");
+                        App.unblockUI();
+                    }
+                });
+            });
+        }
+
+        return {
+            init: function (DomainName) {
+                if (DomainName.endsWith('/')) DomainName = DomainName.slice(0, -1);
+                
+                Formvalidate(DomainName);
+
+
+                var tblId = 'WCM_Vehicle_AllocationList';
+                var tableElement = $('#' + tblId);
+                if (tableElement.length > 0 && typeof GlDataTable !== 'undefined') {
+                    GlDataTable.init(tblId, {
+                        destroy: true,
+                        order: [[1, 'desc']],
+                        columnDefs: [
+                            { orderable: false, searchable: false, targets: [0,5] }
+                        ]
+                    });
+                }
+
+                if ($.fn.select2) {
+                    $("select.select2").each(function() {
+                        $(this).select2({
+                            placeholder: $(this).attr('placeholder') || "Select an option",
+                            allowClear: true,
+                            width: '100%'
+                        });
+                    });
+                }
+
+                $("#VehicleId").on('change', function () {
+                    var val = $(this).val();
+                    if (!val) {
+                        $("#vehicleInfoBox").hide();
+                        // Reset driver dropdowns
+                        $("#FirstDriverId, #SecondDriverId").val("").prop('disabled', false).trigger('change.select2');
+                        return;
+                    }
+
+                    App.blockUI({ boxed: true });
+
+                    // ── Pre-Check: Validate vehicle readiness across 3 tables ──────────────
+                    // Checks: Cygnus_VehicleDriver_Mapping | CYGNUS_TRAILER_MAPPING | CYGNUS_Master_Card
+                    var ReadinessParams = { "VehicleId": val };
+                    $.ajax({
+                        url: DomainName + "/Account/GetDataWithoutAlias",
+                        type: 'POST',
+                        dataType: "json",
+                        data: { Method: "USP_CheckVehicleReadiness", parameters: ReadinessParams },
+                        success: function (readiness) {
+                            if (!readiness || !readiness[0] || readiness[0].IsReady !== 1) {
+                                // One or more tables have count = 0 — abort and notify
+                                var reason = (readiness && readiness[0] && readiness[0].FailureReason)
+                                    ? readiness[0].FailureReason
+                                    : "Vehicle is not ready for allocation. Please check Driver Mapping, Trailer, and Card assignment.";
+                                TosterNotification("warning", reason, "Vehicle Not Ready");
+                                $("#FirstDriverId, #SecondDriverId").val("").prop('disabled', false).trigger('change.select2');
+                                $("#vehicleInfoBox").hide();
+                                App.unblockUI();
+                                return;
+                            }
+
+                            // ── All 3 checks passed — proceed to bind drivers ────────────────
+
+                            // Step 1: Fetch available drivers for the selected vehicle
+                            var AvailableDriverParams = { "VehicleId": val };
+                            $.ajax({
+                                url: DomainName + "/Account/GetDataWithoutAlias",
+                                type: 'POST',
+                                dataType: "json",
+                                data: { Method: "USP_GetAvailableDriver", parameters: AvailableDriverParams },
+                                success: function (availableDrivers) {
+
+                                    // Rebuild driver dropdown options from the available drivers list
+                                    var $firstDriver  = $("#FirstDriverId");
+                                    var $secondDriver = $("#SecondDriverId");
+
+                                    $firstDriver.empty().append('<option value=""></option>');
+                                    $secondDriver.empty().append('<option value=""></option>');
+
+                                    if (availableDrivers && availableDrivers.length > 0) {
+                                        $.each(availableDrivers, function (i, drv) {
+                                            var opt = $('<option></option>').val(drv.Driver_Id).text(drv.Driver_Name);
+                                            $firstDriver.append(opt.clone());
+                                            $secondDriver.append(opt.clone());
+                                        });
+                                    }
+
+                                    $firstDriver.prop('disabled', false).trigger('change.select2');
+                                    $secondDriver.prop('disabled', false).trigger('change.select2');
+
+                                    // Step 2: Fetch vehicle info (existing assigned drivers + telemetry)
+                                    var VehicleParams = { "VehicleId": val };
+                                    $.ajax({
+                                        url: DomainName + "/Account/GetDataWithoutAlias",
+                                        type: 'POST',
+                                        dataType: "json",
+                                        data: { Method: "USP_GETDriver", parameters: VehicleParams },
+                                        success: function (data) {
+                                            if (data[0]) {
+                                                // Pre-select and lock already-assigned drivers
+                                                if (data[0].First_Driver) {
+                                                    $firstDriver.val(data[0].First_Driver).prop('disabled', true).trigger('change.select2');
+                                                }
+
+                                                if (data[0].Second_Driver) {
+                                                    $secondDriver.val(data[0].Second_Driver).prop('disabled', true).trigger('change.select2');
+                                                }
+
+                                                $("#TrailerNo").val(data[0].TrailerNo); // Auto-populate Trailer No
+
+                                                // Populate Telemetry Info
+                                                $("#infoLocation").text(data[0].CurrentLocation || "-");
+                                                $("#infoOdometer").text(data[0].Odometer ? data[0].Odometer + " KM" : "-");
+                                                $("#infoFuel").text(data[0].FuelStatus ? data[0].FuelStatus + " Litres" : "-");
+                                                $("#infoTrailer").text(data[0].TrailerNo || "-");
+
+                                                $("#vehicleInfoBox").fadeIn();
+                                            } else {
+                                                $("#TrailerNo").val("");
+                                                $("#vehicleInfoBox").hide();
+                                            }
+                                            App.unblockUI();
+                                        },
+                                        error: function () {
+                                            TosterNotification("error", "Failed to fetch vehicle details", "Error");
+                                            App.unblockUI();
+                                        }
+                                    });
+                                },
+                                error: function () {
+                                    TosterNotification("error", "Failed to fetch available drivers", "Error");
+                                    App.unblockUI();
+                                }
+                            });
+                        },
+                        error: function () {
+                            TosterNotification("error", "Failed to validate vehicle readiness", "Error");
+                            App.unblockUI();
+                        }
+                    });
+                });
+
+                var Currentid = "";
+                $("#FirstDriverId, #SecondDriverId").on('change', function () {
+                    var driverId = $(this).val();
+                    if (!driverId) return;
+
+                    var vehicleId = $("#VehicleId").val();
+                    Currentid = $(this).attr('id');
+
+                    var firstDriver = $('#FirstDriverId').val();
+                    var secondDriver = $('#SecondDriverId').val();
+
+                    if (firstDriver !== '' && secondDriver !== '' && firstDriver === secondDriver) {
+                        TosterNotification("warning", 'First Driver and Second Driver cannot be the same!..!!');
+                        setTimeout(() => {
+                            $("#" + Currentid).val("").trigger('change.select2');
+                        }, 100);
+                        return;
+                    }
+
+                    var Driver = $("#" + Currentid + " option:selected").text();
+                    var Currentvehicle = $("#VehicleId option:selected").text();
+
+                    App.blockUI({ boxed: true });
+                    var parameters = {
+                        Driver: driverId,
+                        vehicleId: vehicleId
+                    };
+
+                    $.ajax({
+                        url: DomainName + '/Account/GetData',
+                        cache: false,
+                        type: 'POST',
+                        data: {
+                            Method: 'ChekDriverAllready_Map',
+                            parameters: parameters
+                        },
+                        success: function (Data) {
+                            var parsedData = JSON.parse(Data);
+                            if (parsedData.length > 0) {
+                                var VehicleNo = parsedData[0].VehicleNo;
+                                if (parsedData[0].VehicleNo != "" && parsedData[0].IsAttached == 1) {
+                                    GLModal.showPopup({
+                                        title: 'Vehicle Attach Warning',
+                                        message: `<strong>Driver :</strong> ${Driver} - In Transit With <strong>Vehicle :</strong>  ${VehicleNo}  So You Can't Attach this Driver.`,
+                                        type: 'error',
+                                        buttonText: 'OK',
+                                        onClose: function () {
+                                            if (Currentid) {
+                                                $("#" + Currentid).val("").trigger('change.select2');
+                                            }
+                                        }
+                                    });
+                                }
+                                else if (parsedData[0].VehicleNo != "" && parsedData[0].IsAttached == 0) {
+                                    GLModal.showConfirm({
+                                        title: 'Vehicle Attach Warning',
+                                        message: `<strong>Driver:</strong> ${Driver}<br>
+                                               Already Attach With <strong>Vehicle : </strong> ${VehicleNo}<br>
+                                               Do you want to attached this vehicle(${Currentvehicle}) with this (${Driver}) Driver.<br>
+                                               <b>Do you want to continue?</b>`,
+                                        type: 'warning',
+                                        confirmText: 'Continue',
+                                        cancelText: 'Cancel',
+                                        onConfirm: function () {
+
+                                               var Str = DomainName + '/Account/SetData';
+                                                var parameters = {};
+                                                parameters['vehicleId'] = vehicleId;
+                                                parameters['DriverId'] = driverId;
+                                                parameters['BaseUsername'] = '@ViewBag.BaseUserName';
+                                                $.ajax({
+                                                    url: Str,
+                                                    cache: false,
+                                                    type: 'POST',
+                                                    data: {
+                                                        Method: 'InsertUpdate_VehicleDriver_Mapping_For_Vehicle_Allocation',
+                                                        parameters: parameters
+                                                    },
+                                                    success: function (Data) {
+                                                        var parsedData = JSON.parse(Data);
+                                                        if (parsedData.length > 0) {
+                                                            if (parsedData[0].Status == "1") {
+                                                                $('#noCrewMsg').hide();
+                                                                $('#currentCrewList').append(card);
+                                                                $('.driver-row[data-id="' + id + '"]').hide();
+                                                            }
+                                                            else {
+                                                                TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                                            }
+                                                            App.unblockUI();
+                                                        }
+                                                    },
+                                                    error: function (req, status, error) {
+                                                        TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                                        App.unblockUI();
+                                                    }
+                                                });
+
+                                        },
+                                        onCancel: function () {
+                                            if (Currentid) {
+                                                $("#" + Currentid).val("").trigger('change.select2');
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                             else
+                                 {
+                                       var Str = DomainName + '/Account/SetData';
+                                        var parameters = {};
+                                        parameters['vehicleId'] = vehicleId;
+                                        parameters['DriverId'] = driverId;
+                                        parameters['BaseUsername'] = '@ViewBag.BaseUserName';
+                                        $.ajax({
+                                            url: Str,
+                                            cache: false,
+                                            type: 'POST',
+                                            data: {
+                                                Method: 'InsertUpdate_VehicleDriver_Mapping_For_Vehicle_Allocation',
+                                                parameters: parameters
+                                            },
+                                            success: function (Data) {
+                                                var parsedData = JSON.parse(Data);
+                                                if (parsedData.length > 0) {
+                                                    if (parsedData[0].Status == "1") {
+                                                        $('#noCrewMsg').hide();
+                                                        $('#currentCrewList').append(card);
+                                                        $('.driver-row[data-id="' + id + '"]').hide();
+                                                    }
+                                                    else {
+                                                        TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                                    }
+                                                    App.unblockUI();
+                                                }
+                                            },
+                                            error: function (req, status, error) {
+                                                TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                                App.unblockUI();
+                                            }
+                                        });
+
+                                     App.unblockUI();
+                                 }
+                            App.unblockUI();
+                        },
+                        error: function (req, status, error) {
+                            TosterNotification("error", "Error !! There was an error during process. Please check your internet connection or contact administrator.", "Error");
+                            App.unblockUI();
+                        }
+                    });
+                });
+
+                $(document).on('change', '.chkAllocation', function () {
+                    if ($(this).is(':checked')) {
+                        selectRequest($(this).val());
+                    } else {
+                        $("#emptyState").show();
+                        $("#allocationForm").hide();
+                        $("#WCM_Vehicle_AllocationList tbody tr").removeClass("table-active");
+                        $("#PRNo").val("");
+                    }
+                });
+
+                window.CancelRequest = function (PRNo, e) {
+                    if (e) {
+                        e.stopPropagation();
+                    }
+                    if (!PRNo) return;
+
+                    // Set modal title & icon
+                    $('#glFormModalLabel').html(
+                        '<i class="ri-close-circle-line me-2 text-danger"></i>Cancel Request'
+                    );
+
+                    // Build reason form content
+                    var formHtml = [
+                        '<p class="fs-13 mb-3">Are you sure you want to <strong class="text-danger">Cancel</strong> request <strong style="color:#405189">"' + PRNo + '"</strong>?</p>',
+                        '<div class="mb-1">',
+                        '    <label for="txtCancelReason" class="form-label fw-semibold fs-13 mb-1">',
+                        '        Reason for Cancellation <span class="text-danger">*</span>',
+                        '    </label>',
+                        '    <textarea id="txtCancelReason" class="form-control" rows="3" maxlength="500"',
+                        '              placeholder="Please enter the reason for cancelling this request..."',
+                        '              style="resize:none;font-size:13px;"></textarea>',
+                        '    <div class="invalid-feedback" id="cancelReasonError">Please enter a reason before proceeding.</div>',
+                        '</div>'
+                    ].join('\n');
+
+                    $('#glFormLoader').hide();
+                    $('#glFormContent').html(formHtml);
+
+                    // Validation feedback
+                    $(document).off('input.cancel').on('input.cancel', '#txtCancelReason', function () {
+                        if ($(this).val().trim().length > 0) {
+                            $(this).removeClass('is-invalid');
+                            $('#cancelReasonError').hide();
+                        }
+                    });
+
+                    // Handle Save/Proceed
+                    $('#glFormSaveBtn').off('click.cancel').on('click.cancel', function () {
+                        var reason = $.trim($('#txtCancelReason').val());
+
+                        if (!reason) {
+                            $('#txtCancelReason').addClass('is-invalid');
+                            $('#cancelReasonError').show();
+                            $('#txtCancelReason').focus();
+                            return;
+                        }
+
+                        // Close modal and submit
+                        bootstrap.Modal.getInstance(document.getElementById('glFormModal')).hide();
+                        App.blockUI();
+                        
+                        var Parameters = {
+                            "PRNO": PRNo,
+                            "BaseUserName": "@ViewBag.BaseUserName",
+                            "CancelReason": reason
+                        };
+
+                        $.ajax({
+                            url: DomainName + "/Account/GetDataWithoutAlias",
+                            type: 'POST',
+                            dataType: "json",
+                            data: {
+                                Method: "USP_CancelPickup_Request",
+                                parameters: Parameters
+                            },
+                            success: function (data) {
+                                App.unblockUI();
+                                if (data && data.length > 0 && data[0].Status == 1) {
+                                    TosterNotification("success", data[0].Message || "Request Cancelled Successfully.", "Success");
+                                    setTimeout(function () { location.reload(); }, 1500);
+                                } else {
+                                    TosterNotification("error", data[0].Message || "Something went wrong.", "Error");
+                                }
+                            },
+                            error: function () {
+                                App.unblockUI();
+                                TosterNotification("error", "Failed to cancel request.", "Error");
+                            }
+                        });
+                    });
+
+                    // Open the common glFormModal
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('glFormModal')).show();
+
+                    // Focus the textarea after modal is shown
+                    document.getElementById('glFormModal').addEventListener('shown.bs.modal', function onShown() {
+                        $('#txtCancelReason').focus();
+                        this.removeEventListener('shown.bs.modal', onShown);
+                    });
+                };
+
+                $("#btnSave").on('click', function () {
+                    if ($.fn.validate && !$('#form_VehicleAllocation').valid()) return;
+                    if (!$("#PRNo").val()) {
+                        TosterNotification("error", "Please select a request from the list", "Error");
+                        return;
+                    }
+                    
+                    // Re-enable disabled driver dropdowns so their values are submitted
+                    $("#FirstDriverId, #SecondDriverId").prop('disabled', false);
+                    
+                    document.forms['form_VehicleAllocation'].submit();
+                });
+            }
+        };
+    }();
+</script>

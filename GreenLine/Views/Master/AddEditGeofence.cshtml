@@ -1,0 +1,1007 @@
+@model GreenLineDataService.ViewModel.CYGNUS_Master_GeofenceViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = Model.Geofence.Id > 0 ? "Edit Geofence" : "Add Geofence";
+
+    string lat = (Model.Geofence != null && Model.Geofence.Latitude != 0) ? Model.Geofence.Latitude.ToString("G") : "";
+    string lng = (Model.Geofence != null && Model.Geofence.Longitude != 0) ? Model.Geofence.Longitude.ToString("G") : "";
+    if (string.IsNullOrEmpty(lat) || string.IsNullOrEmpty(lng))
+    {
+        if (Model.Geofence != null && !string.IsNullOrEmpty(Model.Geofence.Geom))
+        {
+            if (Model.Geofence.ShapeType == "Polygon" || Model.Geofence.Geom.Contains("|"))
+            {
+                var firstPt = Model.Geofence.Geom.Split('|')[0];
+                var parts = firstPt.Split(',');
+                if (parts.Length >= 2)
+                {
+                    lat = parts[0];
+                    lng = parts[1];
+                }
+            }
+            else if (Model.Geofence.Geom.Contains(","))
+            {
+                var parts = Model.Geofence.Geom.Split(',');
+                if (parts.Length >= 2)
+                {
+                    lat = parts[0];
+                    lng = parts[1];
+                }
+            }
+        }
+    }
+}
+
+<style type="text/css">
+    .has-error .select2-container .select2-selection {
+        border-color: #f06548 !important;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">@ViewBag.Title</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Geofence", "Master")">Geofence List</a></li>
+                    <li class="breadcrumb-item active">@ViewBag.Title</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-0">
+            <div class="card-header">
+                <h4 class="card-title mb-0 flex-grow-1"><i class="ri-map-pin-range-line align-middle me-1 text-primary"></i> Geofence Specifications</h4>
+            </div>
+
+            <div class="card-body">
+                @using (Html.BeginForm("AddEditGeofence", "Master", FormMethod.Post, new { id = "geofence_form", enctype = "multipart/form-data", @class = "form-modern-ui" }))
+                {
+                    @Html.HiddenFor(m => m.Geofence.Id)
+                    @Html.HiddenFor(m => m.Geofence.ShapeType)
+                    @Html.HiddenFor(m => m.Geofence.Geom)
+                    @Html.HiddenFor(m => m.Geofence.Latitude, new { id = "txtLatitude", Value = lat })
+                    @Html.HiddenFor(m => m.Geofence.Longitude, new { id = "txtLongitude", Value = lng })
+
+                    <div class="row g-3">
+                        <!-- Row 1: Geofence Name, Department Type, Area Type, Duration (Min) -->
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Geofence Name</label>
+                                @Html.TextBoxFor(m => m.Geofence.GeofenceName, new { @class = "form-control required", placeholder = "Enter Name", autocomplete = "off" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Department Type</label>
+                                @Html.DropDownListFor(m => m.Geofence.DepartmentType, new SelectList(ViewBag.DepartmentTypeList, "CodeId", "CodeDesc"), "", new { @class = "form-control select2 required", @placeholder = "Select Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Area Type</label>
+                                @Html.DropDownListFor(m => m.Geofence.AreaType, new SelectList(ViewBag.AreaTypeList, "Value", "Text"), "", new { @class = "form-control select2 required", @placeholder = "Select Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Duration (Min)</label>
+                                @Html.TextBoxFor(m => m.Geofence.Duration, new { @class = "form-control numeric-input", placeholder = "Enter Duration", autocomplete = "off", onkeypress = "return validDigits(event, this.id)", Value = Model.Geofence.Id > 0 ? Model.Geofence.Duration.ToString() : "" })
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Speed (Kmph), Google Location Or Lat-Long, State, Radius (Meters) -->
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Speed (Kmph)</label>
+                                @Html.TextBoxFor(m => m.Geofence.Speed, new { @class = "form-control numeric-input", placeholder = "Enter Speed", autocomplete = "off", onkeypress = "return validDigits(event, this.id)", Value = Model.Geofence.Id > 0 ? Model.Geofence.Speed.ToString("G") : "" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Google Location</label>
+                                @Html.TextBoxFor(m => m.Geofence.GeofenceLocation, new { @class = "form-control required", placeholder = "Search..", autocomplete = "off" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">State</label>
+                                @Html.DropDownListFor(m => m.Geofence.State, new SelectList(ViewBag.StateList, "stcd", "stnm"), "", new { @class = "form-control select2 required", @placeholder = "Select State" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label@(Model.Geofence.ShapeType == "Circle" ? " required-label" : "")">Radius (Meters)</label>
+                                @Html.TextBoxFor(m => m.Geofence.Radius, new { @class = "form-control numeric-input bg-light", placeholder = "Enter Radius", autocomplete = "off", @readonly = "readonly", Value = Model.Geofence.Id > 0 ? Model.Geofence.Radius.ToString("G") : "" })
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Remark, Attachment, Active Status -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Remark</label>
+                                @Html.TextBoxFor(m => m.Geofence.Remark, new { @class = "form-control", placeholder = "Enter Remark", autocomplete = "off" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Attachment</label>
+                                <div class="input-group">
+                                    <input type="file" name="AttachmentFile" id="AttachmentFile" class="form-control" accept="image/*,application/pdf" />
+                                    @if (!string.IsNullOrEmpty(Model.Geofence.AttachmentPath))
+                                    {
+                                        <a href="@Url.Content("~/" + Model.Geofence.AttachmentPath)" target="_blank" class="btn btn-outline-secondary" title="View Current Attachment">
+                                            <i class="ri-attachment-2"></i> View
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.Geofence.Id > 0)
+                        {
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label d-block">Status</label>
+                                    <div class="form-check form-switch pt-1">
+                                        @Html.CheckBoxFor(m => m.Geofence.IsActive, new { @class = "form-check-input", @id = "Geofence_IsActive" })
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            @Html.Hidden("Geofence.IsActive", true)
+                        }
+
+                        <!-- Map Container taking full width below inputs -->
+                        <div class="col-md-12">
+                            <div class="border border-dashed rounded-3 shadow-none p-1" style="height: 400px; position: relative;">
+                                <div id="geofenceMap" class="rounded-3" style="position: absolute; top: 0; bottom: 0; left: 0; right: 0;"></div>
+                            </div>
+                            <span class="text-muted small">
+                                <i class="ri-information-line align-middle me-1 text-info"></i> Interactive Map: Drag the center marker to move Geofence, or resize using the circle bounds.
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-actions">
+    <a class="@ViewBag.UI.Buttons.Cancel.CssClass" href="@Url.Action("Geofence", "Master")">
+        <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i>@ViewBag.UI.Buttons.Cancel.Label
+    </a>
+    <button type="button" id="btnSaveGeofence" class="@ViewBag.UI.Buttons.Submit.CssClass">
+        <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>@ViewBag.UI.Buttons.Submit.Label
+    </button>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.64&key=@(ViewBag.GoogleMapsApiKey)&libraries=drawing,geometry,places"></script>
+<script type="text/javascript">
+    var currentCircle = null;
+    var currentPolygon = null;
+    var marker = null;
+    var searchedLatLng = null;
+    var containmentAlertTimeout = null;
+    var clearInvalidShape = null;
+
+    function checkContainment() {
+        // If Google Location search input is empty, skip containment checks completely
+        var locationText = $("#Geofence_GeofenceLocation").val() || "";
+        if (locationText.trim() === "") {
+            return true;
+        }
+
+        if (searchedLatLng) {
+            var isInside = false;
+            var shapeType = $("#Geofence_ShapeType").val();
+
+            if (shapeType === "Circle" && currentCircle) {
+                var dist = google.maps.geometry.spherical.computeDistanceBetween(searchedLatLng, currentCircle.getCenter());
+                if (dist <= currentCircle.getRadius()) {
+                    isInside = true;
+                }
+            } else if (shapeType === "Polygon" && currentPolygon) {
+                if (google.maps.geometry.poly.containsLocation(searchedLatLng, currentPolygon)) {
+                    isInside = true;
+                }
+            }
+
+            if (!isInside && (currentCircle || currentPolygon)) {
+                GLModal.showError("Validation Warning", "The drawn Geofence shape must cover the selected Google Location / Pinpoint coordinates.");
+                if (typeof clearInvalidShape === "function") {
+                    clearInvalidShape();
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function checkContainmentDebounced() {
+        if (containmentAlertTimeout) {
+            clearTimeout(containmentAlertTimeout);
+        }
+        containmentAlertTimeout = setTimeout(function () {
+            checkContainment();
+        }, 600);
+    }
+
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#geofence_form');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            // Completely destroy any existing unobtrusive validator and unbind its event handlers
+            var oldValidator = form1.data('validator');
+            if (oldValidator) {
+                if (typeof oldValidator.destroy === 'function') {
+                    oldValidator.destroy();
+                } else {
+                    form1.removeData("validator");
+                    form1.off(".validate");
+                }
+            }
+            form1.removeData("unobtrusiveValidation");
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                rules: {
+                    "Geofence.GeofenceName": { required: true, maxlength: 100 },
+                    "Geofence.GeofenceLocation": { required: true },
+                    "Geofence.State": { required: true },
+                    "Geofence.DepartmentType": { required: true },
+                    "Geofence.AreaType": { required: true },
+                    "Geofence.Radius": {
+                        required: function () {
+                            return $("#Geofence_ShapeType").val() === "Circle";
+                        },
+                        number: true,
+                        min: 10,
+                        max: 5000
+                    }
+                },
+                messages: {
+                    "Geofence.GeofenceName": "This field is required.",
+                    "Geofence.GeofenceLocation": "This field is required.",
+                    "Geofence.State": "This field is required.",
+                    "Geofence.DepartmentType": "This field is required.",
+                    "Geofence.AreaType": "This field is required.",
+                    "Geofence.Radius": {
+                        required: "This field is required.",
+                        number: "Please enter a valid number",
+                        min: "Radius must be at least 10 meters",
+                        max: "Radius cannot exceed 5000 meters"
+                    }
+                },
+                invalidHandler: function (event, validator) {
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+                errorPlacement: function (error, element) {
+                    error.addClass('text-danger small mt-1 d-block');
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible") || element.nextAll(".select2-container").length > 0) {
+                        error.insertAfter(element.nextAll(".select2-container").first());
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                },
+                submitHandler: function (formElement) {
+                    success1.show();
+                    error1.hide();
+
+                    var geom = $("#Geofence_Geom").val();
+                    if (!geom) {
+                        GLModal.showError("Error", "Please draw a geofence shape (Circle or Polygon) on the map.");
+                        return false;
+                    }
+
+                    // Strict containment verification: Ensure the selected/searched Geopoint/Location is inside the geofence boundary shape
+                    var locationText = $("#Geofence_GeofenceLocation").val() || "";
+                    if (locationText.trim() !== "" && searchedLatLng) {
+                        var isInside = false;
+                        var shapeType = $("#Geofence_ShapeType").val();
+
+                        if (shapeType === "Circle" && currentCircle) {
+                            var dist = google.maps.geometry.spherical.computeDistanceBetween(searchedLatLng, currentCircle.getCenter());
+                            if (dist <= currentCircle.getRadius()) {
+                                isInside = true;
+                            }
+                        } else if (shapeType === "Polygon" && currentPolygon) {
+                            if (google.maps.geometry.poly.containsLocation(searchedLatLng, currentPolygon)) {
+                                isInside = true;
+                            }
+                        }
+
+                        if (!isInside) {
+                            GLModal.showError("Validation Error", "The drawn Geofence shape must cover the selected Google Location / Pinpoint coordinates.");
+                            if (typeof clearInvalidShape === "function") {
+                                clearInvalidShape();
+                            }
+                            return false;
+                        }
+                    }
+
+                    App.blockUI({ boxed: true, message: 'Saving Geofence...' });
+                    $("#btnSaveGeofence").prop("disabled", true);
+                    var formData = new FormData(formElement);
+
+                    $.ajax({
+                        url: $(formElement).attr('action'),
+                        data: formData,
+                        type: 'POST',
+                        contentType: false,
+                        processData: false,
+                        success: function (data) {
+                            App.unblockUI();
+                            if (data && data.Status) {
+                                GLModal.showSuccess("Success", "Geofence saved successfully!", function () {
+                                    window.location.href = DomainName + '/Master/Geofence';
+                                });
+                            } else {
+                                GLModal.showError("Error", data.Message || "Failed to save geofence.");
+                                $("#btnSaveGeofence").prop("disabled", false);
+                            }
+                        },
+                        error: function () {
+                            App.unblockUI();
+                            GLModal.showError("Error", "A server-side error occurred.");
+                            $("#btnSaveGeofence").prop("disabled", false);
+                        }
+                    });
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+
+                // Real-time Geofence Name duplication check (toaster warning + blank input)
+                $("#Geofence_GeofenceName").on('change', function () {
+                    var nameInput = $(this);
+                    var name = nameInput.val();
+                    var id = $("#Geofence_Id").val() || 0;
+                    if (name.trim() !== "") {
+                        $.ajax({
+                            url: DomainName + '/Master/CheckDuplicateGeofenceName',
+                            type: 'POST',
+                            data: { name: name, id: id },
+                            success: function (result) {
+                                if (result !== true) {
+                                    TosterNotification("error", "Geofence name already exists. Please choose a different name.", "Duplicate Error");
+                                    nameInput.val(""); // Blank the input field
+                                    nameInput.valid(); // Trigger validation to show "This field is required" error
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // Initialize select2
+                $(".select2").select2({
+                    placeholder: "Select",
+                    allowClear: true
+                }).on("change", function () {
+                    $(this).valid();
+                });
+
+                // Trigger save via standard submit
+                $("#btnSaveGeofence").on("click", function () {
+                    $("#geofence_form").submit();
+                });
+
+                // Enforce photo and PDF only validation on attachment
+                $("#AttachmentFile").on('change', function () {
+                    var file = this.files[0];
+                    if (file) {
+                        validateImageFile(file, this);
+                    }
+                });
+
+                // Initialize Map
+                initGeofenceMap();
+            }
+        };
+    }();
+
+    function initGeofenceMap() {
+        var defaultLat = 21.1458;
+        var defaultLng = 79.0882;
+
+        var inputLat = parseFloat($("#txtLatitude").val());
+        var inputLng = parseFloat($("#txtLongitude").val());
+        var savedGeom = $("#Geofence_Geom").val();
+        var savedShape = $("#Geofence_ShapeType").val();
+        var savedRadius = parseFloat($("#Geofence_Radius").val());
+
+        var hasCoords = !isNaN(inputLat) && !isNaN(inputLng) && inputLat !== 0 && inputLng !== 0;
+
+        var centerLat = hasCoords ? inputLat : defaultLat;
+        var centerLng = hasCoords ? inputLng : defaultLng;
+
+        var mapCenter = new google.maps.LatLng(centerLat, centerLng);
+
+        var mapOptions = {
+            center: mapCenter,
+            zoom: hasCoords ? 15 : 5,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            mapTypeControl: true,
+            streetViewControl: false
+        };
+
+        var map = new google.maps.Map(document.getElementById("geofenceMap"), mapOptions);
+
+        currentCircle = null;
+        currentPolygon = null;
+        controlUI = null;
+
+        marker = new google.maps.Marker({
+            position: mapCenter,
+            map: hasCoords ? map : null,
+            draggable: false,
+            title: "Geofence Location Pin"
+        });
+
+        if (hasCoords) {
+            searchedLatLng = mapCenter;
+        }
+
+        function updateClearButtonVisibility() {
+            if (!controlUI) return;
+            var hasPinpoint = marker && marker.getMap() !== null;
+            var hasCircle = currentCircle && currentCircle.getMap() !== null;
+            var hasPolygon = currentPolygon && currentPolygon.getMap() !== null;
+            if (hasPinpoint || hasCircle || hasPolygon) {
+                controlUI.style.display = 'block';
+            } else {
+                controlUI.style.display = 'none';
+            }
+        }
+
+        clearInvalidShape = function () {
+            if (currentCircle) {
+                currentCircle.setMap(null);
+                currentCircle = null;
+            }
+            if (currentPolygon) {
+                currentPolygon.setMap(null);
+                currentPolygon = null;
+            }
+
+            $("#Geofence_Geom").val("");
+            $("#Geofence_Radius").val("");
+            $("#Geofence_ShapeType").val("");
+            updateRadiusFieldState();
+
+            drawingManager.setMap(map);
+            drawingManager.setOptions({ drawingControl: true });
+
+            updateClearButtonVisibility();
+        };
+
+        var drawingManager = new google.maps.drawing.DrawingManager({
+            drawingMode: null,
+            drawingControl: true,
+            drawingControlOptions: {
+                position: google.maps.ControlPosition.TOP_CENTER,
+                drawingModes: [
+                    google.maps.drawing.OverlayType.CIRCLE,
+                    google.maps.drawing.OverlayType.POLYGON
+                ]
+            },
+            circleOptions: {
+                fillColor: '#FF6F59',
+                fillOpacity: 0.2,
+                strokeColor: '#FF3B30',
+                strokeOpacity: 0.7,
+                strokeWeight: 2,
+                clickable: true,
+                editable: true,
+                zIndex: 1
+            },
+            polygonOptions: {
+                //fillColor: '#10B981',
+                fillColor: '#FF6F59',
+                fillOpacity: 0.2,
+                //strokeColor: '#059669',
+                strokeColor: '#FF3B30',
+                strokeOpacity: 0.7,
+                strokeWeight: 2,
+                clickable: true,
+                editable: true,
+                zIndex: 1
+            }
+        });
+        drawingManager.setMap(map);
+
+        function clearShapes() {
+            if (currentCircle) {
+                currentCircle.setMap(null);
+                currentCircle = null;
+            }
+            if (currentPolygon) {
+                currentPolygon.setMap(null);
+                currentPolygon = null;
+            }
+            $("#Geofence_Geom").val("");
+            $("#Geofence_Radius").val("");
+            $("#Geofence_ShapeType").val("");
+            updateRadiusFieldState();
+
+            updateClearButtonVisibility();
+        }
+
+        function updatePolygonCoords(poly) {
+            var path = poly.getPath();
+            var points = [];
+            path.forEach(function (vertex) {
+                var latVal = vertex.lat().toFixed(6);
+                var lngVal = vertex.lng().toFixed(6);
+                points.push(latVal + "," + lngVal);
+            });
+            $("#Geofence_Geom").val(points.join("|"));
+        }
+
+        function updateCircleCoords(circ) {
+            if (!circ) return;
+            var center = circ.getCenter();
+            var radius = circ.getRadius();
+
+            // Calculate outer 4 points of the circle (N, E, S, W) using geometry library
+            var topPoint = google.maps.geometry.spherical.computeOffset(center, radius, 0);
+            var rightPoint = google.maps.geometry.spherical.computeOffset(center, radius, 90);
+            var bottomPoint = google.maps.geometry.spherical.computeOffset(center, radius, 180);
+            var leftPoint = google.maps.geometry.spherical.computeOffset(center, radius, 270);
+
+            var geomString =
+                center.lat().toFixed(6) + "," + center.lng().toFixed(6) + "|" +
+                topPoint.lat().toFixed(6) + "," + topPoint.lng().toFixed(6) + "|" +
+                rightPoint.lat().toFixed(6) + "," + rightPoint.lng().toFixed(6) + "|" +
+                bottomPoint.lat().toFixed(6) + "," + bottomPoint.lng().toFixed(6) + "|" +
+                leftPoint.lat().toFixed(6) + "," + leftPoint.lng().toFixed(6);
+
+            $("#Geofence_Geom").val(geomString);
+        }
+
+        function updateRadiusFieldState() {
+            var shapeType = $("#Geofence_ShapeType").val();
+            var radiusInput = $("#Geofence_Radius");
+            var radiusGroup = radiusInput.closest('.form-group');
+            
+            radiusInput.prop("readonly", true).addClass("bg-light");
+            
+            if (shapeType === "Circle") {
+                radiusGroup.find('label').addClass('required-label');
+            } else {
+                radiusGroup.find('label').removeClass('required-label');
+                radiusInput.removeClass('error');
+                radiusGroup.find('.help-block').remove();
+                radiusGroup.removeClass('has-error');
+                if (shapeType === "Polygon") {
+                    radiusInput.val("");
+                }
+            }
+        }
+
+        // Draw existing shape on load
+        if (savedGeom) {
+            var savedGeomUpper = savedGeom.toUpperCase();
+            var normalizedShape = (savedShape || "").toLowerCase();
+
+            if (savedGeomUpper.indexOf('POLYGON') > -1 || savedGeomUpper.indexOf('POINT') > -1) {
+                if (savedGeomUpper.indexOf('POLYGON') > -1) {
+                    normalizedShape = "polygon";
+                    // Extract coordinates from POLYGON((lng1 lat1, lng2 lat2, ...))
+                    var cleanGeom = savedGeom.replace(/POLYGON/i, '').replace(/[\(\)]/g, '').trim();
+                    var pairs = cleanGeom.split(',');
+                    var pointsList = [];
+                    pairs.forEach(function (pair) {
+                        var parts = pair.trim().split(/\s+/);
+                        if (parts.length >= 2) {
+                            // WKT order is Longitude Latitude (X Y) -> Google Maps expects (Latitude, Longitude)
+                            pointsList.push(parts[1] + "," + parts[0]);
+                        }
+                    });
+                    savedGeom = pointsList.join('|');
+                } else if (savedGeomUpper.indexOf('POINT') > -1) {
+                    normalizedShape = "circle";
+                    // Extract coordinates from POINT(lng lat)
+                    var cleanGeom = savedGeom.replace(/POINT/i, '').replace(/[\(\)]/g, '').trim();
+                    var parts = cleanGeom.trim().split(/\s+/);
+                    if (parts.length >= 2) {
+                        // WKT order is Longitude Latitude (X Y) -> Google Maps expects (Latitude, Longitude)
+                        savedGeom = parts[1] + "," + parts[0];
+                    }
+                }
+            }
+
+            if (normalizedShape === "polygon") {
+                // Polygon geofence
+                var coords = savedGeom.split('|');
+                var pathPoints = [];
+                coords.forEach(function (pair) {
+                    var parts = pair.split(',');
+                    if (parts.length >= 2) {
+                        var ptLat = parseFloat(parts[0]);
+                        var ptLng = parseFloat(parts[1]);
+                        if (!isNaN(ptLat) && !isNaN(ptLng)) {
+                            pathPoints.push(new google.maps.LatLng(ptLat, ptLng));
+                        }
+                    }
+                });
+
+                if (pathPoints.length > 0) {
+                    currentPolygon = new google.maps.Polygon({
+                        paths: pathPoints,
+                        map: map,
+                        //fillColor: '#10B981',
+                        fillColor: '#FF6F59',
+                        fillOpacity: 0.2,
+                        //strokeColor: '#059669',
+                        strokeColor: '#FF3B30',
+                        strokeOpacity: 0.7,
+                        strokeWeight: 2,
+                        clickable: true,
+                        editable: true
+                    });
+
+                    var path = currentPolygon.getPath();
+                    google.maps.event.addListener(path, 'set_at', function () { updatePolygonCoords(currentPolygon); checkContainmentDebounced(); });
+                    google.maps.event.addListener(path, 'insert_at', function () { updatePolygonCoords(currentPolygon); checkContainmentDebounced(); });
+                    google.maps.event.addListener(path, 'remove_at', function () { updatePolygonCoords(currentPolygon); checkContainmentDebounced(); });
+
+                    var bounds = new google.maps.LatLngBounds();
+                    pathPoints.forEach(function (pt) { bounds.extend(pt); });
+                    map.fitBounds(bounds);
+
+                    marker.setMap(map);
+                    if (hasCoords) {
+                        marker.setPosition(mapCenter);
+                    } else {
+                        marker.setPosition(bounds.getCenter());
+                    }
+
+                    drawingManager.setOptions({ drawingControl: false });
+                }
+            } else if (normalizedShape === "circle") {
+                // Circle geofence: center is the first coordinate pair
+                var centerStr = savedGeom.split('|')[0];
+                var parts = centerStr.split(',');
+                if (parts.length >= 2) {
+                    var centerLat = parseFloat(parts[0]);
+                    var centerLng = parseFloat(parts[1]);
+                    if (!isNaN(centerLat) && !isNaN(centerLng)) {
+                        var centerPt = new google.maps.LatLng(centerLat, centerLng);
+                        currentCircle = new google.maps.Circle({
+                            map: map,
+                            center: centerPt,
+                            radius: !isNaN(savedRadius) ? savedRadius : 150,
+                            fillColor: '#FF6F59',
+                            fillOpacity: 0.2,
+                            strokeColor: '#FF3B30',
+                            strokeOpacity: 0.7,
+                            strokeWeight: 2,
+                            clickable: true,
+                            editable: true
+                        });
+
+                        google.maps.event.addListener(currentCircle, 'radius_changed', function () {
+                            var r = Math.round(currentCircle.getRadius());
+                            if (r > 5000) {
+                                currentCircle.setRadius(5000);
+                                r = 5000;
+                                GLModal.showError("Limit Exceeded", "Geofence radius cannot exceed 5000 meters.");
+                            }
+                            $("#Geofence_Radius").val(r);
+                            updateCircleCoords(currentCircle);
+                            checkContainmentDebounced();
+                        });
+                        google.maps.event.addListener(currentCircle, 'center_changed', function () {
+                            updateCircleCoords(currentCircle);
+                            checkContainmentDebounced();
+                        });
+
+                        map.fitBounds(currentCircle.getBounds());
+
+                        marker.setMap(map);
+                        if (hasCoords) {
+                            marker.setPosition(mapCenter);
+                        } else {
+                            marker.setPosition(centerPt);
+                        }
+
+                        drawingManager.setOptions({ drawingControl: false });
+                    }
+                }
+            }
+        }
+        updateRadiusFieldState();
+
+        // Listener for Circle Drawing Complete
+        google.maps.event.addListener(drawingManager, 'circlecomplete', function (circle) {
+            var locationText = $("#Geofence_GeofenceLocation").val() || "";
+            if (locationText.trim() === "") {
+                GLModal.showError("Validation Error", "Please search for and select a Google Location first before drawing a geofence shape.");
+                circle.setMap(null);
+                return;
+            }
+
+            var existingLat = parseFloat($("#txtLatitude").val());
+            var existingLng = parseFloat($("#txtLongitude").val());
+
+            if (currentCircle) { currentCircle.setMap(null); }
+            if (currentPolygon) { currentPolygon.setMap(null); currentPolygon = null; }
+            currentCircle = circle;
+
+            $("#Geofence_ShapeType").val("Circle");
+
+            var radius = Math.round(circle.getRadius());
+            if (radius > 5000) {
+                circle.setRadius(5000);
+                radius = 5000;
+                GLModal.showError("Limit Exceeded", "Geofence radius cannot exceed 5000 meters.");
+            }
+            $("#Geofence_Radius").val(radius);
+
+            var center = circle.getCenter();
+            updateCircleCoords(circle);
+            updateRadiusFieldState();
+
+            // If no pinpoint was set yet, set the pinpoint to the center of the drawn circle
+            if (isNaN(existingLat) || isNaN(existingLng) || existingLat === 0 || existingLng === 0) {
+                $("#txtLatitude").val(center.lat().toFixed(6));
+                $("#txtLongitude").val(center.lng().toFixed(6));
+                searchedLatLng = center;
+                marker.setMap(map);
+                marker.setPosition(center);
+            }
+
+            google.maps.event.addListener(circle, 'radius_changed', function () {
+                var r = Math.round(circle.getRadius());
+                if (r > 5000) {
+                    circle.setRadius(5000);
+                    r = 5000;
+                    GLModal.showError("Limit Exceeded", "Geofence radius cannot exceed 5000 meters.");
+                }
+                $("#Geofence_Radius").val(r);
+                updateCircleCoords(circle);
+                checkContainmentDebounced();
+            });
+            google.maps.event.addListener(circle, 'center_changed', function () {
+                updateCircleCoords(circle);
+                checkContainmentDebounced();
+            });
+            checkContainmentDebounced();
+
+            drawingManager.setDrawingMode(null);
+            drawingManager.setOptions({ drawingControl: false });
+
+            updateClearButtonVisibility();
+        });
+
+        // Listener for Polygon Drawing Complete
+        google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
+            var locationText = $("#Geofence_GeofenceLocation").val() || "";
+            if (locationText.trim() === "") {
+                GLModal.showError("Validation Error", "Please search for and select a Google Location first before drawing a geofence shape.");
+                polygon.setMap(null);
+                return;
+            }
+
+            var existingLat = parseFloat($("#txtLatitude").val());
+            var existingLng = parseFloat($("#txtLongitude").val());
+
+            if (currentCircle) { currentCircle.setMap(null); currentCircle = null; }
+            if (currentPolygon) { currentPolygon.setMap(null); }
+            currentPolygon = polygon;
+
+            $("#Geofence_ShapeType").val("Polygon");
+            $("#Geofence_Radius").val("");
+
+            updatePolygonCoords(polygon);
+            updateRadiusFieldState();
+
+            var path = polygon.getPath();
+
+            // If no pinpoint was set yet, set the pinpoint to the geometric center of the drawn polygon
+            if (isNaN(existingLat) || isNaN(existingLng) || existingLat === 0 || existingLng === 0) {
+                var bounds = new google.maps.LatLngBounds();
+                path.forEach(function (vertex) {
+                    bounds.extend(vertex);
+                });
+                var center = bounds.getCenter();
+                $("#txtLatitude").val(center.lat().toFixed(6));
+                $("#txtLongitude").val(center.lng().toFixed(6));
+                searchedLatLng = center;
+                marker.setMap(map);
+                marker.setPosition(center);
+            }
+
+            google.maps.event.addListener(path, 'set_at', function () { updatePolygonCoords(polygon); checkContainmentDebounced(); });
+            google.maps.event.addListener(path, 'insert_at', function () { updatePolygonCoords(polygon); checkContainmentDebounced(); });
+            google.maps.event.addListener(path, 'remove_at', function () { updatePolygonCoords(polygon); checkContainmentDebounced(); });
+            checkContainmentDebounced();
+
+            drawingManager.setDrawingMode(null);
+            drawingManager.setOptions({ drawingControl: false });
+
+            updateClearButtonVisibility();
+        });
+
+        // Clear button on map (Google Maps default control style)
+        var controlDiv = document.createElement('div');
+        controlDiv.style.margin = '10px';
+
+        controlUI = document.createElement('button');
+        controlUI.type = 'button';
+        controlUI.style.backgroundColor = '#fff';
+        controlUI.style.border = '2px solid #fff';
+        controlUI.style.borderRadius = '3px';
+        controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+        controlUI.style.cursor = 'pointer';
+        controlUI.style.textAlign = 'center';
+        controlUI.style.padding = '0 8px';
+        controlUI.style.height = '40px';
+        controlUI.style.display = 'none'; // Hide by default
+        controlUI.title = 'Click to clear geofence';
+        controlDiv.appendChild(controlUI);
+
+        var controlText = document.createElement('div');
+        controlText.style.color = 'rgb(25,25,25)';
+        controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+        controlText.style.fontSize = '12px';
+        controlText.style.fontWeight = '500';
+        controlText.style.lineHeight = '36px';
+        controlText.innerHTML = 'Clear Geofence';
+        controlUI.appendChild(controlText);
+
+        controlUI.addEventListener('click', function () {
+            clearShapes();
+            drawingManager.setMap(map);
+            drawingManager.setOptions({ drawingControl: true });
+        });
+
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDiv);
+
+        // Run initial visibility check depending on whether it loaded an existing shape
+        updateClearButtonVisibility();
+
+        // When Radius textbox input changes manually, update circle if active
+        $("#Geofence_Radius").on('change keyup', function () {
+            var rad = parseFloat($(this).val());
+            if (!isNaN(rad) && rad > 5000) {
+                rad = 5000;
+                $(this).val(5000);
+                if (currentCircle) {
+                    currentCircle.setRadius(5000);
+                    updateCircleCoords(currentCircle);
+                }
+                GLModal.showError("Limit Exceeded", "Geofence radius cannot exceed 5000 meters.");
+            } else if (!isNaN(rad) && rad > 0 && currentCircle) {
+                currentCircle.setRadius(rad);
+                updateCircleCoords(currentCircle);
+            }
+        });
+
+        // Autocomplete Search Box integration
+        var searchInput = document.getElementById('Geofence_GeofenceLocation');
+        var autocomplete = new google.maps.places.Autocomplete(searchInput);
+        autocomplete.bindTo('bounds', map);
+
+        autocomplete.addListener('place_changed', function () {
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                return;
+            }
+
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(16);
+            }
+
+            // Clear any active drawn circle or polygon shapes
+            if (currentCircle) {
+                currentCircle.setMap(null);
+                currentCircle = null;
+            }
+            if (currentPolygon) {
+                currentPolygon.setMap(null);
+                currentPolygon = null;
+            }
+            $("#Geofence_Geom").val("");
+            $("#Geofence_Radius").val("");
+            $("#Geofence_ShapeType").val("");
+
+            // Place location pin marker immediately at the searched location
+            marker.setMap(map);
+            marker.setPosition(place.geometry.location);
+            searchedLatLng = place.geometry.location;
+
+            // Populate the text fields with the searched coordinates
+            $("#txtLatitude").val(place.geometry.location.lat().toFixed(6));
+            $("#txtLongitude").val(place.geometry.location.lng().toFixed(6));
+
+            // Automatically detect and set State from Google Address Components
+            var stateName = "";
+            if (place.address_components) {
+                for (var i = 0; i < place.address_components.length; i++) {
+                    var component = place.address_components[i];
+                    if (component.types.indexOf("administrative_area_level_1") > -1) {
+                        stateName = component.long_name;
+                        break;
+                    }
+                }
+            }
+            if (stateName) {
+                var stateSelect = $("#Geofence_State");
+                var matchedValue = "";
+                var normalizedState = stateName.toLowerCase().trim();
+                
+                stateSelect.find('option').each(function () {
+                    var optionText = $(this).text().toLowerCase().trim();
+                    if (optionText !== "" && (optionText.indexOf(normalizedState) > -1 || normalizedState.indexOf(optionText) > -1)) {
+                        matchedValue = $(this).val();
+                        return false;
+                    }
+                });
+                
+                if (matchedValue) {
+                    stateSelect.val(matchedValue).trigger('change');
+                }
+            }
+
+            // Reactivate drawing tools toolbar on map
+            drawingManager.setMap(map);
+            drawingManager.setOptions({ drawingControl: true });
+
+            updateClearButtonVisibility();
+        });
+
+        // Prevent enter key in search box from triggering form submission
+        $(searchInput).on('keydown', function (e) {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+</script>

@@ -1,0 +1,43 @@
+@model GreenLineDataService.Models.CygnusCustomerGSTDetails
+@using GreenLine.Helpers;
+
+@{
+    int SRNO = Convert.ToInt32(Model.SrNo);
+}
+
+<tr class="editorRow">
+    @Html.Hidden("hdnblnk", Model.SrNo, new { @class = "iHidden" })
+    @using (Html.BeginCollectionItem("ListCustomerGSTDetails", Model.SrNo.ToString()))
+    {
+        <td class="center" style="vertical-align: middle !important;">
+            @SRNO
+        </td>
+        <td class="form-group col-md-2" style="vertical-align: middle !important;">
+            @Html.TextBoxFor(c => c.gst_registration_no, new { @class = "required2 form-control text-uppercase clsGST GSTNo", @placeholder = "GST Registration No." })
+        </td>
+        <td class="form-group col-md-2" style="vertical-align: middle !important;">
+            @Html.TextBoxFor(c => c.statename, new { @class = "required2 form-control statename", @placeholder = "State Name", @readonly = true })
+            @Html.HiddenFor(c => c.statecode)
+            @Html.HiddenFor(c => c.custcode)
+            @Html.HiddenFor(c => c.statePrefix)
+            @Html.HiddenFor(c => c.gstStateCode)
+        </td>
+        <td class="form-group" style="vertical-align: middle !important;"> @Html.TextAreaFor(c => c.CSGEAddress, new { @class = "required2 form-control", @placeholder = "Address", @maxlength = "5000" }) </td>
+        <td class="form-group col-md-2" style="vertical-align : middle !important;"> @Html.TextBoxFor(c => c.pincode, new { @class = "required2 form-control", @placeholder = "Pincode", @maxlength = "100" }) </td>
+        <td class="form-group col-md-2" style="vertical-align : middle !important;"> @Html.TextBoxFor(c => c.city_code, new { @class = "required2 form-control", @placeholder = "City", @maxlength = "100" }) </td>
+        <td class="form-group center col-md-1" style="vertical-align: middle !important;">
+            @*@if (Model.SrNo > 1)
+                {*@
+            <text>
+                <a href="#" style="color:red; font-size: 14px; font-weight: bolder;" class="StateWiseGSTDetailsdeleteRow btn-sm">
+                    <i class="fa fa-trash-o" style="font-size: 16px;"></i>
+                </a>
+            </text>
+            @*}
+                else
+                {
+                    <a href="#" id="DeleteFirstRow" style="color: Maroon; font-size: 14px; font-weight: bolder;" class="deleteRow"></a>
+                }*@
+        </td>
+    }
+</tr>

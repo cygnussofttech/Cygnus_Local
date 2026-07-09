@@ -1,0 +1,14 @@
+/.svn
+/.vs
+/GreenLine/.vs
+/packages
+/GreenLine/bin
+/GreenLine/obj
+/GreenLineApi
+/GreenLineDataService/.vs
+/GreenLineDataService/bin
+/GreenLineDataService/obj
+/Publish
+/SQL
+/SQL_Scripts
+/SQLScripts

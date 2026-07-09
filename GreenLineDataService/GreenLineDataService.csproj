@@ -1,0 +1,352 @@
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C354F6C1-2FF8-4C6B-B637-4E20FBF7049E}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GreenLineDataService</RootNamespace>
+    <AssemblyName>GreenLineDataService</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <WcfConfigValidationEnabled>True</WcfConfigValidationEnabled>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <UseIISExpress>true</UseIISExpress>
+    <Use64BitIISExpress />
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.85.4.369, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\ICSharpCode.SharpZipLib.dll.0.85.4.369\lib\net20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ApplicationBlocks.Data, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationBlocks.Data.2.0.0\lib\net45\Microsoft.ApplicationBlocks.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.PowerBI.Api, Version=1.1.11.17109, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.PowerBI.Api.1.1.11\lib\portable-net45+win+wpa81+MonoAndroid10+MonoTouch10+xamarinios10+xamarinmac20\Microsoft.PowerBI.Api.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.Common, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.WebForms.150.1652.0\lib\net40\Microsoft.ReportViewer.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.DataVisualization, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.WebForms.150.1652.0\lib\net40\Microsoft.ReportViewer.DataVisualization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.Design, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.WebForms.150.1652.0\lib\net40\Microsoft.ReportViewer.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.ProcessingObjectModel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.WebForms.150.1652.0\lib\net40\Microsoft.ReportViewer.ProcessingObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WebDesign, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.WebForms.150.1652.0\lib\net40\Microsoft.ReportViewer.WebDesign.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WebForms, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.WebForms.150.1652.0\lib\net40\Microsoft.ReportViewer.WebForms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Rest.ClientRuntime, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Rest.ClientRuntime.2.0.1\lib\net45\Microsoft.Rest.ClientRuntime.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Types, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.Types.14.0.314.76\lib\net40\Microsoft.SqlServer.Types.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=9.3.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.Storage.9.3.3\lib\net45\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\UnofficialAzure.StorageClient.1.0.0\lib\Microsoft.WindowsAzure.StorageClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Npgsql, Version=6.0.10.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Npgsql.6.0.10\lib\netstandard2.0\Npgsql.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.6.0.0\lib\net461\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.6.0.0\lib\net461\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.6.0.0\lib\net461\System.Text.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Channels, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Channels.6.0.0\lib\net461\System.Threading.Channels.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Service1.svc" />
+    <Content Include="SqlServerTypes\readme.htm" />
+    <Content Include="SqlServerTypes\x64\msvcr120.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x64\SqlServerSpatial140.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x86\msvcr120.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x86\SqlServerSpatial140.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Classes\BasicAuthenticationInvoker.cs" />
+    <Compile Include="Classes\ControllersHelper.cs" />
+    <Compile Include="Classes\DataRowToObject.cs" />
+    <Compile Include="Classes\GeneralFuncations.cs" />
+    <Compile Include="Classes\MultipartParser.cs" />
+    <Compile Include="Classes\PgGeneralFunctions.cs" />
+    <Compile Include="Classes\SYSConvert.cs" />
+    <Compile Include="Helper\Interface\IContractService.cs" />
+    <Compile Include="Helper\Interface\IFleetServices.cs" />
+    <Compile Include="Helper\Interface\IMasterService.cs" />
+    <Compile Include="Helper\Interface\IPgGeofenceService.cs" />
+    <Compile Include="Helper\Interface\IPgTruckService.cs" />
+    <Compile Include="Helper\Interface\IReportService.cs" />
+    <Compile Include="Helper\Service\ContractService.cs" />
+    <Compile Include="Helper\Service\FleetServices.cs" />
+    <Compile Include="Helper\Service\MasterService.cs" />
+    <Compile Include="Helper\Service\PgGeofenceService.cs" />
+    <Compile Include="Helper\Service\PgTruckService.cs" />
+    <Compile Include="Helper\Service\ReportService.cs" />
+    <Compile Include="Models\ChangeSettings.cs" />
+    <Compile Include="Models\CygnusCustomerGSTDetails.cs" />
+    <Compile Include="Models\CygnusVendorGSTDetails.cs" />
+    <Compile Include="Models\CYGNUS_acctinfo.cs" />
+    <Compile Include="Models\CYGNUS_Additonal_Field_Configurator.cs" />
+    <Compile Include="Models\CYGNUS_BILL_CONFIGURATION.cs" />
+    <Compile Include="Models\CYGNUS_citymaster.cs" />
+    <Compile Include="Models\Cygnus_Consignee_Master.cs" />
+    <Compile Include="Models\CYGNUS_custcontract_charge.cs" />
+    <Compile Include="Models\CYGNUS_CUSTCONTRACT_CHARGEMATRIX_SLABHDR.cs" />
+    <Compile Include="Models\CYGNUS_custcontract_charge_constraint.cs" />
+    <Compile Include="Models\CYGNUS_CUSTCONTRACT_FRTMATRIX_FTLSLABHDR.cs" />
+    <Compile Include="Models\CYGNUS_CustContract_FRTMatrix_SingleSlab.cs" />
+    <Compile Include="Models\CYGNUS_custcontract_frtmatrix_slabhdr.cs" />
+    <Compile Include="Models\CYGNUS_custcontract_hdr.cs" />
+    <Compile Include="Models\CYGNUS_custcontract_servicecharges.cs" />
+    <Compile Include="Models\CYGNUS_CUSTHDR.cs" />
+    <Compile Include="Models\Cygnus_CustomerBillingCycleSetting.cs" />
+    <Compile Include="Models\CYGNUS_Customer_Bill_Details.cs" />
+    <Compile Include="Models\CYGNUS_Customer_Geofence_Details.cs" />
+    <Compile Include="Models\CYGNUS_Customer_KYC_Details.cs" />
+    <Compile Include="Models\CYGNUS_Customer_Pickup_Address.cs" />
+    <Compile Include="Models\Cygnus_Cutomer_KMA_Details.cs" />
+    <Compile Include="Models\CYGNUS_Designation_Mapping.cs" />
+    <Compile Include="Models\Cygnus_DisplayFlowType_Details.cs" />
+    <Compile Include="Models\CYGNUS_DO_POD_Upload.cs" />
+    <Compile Include="Models\CYGNUS_FLEET_BATTERYSIZEMST.cs" />
+    <Compile Include="Models\CYGNUS_FLEET_DRIVERMST.cs" />
+    <Compile Include="Models\CYGNUS_FLEET_DRIVER_DOCDET.cs" />
+    <Compile Include="Models\CYGNUS_FLEET_TYREMST.cs" />
+    <Compile Include="Models\CYGNUS_FLEET_TYRESIZEMST.cs" />
+    <Compile Include="Models\CYGNUS_FLEET_VEHICLE_ISSUE.cs" />
+    <Compile Include="Models\CYGNUS_GRPMST.cs" />
+    <Compile Include="Models\Cygnus_HRMS_Leave_LeaveGroup.cs" />
+    <Compile Include="Models\Cygnus_HRMS_Organization_Shift.cs" />
+    <Compile Include="Models\CYGNUS_LaneMaster.cs" />
+    <Compile Include="Models\CYGNUS_location.cs" />
+    <Compile Include="Models\CYGNUS_LR_ENTRY.cs" />
+    <Compile Include="Models\CYGNUS_Master_Card.cs" />
+    <Compile Include="Models\CYGNUS_Master_Card_Assignment.cs" />
+    <Compile Include="Models\CYGNUS_master_charge.cs" />
+    <Compile Include="Models\CYGNUS_Master_CodeTypes.cs" />
+    <Compile Include="Models\CYGNUS_master_CustAddresses.cs" />
+    <Compile Include="Models\CYGNUS_Master_Docket.cs" />
+    <Compile Include="Models\CYGNUS_Master_DownloadZip.cs" />
+    <Compile Include="Models\Cygnus_Master_Event.cs" />
+    <Compile Include="Models\CYGNUS_Master_Expense.cs" />
+    <Compile Include="Models\CYGNUS_Master_FuelStation.cs" />
+    <Compile Include="Models\CYGNUS_Master_General.cs" />
+    <Compile Include="Models\CYGNUS_Master_Geofence.cs" />
+    <Compile Include="Models\CYGNUS_Master_Menu.cs" />
+    <Compile Include="Models\CYGNUS_Master_Menu_Access.cs" />
+    <Compile Include="Models\CYGNUS_Master_ParameterSet_Details_SP.cs" />
+    <Compile Include="Models\CYGNUS_Master_Reports.cs" />
+    <Compile Include="Models\CYGNUS_Master_Reports_Parameters.cs" />
+    <Compile Include="Models\CYGNUS_Master_Users.cs" />
+    <Compile Include="Models\Cygnus_Master_VehicleType_wise_Document.cs" />
+    <Compile Include="Models\Cygnus_Master_Vehicle_DocumentType.cs" />
+    <Compile Include="Models\CYGNUS_Master_Vehicle_Event.cs" />
+    <Compile Include="Models\CYGNUS_NotesCategory_Mapping.cs" />
+    <Compile Include="Models\CYGNUS_Organization_Master.cs" />
+    <Compile Include="Models\CYGNUS_Payment_Links.cs" />
+    <Compile Include="Models\CYGNUS_PickUp_Request.cs" />
+    <Compile Include="Models\CYGNUS_pincode_master.cs" />
+    <Compile Include="Models\Cygnus_Report_ChartDetail_Master.cs" />
+    <Compile Include="Models\CYGNUS_Report_General.cs" />
+    <Compile Include="Models\CYGNUS_rutmas.cs" />
+    <Compile Include="Models\CYGNUS_State.cs" />
+    <Compile Include="Models\CYGNUS_TRAILER_MAPPING.cs" />
+    <Compile Include="Models\CYGNUS_Trip_Master.cs" />
+    <Compile Include="Models\CYGNUS_Trip_Expense_Master.cs" />
+    <Compile Include="Models\CYGNUS_FLEET_ENROUTE_EXP.cs" />
+    <Compile Include="Models\Cygnus_VehicleDriver_Mapping.cs" />
+    <Compile Include="Models\CYGNUS_Vehicle_Allocation.cs" />
+    <Compile Include="Models\CYGNUS_Vehicle_GPS_Current_Details.cs" />
+    <Compile Include="Models\CYGNUS_Vehicle_Master.cs" />
+    <Compile Include="Models\CYGNUS_Vehicle_Model.cs" />
+    <Compile Include="Models\CYGNUS_VENDOR_DET.cs" />
+    <Compile Include="Models\Cygnus_Vendor_Document.cs" />
+    <Compile Include="Models\CYGNUS_VENDOR_HDR.cs" />
+    <Compile Include="Models\CYGNUS_XML_Parameter.cs" />
+    <Compile Include="Models\CYGNUX_Master_Countries.cs" />
+    <Compile Include="Models\GetUserMenuRights.cs" />
+    <Compile Include="Models\Master_ParameterSet.cs" />
+    <Compile Include="Models\Master_ParameterSet_Details.cs" />
+    <Compile Include="Models\Master_Parameter_Inputs.cs" />
+    <Compile Include="Models\PG_Geofence.cs" />
+    <Compile Include="Models\PG_Truck.cs" />
+    <Compile Include="Models\TBL_Master_General.cs" />
+    <Compile Include="Models\vw_Get_Finacial_Years.cs" />
+    <Compile Include="Service1.svc.cs">
+      <DependentUpon>Service1.svc</DependentUpon>
+    </Compile>
+    <Compile Include="IService1.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlServerTypes\Loader.cs" />
+    <Compile Include="ViewModel\CustomerContractViewModel.cs" />
+    <Compile Include="ViewModel\FleetViewModel.cs" />
+    <Compile Include="ViewModel\MasterViewModel.cs" />
+    <Compile Include="ViewModel\ReportsViewModel.cs" />
+    <Compile Include="ViewModel\TrackViewModel.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>49170</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:49170/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Import Project="..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets" Condition="Exists('..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+
+       Other similar extension points exist, see Microsoft.Common.targets.
+
+  <Target Name="BeforeBuild">
+
+  </Target>
+
+  <Target Name="AfterBuild">
+
+  </Target>
+
+  -->
+</Project>

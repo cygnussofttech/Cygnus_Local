@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenLine Modal System — Live Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/custom-modal.css">
+    <style>
+        :root {
+            --vz-primary: #0ab39c;
+            --vz-font-sans-serif: "Public Sans", sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Public Sans", sans-serif;
+            background: linear-gradient(135deg, #f3f3f9 0%, #e8f5f3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+        }
+        .demo-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            padding: 40px;
+            max-width: 680px;
+            width: 100%;
+        }
+        .demo-card h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #343a40;
+            margin-bottom: 6px;
+        }
+        .demo-card p.subtitle {
+            font-size: 14px;
+            color: #878a99;
+            margin-bottom: 28px;
+        }
+        .demo-section {
+            margin-bottom: 24px;
+        }
+        .demo-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #878a99;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 12px;
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 10px;
+        }
+        .demo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1.5px solid #e9ebec;
+            background: #fff;
+            font-family: "Public Sans", sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .demo-btn:hover {
+            border-color: #0ab39c;
+            color: #0ab39c;
+            box-shadow: 0 4px 12px rgba(10,179,156,0.12);
+            transform: translateY(-1px);
+        }
+        .demo-btn i { font-size: 18px; }
+        .demo-btn--success i { color: #0ab39c; }
+        .demo-btn--error i { color: #f06548; }
+        .demo-btn--warning i { color: #f7b84b; }
+        .demo-btn--info i { color: #299cdb; }
+        .demo-btn--confirm i { color: #405189; }
+        .demo-btn--delete i { color: #f06548; }
+    </style>
+</head>
+<body>
+    <div class="demo-card">
+        <h1>🚀 GreenLine Modal System</h1>
+        <p class="subtitle">Click any button below to see the modal in action</p>
+
+        <div class="demo-section">
+            <h3>Add/Edit Form Modals</h3>
+            <div class="demo-grid">
+                <button class="demo-btn" style="border-left: 3px solid #0ab39c;" onclick="demoAddStateForm()">
+                    <i class="ri-add-line" style="color:#0ab39c"></i> Add State (Demo)
+                </button>
+                <button class="demo-btn" style="border-left: 3px solid #405189;" onclick="demoEditCustomerForm()">
+                    <i class="ri-edit-line" style="color:#405189"></i> Edit Customer (Demo)
+                </button>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>Confirmation Modals</h3>
+            <div class="demo-grid">
+                <button class="demo-btn demo-btn--confirm" onclick="demoConfirmBasic()">
+                    <i class="ri-question-line"></i> Basic Confirm
+                </button>
+                <button class="demo-btn demo-btn--delete" onclick="demoConfirmDelete()">
+                    <i class="ri-delete-bin-line"></i> Delete Confirm
+                </button>
+                <button class="demo-btn demo-btn--success" onclick="demoConfirmSave()">
+                    <i class="ri-save-line"></i> Save Confirm
+                </button>
+                <button class="demo-btn demo-btn--info" onclick="demoConfirmToggle()">
+                    <i class="ri-refresh-line"></i> Toggle Status
+                </button>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>Image/Icon Popups</h3>
+            <div class="demo-grid">
+                <button class="demo-btn demo-btn--success" onclick="demoSuccess()">
+                    <i class="ri-checkbox-circle-line"></i> Success
+                </button>
+                <button class="demo-btn demo-btn--error" onclick="demoError()">
+                    <i class="ri-close-circle-line"></i> Error
+                </button>
+                <button class="demo-btn demo-btn--warning" onclick="demoWarning()">
+                    <i class="ri-alert-line"></i> Warning
+                </button>
+                <button class="demo-btn demo-btn--info" onclick="demoInfo()">
+                    <i class="ri-information-line"></i> Info
+                </button>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>Quick Shorthands</h3>
+            <div class="demo-grid">
+                <button class="demo-btn" onclick="GLModal.showSuccess('Record saved!')">
+                    <i class="ri-flashlight-line" style="color:#0ab39c"></i> One-liner Success
+                </button>
+                <button class="demo-btn" onclick="GLModal.showError('Connection lost.','Check your network.')">
+                    <i class="ri-flashlight-line" style="color:#f06548"></i> One-liner Error
+                </button>
+                <button class="demo-btn" onclick="demoGujarati()">
+                    <i class="ri-translate-2" style="color:#405189"></i> Gujarati Labels
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded Form Modal Structure for Demo -->
+    <div id="glFormModal" class="modal fade" tabindex="-1" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1050; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); width: 90%; max-width: 800px; padding: 0;">
+        <div class="modal-content" style="border: none;">
+            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid #eff2f7; display: flex; justify-content: space-between; align-items: center; background: #f9f9fb; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="glFormModalLabel" style="margin:0; font-weight: 700; color: #405189;">Form Title</h5>
+                <button type="button" onclick="document.getElementById('glFormModal').style.display='none'" style="border: none; background: transparent; cursor: pointer; font-size: 20px; color: #878a99;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 30px; max-height: 70vh; overflow-y: auto;">
+                <div id="glFormLoader" style="text-align: center; padding: 40px; display: none;">
+                    <i class="ri-loader-4-line" style="font-size: 40px; color: #0ab39c; display: inline-block; animation: spin 1s linear infinite;"></i>
+                    <p style="margin-top: 10px; color: #878a99;">Fetching details...</p>
+                </div>
+                <div id="glFormContent">
+                    <!-- Form content injected here -->
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #eff2f7; display: flex; justify-content: flex-end; gap: 10px; background: #f9f9fb; border-radius: 0 0 12px 12px;">
+                <button type="button" onclick="document.getElementById('glFormModal').style.display='none'" style="padding: 8px 20px; border-radius: 6px; border: 1px solid #e9ebec; background: white; font-weight: 500; cursor: pointer;">
+                    <i class="ri-close-line align-middle"></i> Cancel
+                </button>
+                <button type="button" id="glFormSaveBtn" style="padding: 8px 25px; border-radius: 6px; border: none; background: #0ab39c; color: white; font-weight: 500; cursor: pointer;">
+                    <i class="ri-save-line align-middle"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+    <style> @keyframes spin { 100% { transform: rotate(360deg); } } </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/custom-modal.js"></script>
+    <script>
+        // Mocking the GLModal.showForm to work in this static file
+        function demoAddStateForm() {
+            openDemoForm("Add New State", "");
+        }
+
+        function demoEditCustomerForm() {
+            openDemoForm("Edit Customer", "Maharashtra");
+        }
+
+        function openDemoForm(titleText, value) {
+            const modal = document.getElementById('glFormModal');
+            const title = document.getElementById('glFormModalLabel');
+            const content = document.getElementById('glFormContent');
+            const loader = document.getElementById('glFormLoader');
+            const saveBtn = document.getElementById('glFormSaveBtn');
+
+            title.innerText = titleText;
+            loader.style.display = "block";
+            content.style.display = "none";
+            modal.style.display = "block";
+
+            // Simulate AJAX delay
+            setTimeout(() => {
+                loader.style.display = "none";
+                content.style.display = "block";
+                content.innerHTML = `
+                    <form id="demoForm">
+                        <div class="gl-form-section">
+                            <div class="section-title"><i class="ri-map-pin-line"></i> Basic Information</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600;">Country <span style="color:red">*</span></label>
+                                    <select id="country" style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:6px;"><option value="1">India</option></select>
+                                    <div class="demo-error" id="err-country" style="color:#f06548; font-size:11px; margin-top:4px; display:none;">Please select a country</div>
+                                </div>
+                                <div>
+                                    <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600;">State Name <span style="color:red">*</span></label>
+                                    <input type="text" id="stateName" value="${value}" placeholder="e.g. Maharashtra" style="width:100%; padding:9px; border:1px solid #ced4da; border-radius:6px;">
+                                    <div class="demo-error" id="err-stateName" style="color:#f06548; font-size:11px; margin-top:4px; display:none;">State name is required</div>
+                                </div>
+                                <div>
+                                    <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600;">State Code <span style="color:red">*</span></label>
+                                    <input type="text" id="stateCode" placeholder="e.g. MH" style="width:100%; padding:9px; border:1px solid #ced4da; border-radius:6px;">
+                                    <div class="demo-error" id="err-stateCode" style="color:#f06548; font-size:11px; margin-top:4px; display:none;">State code is required</div>
+                                </div>
+                                <div>
+                                    <label style="display:block; margin-bottom:6px; font-size:13px; font-weight:600;">State Prefix <span style="color:red">*</span></label>
+                                    <input type="text" id="statePrefix" placeholder="e.g. 27" style="width:100%; padding:9px; border:1px solid #ced4da; border-radius:6px;">
+                                    <div class="demo-error" id="err-statePrefix" style="color:#f06548; font-size:11px; margin-top:4px; display:none;">Prefix is required</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="gl-form-section">
+                            <div class="section-title"><i class="ri-settings-3-line"></i> Configuration & Status</div>
+                            <div style="display: flex; gap: 40px; padding: 10px 0;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="width:36px; height:18px; background:#e9ebec; border-radius:20px; position:relative;"><div style="width:14px; height:14px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px;"></div></div>
+                                    <span style="font-size:13px; font-weight:500;">Union Territory</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="width:36px; height:18px; background:#0ab39c; border-radius:20px; position:relative;"><div style="width:14px; height:14px; background:#fff; border-radius:50%; position:absolute; top:2px; right:2px;"></div></div>
+                                    <span style="font-size:13px; font-weight:500;">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                `;
+
+                // Handle validation on save
+                saveBtn.onclick = function() {
+                    let isValid = true;
+                    const fields = ['stateName', 'stateCode', 'statePrefix'];
+                    
+                    fields.forEach(id => {
+                        const input = document.getElementById(id);
+                        const err = document.getElementById('err-' + id);
+                        if (!input.value.trim()) {
+                            isValid = false;
+                            input.style.borderColor = "#f06548";
+                            err.style.display = "block";
+                        } else {
+                            input.style.borderColor = "#ced4da";
+                            err.style.display = "none";
+                        }
+                    });
+
+                    if (isValid) {
+                        saveBtn.disabled = true;
+                        saveBtn.innerHTML = '<i class="ri-loader-4-line spin" style="display:inline-block; animation: spin 1s linear infinite;"></i> Processing...';
+                        
+                        setTimeout(() => {
+                            document.getElementById('glFormModal').style.display = 'none';
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = '<i class="ri-save-line align-middle"></i> Save';
+                            GLModal.showSuccess("Data saved successfully!");
+                        }, 1000);
+                    }
+                };
+            }, 600);
+
+        }
+        function demoConfirmBasic() {
+            showConfirm("Confirm Action?", "Are you sure you want to proceed?", function() {
+                GLModal.showSuccess("Action confirmed!");
+            });
+        }
+
+        function demoConfirmDelete() {
+            showConfirm({
+                title:       "Delete Customer",
+                message:     'Are you sure you want to <strong>delete</strong> <strong style="color:#f06548">"Acme Corp"</strong>?',
+                subtitle:    "This action is permanent and cannot be undone.",
+                type:        "delete",
+                confirmText: "Yes, Delete",
+                cancelText:  "Cancel",
+                onConfirm:   function() {
+                    GLModal.showSuccess("Customer deleted successfully!");
+                }
+            });
+        }
+
+        function demoConfirmSave() {
+            showConfirm({
+                title:       "Save Record",
+                message:     "Do you want to save the changes to this record?",
+                type:        "save",
+                confirmText: "Yes, Save",
+                onConfirm:   function() {
+                    GLModal.showSuccess("Record saved successfully!");
+                }
+            });
+        }
+
+        function demoConfirmToggle() {
+            showConfirm({
+                title:       "Inactivate Customer",
+                message:     'Are you sure you want to <strong>toggle</strong> status for <strong style="color:#0ab39c">"Default TOPAY Customer"</strong>?',
+                subtitle:    "This action will update the active status in the system immediately.",
+                type:        "info",
+                confirmText: "Yes, Inactivate",
+                cancelText:  "Cancel",
+                onConfirm:   function() {
+                    GLModal.showSuccess("Status updated successfully!");
+                }
+            });
+        }
+
+        function demoSuccess() {
+            showPopup({
+                title:      "Success!",
+                message:    "The customer profile has been updated successfully.",
+                subtitle:   "Changes will reflect across all modules.",
+                type:       "success",
+                buttonText: "Got it"
+            });
+        }
+
+        function demoError() {
+            showPopup({
+                title:   "Error!",
+                message: "Failed to connect to the server. Please check your network connection and try again.",
+                type:    "error"
+            });
+        }
+
+        function demoWarning() {
+            showPopup({
+                title:    "Warning!",
+                message:  "This action cannot be undone. All related data will be permanently removed.",
+                subtitle: "Please ensure you have a backup before proceeding.",
+                type:     "warning"
+            });
+        }
+
+        function demoInfo() {
+            showPopup({
+                title:   "Information",
+                message: "Your session will expire in 5 minutes. Please save your work.",
+                type:    "info"
+            });
+        }
+
+        function demoGujarati() {
+            showConfirm({
+                title:       "રેકોર્ડ કાઢી નાખો",
+                message:     "શું તમે ખરેખર આ રેકોર્ડ કાઢી નાખવા માંગો છો?",
+                type:        "delete",
+                confirmText: "ખાતરી કરો",
+                cancelText:  "રદ કરો",
+                onConfirm:   function() {
+                    GLModal.showSuccess("રેકોર્ડ સફળતાપૂર્વક કાઢી નાખવામાં આવ્યો છે!");
+                }
+            });
+        }
+    </script>
+</body>
+</html>

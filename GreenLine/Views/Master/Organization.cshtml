@@ -1,0 +1,194 @@
+@model GreenLineDataService.Models.CYGNUS_COMPANY_MASTER
+@using GreenLineDataService.Models;
+
+@{
+    ViewBag.Title = "Organization";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-0">@ViewBag.Title</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">@ViewBag.Title</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Organization</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light" id="btnDownloadMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" id="AddOrganization">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle table-nowrap m-0" id="tblOrganization">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Code</th>
+                                <th class="text-center">Name</th>
+                                <th class="text-center">Branch Code</th>
+                                <th class="text-center">GST NO</th>
+                                <th class="text-center">PAN No</th>
+                                <th class="text-center">CIN No</th>
+                                <th class="text-center">SAP Code</th>
+                                <th class="text-center no-cc">Status</th>
+                                <th class="text-center no-cc">Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function () {
+        var loadDataTable = function (DomainName, TableName) {
+            App.blockUI({
+                target: '#' + TableName,
+                boxed: true,
+                message: 'Loading data...'
+            });
+
+            $.ajax({
+                url: DomainName + "/Account/GetDataWithoutAlias",
+                type: 'POST',
+                dataType: "json",
+                data: {
+                    Method: "USP_OrganizationMaster_List",
+                    parameters: { "CustCode": "" }
+                },
+                success: function (data) {
+                    var tableData = data;
+                    if (typeof data === 'object' && !Array.isArray(data)) {
+                        var tableNames = Object.keys(data);
+                        for (var i = 0; i < tableNames.length; i++) {
+                            if (Array.isArray(data[tableNames[i]])) {
+                                tableData = data[tableNames[i]];
+                                break;
+                            }
+                        }
+                    }
+
+                    GlDataTable.refresh(TableName, {
+                        data: tableData,
+                        statusFilter: 7,
+                        columns: [
+                            { data: "COMPANY_CODE" },
+                            { data: "COMPANY_NAME" },
+                            { data: "BRCD" },
+                            { data: "GST_Number" },
+                            { data: "PANNo" },
+                            { data: "CINNumber" },
+                            { data: "Sap_Code" },
+                            { data: "ACTIVEFLAG", orderable: false },
+                            { data: "COMPANY_CODE", orderable: false }
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [7],
+                                render: function (data, type, full) {
+                                    var isActive = data == "Y" ? "checked" : "";
+                                    return '<label class="switch"><input type="checkbox" ' + isActive + ' class="btnToggleStatus" data-id="' + full.COMPANY_CODE + '" data-name="' + full.COMPANY_NAME + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [8],
+                                render: function (data, type, full) {
+                                    return '<button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass btnMasterEdit me-1" title="Edit" data-name="' + data + '">' +
+                                        '<i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>';
+                                }
+                            }
+                            
+                        ],
+                        createdRow: function (row, data) {
+                            $(row).find('td').addClass('text-center');
+                        }
+                    });
+                    $('#mainContainer').show(500);
+                    // Show table (if hidden) and unblock UI
+                    App.unblockUI('#' + TableName);
+                },
+                error: function () {
+                    TosterNotification("error", 'Failed to load data', "Error");
+                    App.unblockUI('#' + TableName);
+                }
+            });
+        }
+
+        return {
+            //main function to initiate the module
+            init: function (DomainName) {
+                loadDataTable(DomainName, "tblOrganization");
+
+                $(document).on('click', '#btnDownloadMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "Organization_Master", "Organization_Master_List");
+                });
+
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    e.preventDefault();
+                    var checkbox = $(this);
+                    var companyCode = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+
+                    // Revert checkbox until confirm (same UX as StateMaster)
+                    checkbox.prop('checked', !isChecked);
+
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    showConfirm({
+                        title: action + " Organization",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for organization <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActiveOrganization', { CompanyCode: companyCode }, function (res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    loadDataTable(DomainName, "tblOrganization");
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $(document).on("click", ".btnMasterEdit", function () {
+                    var companyCode = $(this).data("name");
+                    App.blockUI({ boxed: true });
+                    window.location.href = DomainName + "/Master/OrganizationMaster?CompanyCode=" + companyCode;
+                });
+
+                $(document).on("click", "#AddOrganization", function () {                   
+                    App.blockUI({ boxed: true });
+                    window.location.href = DomainName + "/Master/OrganizationMaster?CompanyCode=0";
+                });
+            }
+        };
+    }();
+</script>

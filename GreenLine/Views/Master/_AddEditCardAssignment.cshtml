@@ -1,0 +1,188 @@
+@model GreenLineDataService.ViewModel.CYGNUS_Master_Card_AssignmentViewModel
+
+@using (Html.BeginForm("AddEditCardAssignment", "Master", FormMethod.Post, new { id = "card_assignment_form", @class = "form-horizontal form-modern-ui" }))
+{
+    @Html.HiddenFor(m => m.Assignment.Id)
+
+    <!-- Section: Assignment Details -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-links-line align-middle me-1"></i> Assignment Identification
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Assign Type</label>
+                    @if (Model.Assignment.Id > 0 || (ViewBag.IsPreset != null && (bool)ViewBag.IsPreset))
+                    {
+                        @Html.DropDownListFor(m => m.Assignment.AssignType, new SelectList(ViewBag.AssignTypeList, "Value", "Text"), "", new { @class = "form-control select2 required", @placeholder = "Select Type", @disabled = "disabled" })
+                        @Html.HiddenFor(m => m.Assignment.AssignType)
+                    }
+                    else
+                    {
+                        @Html.DropDownListFor(m => m.Assignment.AssignType, new SelectList(ViewBag.AssignTypeList, "Value", "Text"), "", new { @class = "form-control select2 required", @placeholder = "Select Type" })
+                    }
+                    @Html.ValidationMessageFor(m => m.Assignment.AssignType)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Assign To</label>
+                    @if (Model.Assignment.Id > 0 || (ViewBag.IsPreset != null && (bool)ViewBag.IsPreset))
+                    {
+                        @Html.DropDownListFor(m => m.Assignment.AssignPersonId, new SelectList(ViewBag.AssignToList ?? new List<SelectListItem>(), "Value", "Text"), "", new { @class = "form-control select2 required", @placeholder = "Select Assignee", @disabled = "disabled" })
+                        @Html.HiddenFor(m => m.Assignment.AssignPersonId)
+                    }
+                    else
+                    {
+                        @Html.DropDownListFor(m => m.Assignment.AssignPersonId, new SelectList(ViewBag.AssignToList ?? new List<SelectListItem>(), "Value", "Text"), "", new { @class = "form-control select2 required", @placeholder = "Select Assignee" })
+                    }
+                    @Html.ValidationMessageFor(m => m.Assignment.AssignPersonId)
+                </div>
+            </div>
+
+            @if (Model.Assignment.Id == 0)
+            {
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">Card Type</label>
+                        @Html.DropDownListFor(m => m.Assignment.CardType, new SelectList(ViewBag.CardTypeList, "Value", "Text"), "", new { @class = "form-control select2 required", @placeholder = "Select Card Type" })
+                        @Html.ValidationMessageFor(m => m.Assignment.CardType)
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label required-label">Card Type</label>
+                        @Html.DropDownListFor(m => m.Assignment.CardType, new SelectList(ViewBag.CardTypeList, "Value", "Text"), "", new { @class = "form-control select2 required", @placeholder = "Select Card Type", disabled = "disabled" })
+                        @Html.HiddenFor(m => m.Assignment.CardType)
+                        @Html.ValidationMessageFor(m => m.Assignment.CardType)
+                    </div>
+                </div>
+            }
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Card To Assign</label>
+                    @Html.DropDownListFor(m => m.Assignment.CardNoId, new SelectList(ViewBag.CardNoList, "Value", "Text"), "", new { @class = "form-control select2 required", @placeholder = "Select Card" })
+                    @Html.ValidationMessageFor(m => m.Assignment.CardNoId)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section: Validity Period -->
+    <div class="section-box">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-calendar-event-line align-middle me-1"></i> Validity Period
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">From Date</label>
+                    <div class="input-group">
+                        @Html.TextBoxFor(m => m.Assignment.FromDate, "{0:dd MMM yyyy}", new { @class = "form-control datepicker required", id = "Assignment_FromDate", placeholder = "dd MMM yyyy" })
+                        <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Assignment.FromDate)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">To Date</label>
+                    <div class="input-group">
+                        @Html.TextBoxFor(m => m.Assignment.ToDate, "{0:dd MMM yyyy}", new { @class = "form-control datepicker", id = "Assignment_ToDate", placeholder = "dd MMM yyyy" })
+                        <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Assignment.ToDate)
+                </div>
+            </div>
+
+            @*@if (Model.Assignment.Id > 0)
+            {
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <label class="gl-switch">
+                            @Html.CheckBoxFor(m => m.Assignment.IsActive)
+                            <span class="gl-slider gl-round"></span>
+                        </label>
+                    </div>
+                </div>
+            }*@
+        </div>
+    </div>
+}
+
+<style>
+    /* Unique GL Slider Toggle Style */
+    .gl-switch {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        height: 22px;
+    }
+
+        .gl-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .gl-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #dee2e6;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+        .gl-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+    .gl-switch input:checked ~ .gl-slider {
+        background-color: #0ab39c;
+    }
+
+    .gl-switch input:focus ~ .gl-slider {
+        box-shadow: 0 0 1px #0ab39c;
+    }
+
+    .gl-switch input:checked ~ .gl-slider:before {
+        -webkit-transform: translateX(20px);
+        -ms-transform: translateX(20px);
+        transform: translateX(20px);
+    }
+
+    .gl-slider.gl-round {
+        border-radius: 34px;
+    }
+
+        .gl-slider.gl-round:before {
+            border-radius: 50%;
+        }
+
+    .section-box {
+        background: transparent;
+        padding: 0 5px;
+    }
+</style>

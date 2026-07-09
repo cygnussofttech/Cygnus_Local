@@ -1,0 +1,378 @@
+@model GreenLineDataService.ViewModel.LocationViewModel
+@{
+    ViewBag.Title = "Location Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div>
+    @{
+        Html.RenderPartial("_LocationMaster", Model);
+    }
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+            
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span', 
+                errorClass: 'help-block', 
+                focusInvalid: false, 
+                ignore: "",
+
+                rules: {
+                    // Custom rules if needed
+                },
+                messages: {
+                    // Custom messages if needed
+                },
+                invalidHandler: function (event, validator) { 
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-offscreen") || element.hasClass("select2-hidden-accessible") || element.hasClass("select2")) {
+                        var container = element.next(".select2-container");
+                        if (container.length > 0) {
+                            error.insertAfter(container);
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error'); 
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                    form.submit();
+                }
+            });
+
+            // Re-validate Select2 on change
+            $(document).on('change', '.select2', function () {
+                $(this).valid();
+            });
+        };
+
+        var Events = function (DomainName) {
+            // Pincode change resolves City and State
+            $(document).on('change', '#WL_LocPincode', function () {
+                var pincode = $(this).val();
+                if (!pincode) {
+                    var cityDDL = $("#WL_LocCity_Disabled");
+                    if (cityDDL.data('select2')) { cityDDL.select2('destroy'); }
+                    cityDDL.empty().append('<option value="">Select City</option>').select2({
+                        placeholder: "Select City",
+                        allowClear: true
+                    });
+                    $("#WL_LocCity").val('');
+
+                    var stateDDL = $("#WL_LocState_Disabled");
+                    if (stateDDL.data('select2')) { stateDDL.select2('destroy'); }
+                    stateDDL.val('').select2({
+                        placeholder: "Select State",
+                        allowClear: true
+                    });
+                    $("#WL_LocState").val('').trigger('change');
+                    return;
+                }
+                App.blockUI({ boxed: true });
+                $.ajax({
+                    url: DomainName + '/Master/Get_Country_State_City_Zone_on_Pincode?Code=' + pincode + '&Type=P',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response && response.length > 0) {
+                            var cityDDL = $("#WL_LocCity_Disabled");
+                            if (cityDDL.data('select2')) { cityDDL.select2('destroy'); }
+                            cityDDL.empty().append('<option value="">Select City</option>');
+                            $.each(response, function (index, item) {
+                                if (cityDDL.find("option[value='" + item.CityCode + "']").length === 0) {
+                                    cityDDL.append(new Option(item.CityName, item.CityCode));
+                                }
+                            });
+                            
+                            var resolvedCityCode = response[0].CityCode;
+                            cityDDL.val(resolvedCityCode);
+                            cityDDL.select2({
+                                placeholder: "Select City",
+                                allowClear: true
+                            });
+                            $("#WL_LocCity").val(resolvedCityCode);
+
+                            var stateCode = response[0].StateCode;
+                            var stateDDL = $("#WL_LocState_Disabled");
+                            if (stateDDL.data('select2')) { stateDDL.select2('destroy'); }
+                            stateDDL.val(stateCode).select2({
+                                placeholder: "Select State",
+                                allowClear: true
+                            });
+                            $("#WL_LocState").val(stateCode).trigger('change');
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        TosterNotification("error", 'Failed to resolve details for selected pincode.', "Oops..!!");
+                        App.unblockUI();
+                    }
+                });
+            });
+
+            // State change resolves Zone
+            $(document).on('change', '#WL_LocState', function () {
+                var stateCode = $(this).val();
+                if (!stateCode) {
+                    var zoneDDL = $("#WL_LocRegion_Disabled");
+                    if (zoneDDL.data('select2')) { zoneDDL.select2('destroy'); }
+                    zoneDDL.val('').select2({
+                        placeholder: "Select Zone"
+                    });
+                    $("#WL_LocRegion").val('');
+                    return;
+                }
+                $.getJSON(DomainName + '/Master/GetZoneByStateJson/' + stateCode, function (zoneCode) {
+                    var zoneDDL = $("#WL_LocRegion_Disabled");
+                    if (zoneDDL.data('select2')) { zoneDDL.select2('destroy'); }
+                    if (zoneCode) {
+                        zoneDDL.val(zoneCode).select2({
+                            placeholder: "Select Zone"
+                        });
+                        $("#WL_LocRegion").val(zoneCode);
+                    } else {
+                        zoneDDL.val('').select2({
+                            placeholder: "Select Zone"
+                        });
+                        $("#WL_LocRegion").val('');
+                    }
+                });
+            });
+
+            $(document).on('change', '#WL_Loc_Level', function () {
+                $('#WL_Report_Level').prop('disabled', false);
+                var levelVal = $(this).val();
+                if (levelVal === "0" || levelVal === "3") {
+                    $("#WL_Report_Level").select2("val", "3").trigger('change');
+                } else if (levelVal === "1") {
+                   $("#WL_Report_Level").select2("val", "1").trigger('change');
+                } else {
+                    $("#WL_Report_Level").select2("val", "1").trigger('change');
+                }
+            });
+
+            $(document).on('change', '#WL_Report_Level', function () {
+                var level = $(this).val();
+                if (!level) return;
+                var strUrl = DomainName + '/Master/GetReportingLocationByReportingTo/' + level;
+                App.blockUI();
+                FillDropDownfromOther('WL_Report_Loc', strUrl, '');
+            });
+
+            $(document).on('change', '#WL_LocCode', function () {
+                var val = $(this).val();
+                if (!val) return false;
+
+                var strUrl = DomainName + '/Master/CheckDuplicateLocation/' + val;
+                App.blockUI({ boxed: true });
+                $.ajax({
+                    url: strUrl,
+                    type: 'GET',
+                    success: function (data) {
+                        if (data === 'False') {
+                            $('#WL_LocCode').val('').focus();
+                            TosterNotification("error", 'Location Code already exists.', "Oops..!!");
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        $('#WL_LocCode').val('');
+                        TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                        App.unblockUI();
+                    }
+                });
+            });
+
+            if ($.isFunction($.fn.timepicker)) {
+                $('.timepicker-24').timepicker({
+                    autoclose: true,
+                    maxHours: 24,
+                    minuteStep: 2,
+                    showSeconds: true,
+                    showMeridian: false,
+                    defaultTime: '00:00:00'
+                });
+            }
+
+            $(document).on('change', '#Computerised', function () {
+                $('#WL_Computerised').val($(this).is(':checked') ? 'Y' : 'N');
+            });
+
+            $(document).on('change', '#ActiveFlag', function () {
+                $('#WL_ActiveFlag').val($(this).is(':checked') ? 'Y' : 'N');
+            });
+
+            $(document).on('click', '#btnSubmit', function (e) {
+                e.preventDefault();
+                var $form = $('#form_sample');
+                if (!$form.valid()) return false;
+
+                App.blockUI({ boxed: true });
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: 'POST',
+                    data: $form.serialize(),
+                    success: function (result) {
+                        if (result) {
+                            TosterNotification("success", "Record updated successfully.", "Success");
+                            setTimeout(function () {
+                                window.location = DomainName + "/Master/LocationList";
+                            }, 1500);
+                        } else {
+                            TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                            App.unblockUI();
+                        }
+                    },
+                    error: function () {
+                        TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                        App.unblockUI();
+                    }
+                });
+            });
+        };
+
+        var custchange = function (DomainName) {
+            $(document).on('change', '#WL_OutSource_Own', function () {
+                if ($(this).val() === "O") {
+                    $("#customer, #LocationType").show();
+                } else {
+                    $("#customer").hide();
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                if (typeof handleDatePicker === "function") handleDatePicker();
+                Events(DomainName);
+                custchange(DomainName);
+                
+                $("#customer").hide();
+                $("#WL_Octroi_IO").removeClass('required');
+
+                if ($("#WL_Cust_Code").val() !== '' && $("#WL_OutSource_Own").val() === 'O') {
+                    $("#customer").show();
+                }
+
+                DefaultBrType('@Model.WL.OutSource_Own');
+                
+                $(document).on('change', '#WL_Loc_Level', function () {
+                    DefaultBrType($("#WL_OutSource_Own").val());
+                });
+
+                function DefaultBrType(TYP) {
+                    var locLevel = $('#WL_Loc_Level').val();
+                    var outSource = $("#WL_OutSource_Own");
+
+                    if (locLevel === '0') {
+                        setTimeout(function () {
+                            outSource.select2("data", { id: "O", text: "Customer" });
+                        }, 500);
+                        outSource.empty().append(new Option("Customer", "O"));
+                        outSource.find("option[value='V'], option[value='B'], option[value='F']").remove();
+                        $("#customer, #LocationType").show();
+                        DefaultSubType('O');
+                        $("#WL_Cust_Code").addClass('required');
+                    }
+                    else if (locLevel === '4') {
+                        setTimeout(function () {
+                            var text = (TYP === "B") ? "BA" : (TYP === "F") ? "Franchise" : "Vendor";
+                            outSource.select2("data", { id: TYP || "V", text: text });
+                            DefaultSubType(TYP || "V");
+                        }, 1000);
+
+                        $("#customer").show();
+                        $("#LocationType").hide();
+                        outSource.empty().append(new Option("Vendor", "V")).append(new Option("BA", "B")).append(new Option("Franchise", "F"));
+                        outSource.find("option[value='O']").remove();
+                        $("#WL_Cust_Code").addClass('required');
+                    }
+                    else if (locLevel === '1' || locLevel === '5') {
+                        setTimeout(function () {
+                            outSource.empty();
+                            if (locLevel === '1') {
+                                outSource.select2("data", { id: "c", text: "Company" });
+                            }
+                            outSource.append(new Option("Company", "c")).append(new Option("BA", "B")).append(new Option("Customer", "O")).append(new Option("Vendor", "V")).append(new Option("Franchise", "F"));
+                        }, 1000);
+                        $("#customer, #LocationType").hide();
+                    }
+                    else {
+                        $("#customer, #LocationType").hide();
+                        outSource.select2({ val: "" });
+                        $("#WL_Cust_Code").removeClass('required');
+                    }
+                }
+
+                function FillDropDownfromOtherLoc(DDLName, StrURL, DllType, DefaultValue) {
+                    var select = $("#" + DDLName);
+                    select.empty().append(new Option("Loading names...", "-1"));
+                    $.getJSON(StrURL, function (data) {
+                        select.empty().append('<option value="">Select ' + (DllType || 'Option') + '</option>');
+                        $.each(data, function (index, item) {
+                            select.append(new Option(item.id + ':' + item.text, item.id));
+                            if (DefaultValue == item.id) {
+                                select.select2("data", { id: item.id, text: item.text });
+                            }
+                        });
+                        App.unblockUI();
+                        if (data.length > 0) {
+                            select.select2({ placeholderOption: 'first' });
+                        }
+                    }).always(function() {
+                        select.trigger("liszt:updated");
+                    });
+                }
+
+                DefaultSubType('@Model.WL.OutSource_Own', '@Model.WL.Cust_Code');
+                
+                function DefaultSubType(TYP, custVal) {
+                    var searchType = "";
+                    if (TYP === "O") searchType = "C";
+                    else if (TYP === "B") searchType = "BAVendor";
+                    else if (TYP === "F") searchType = "FraVendor";
+                    else if (TYP === "V") searchType = "V";
+
+                    if (searchType) {
+                        var StrURL1 = DomainName + "/Reports/GetEmployeeUserDriverVehicleList?SearchType=" + searchType;
+                        $("#customer").show();
+                        FillDropDownfromOtherLoc("WL_Cust_Code", StrURL1, "", custVal);
+                    } else {
+                        $("#customer, #LocationType").hide();
+                    }
+                }
+
+                $(document).on('change', '#WL_OutSource_Own', function () {
+                    DefaultSubType($(this).val());
+                });
+            }
+        };
+    }();
+</script>

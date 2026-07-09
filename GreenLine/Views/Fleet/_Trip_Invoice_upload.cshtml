@@ -1,0 +1,1704 @@
+@model GreenLineDataService.Models.CYGNUS_LR_ENTRY
+@using GreenLineDataService.Models
+@{
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+    GreenLineDataService.Helper.Interface.IFleetServices _FS = new GreenLineDataService.Helper.FleetServices();
+    GreenLineDataService.Helper.Interface.IContractService _CS = new GreenLineDataService.Helper.ContractService();
+    List<GreenLineDataService.Models.CYGNUS_Master_General> Listproduct = _masterService.GetGeneralMasterWithParam("PROD");
+    List<GreenLineDataService.Models.CYGNUS_Master_General> Listratetype = _masterService.GetGeneralMasterWithParam("RATETYP");
+    List<GreenLineDataService.Models.CYGNUS_Master_General> UOMList = _masterService.GetGeneralMasterWithParam("UOM").ToList();
+    List<System.Web.Mvc.SelectListItem> BlankList = new List<System.Web.Mvc.SelectListItem>();
+    List<Cygnus_Consignee_Master> ConsigneeList = _masterService.GetConsigneeDetails(null).OrderBy(c => c.Consignee_Name).ToList();
+}
+
+<style>
+    #Consignee_Name.disabled-field + .select2-container {
+        pointer-events: none !important;
+    }
+</style>
+
+@using (Html.BeginForm("SubmitLREntry", "Fleet", FormMethod.Post, new { id = "lrEntryForm", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.PRNo)
+    @Html.HiddenFor(m => m.VehicleNo)
+    @Html.HiddenFor(m => m.TripNo)
+    @Html.HiddenFor(m => m.EventId)
+    @Html.HiddenFor(m => m.consignor_name)
+    @Html.HiddenFor(m => m.consignor_address)
+    @Html.HiddenFor(m => m.consignor_State)
+    @*@Html.HiddenFor(m => m.Consignee_Name)*@
+    @Html.HiddenFor(m => m.Consignee_Code)
+    @Html.HiddenFor(m => m.Consignee_PANNo)
+    @Html.HiddenFor(m => m.Consignee_Address)
+    @Html.HiddenFor(m => m.consignee_city)
+    @Html.HiddenFor(m => m.consignee_pincode)
+    @*@Html.HiddenFor(m => m.ship_to_address)*@
+    @*@Html.HiddenFor(m => m.ship_to_city)*@
+    @*@Html.HiddenFor(m => m.ship_to_pincode)*@
+    @*@Html.HiddenFor(m => m.ship_to_gst)*@
+    @Html.HiddenFor(m => m.userGstin)
+    @Html.HiddenFor(m => m.Consignee_GST)/*gstin_of_consignee*/
+    @Html.HiddenFor(m => m.so_number)
+    @Html.HiddenFor(m => m.do_number)
+    @Html.HiddenFor(m => m.Customer_Code)
+    @Html.HiddenFor(m => m.Contract_Id)
+    @Html.HiddenFor(m => m.Organization)
+    @Html.HiddenFor(m => m.From_Lane_id)
+    @Html.HiddenFor(m => m.CustomerGST)
+    @Html.HiddenFor(m => m.Total)
+    @Html.HiddenFor(m => m.Sub_Total)
+    @Html.HiddenFor(m => m.detected_document_type)
+    @Html.HiddenFor(m => m.wrong_document)
+    @Html.HiddenFor(m => m.is_blurry)
+    @Html.HiddenFor(m => m.ship_to_state_code)
+    @Html.HiddenFor(m => m.transporter_name)
+    @Html.HiddenFor(m => m.vehicle_number)
+    @Html.HiddenFor(m => m.lr_no)
+    @Html.HiddenFor(m => m.lr_date)
+    @Html.HiddenFor(m => m.delivery_no)
+    @Html.HiddenFor(m => m.di_no)
+    @Html.HiddenFor(m => m.shipment_no)
+    @Html.HiddenFor(m => m.delivery_date)
+    @Html.HiddenFor(m => m.odn_no)
+    @Html.HiddenFor(m => m.odn_date)
+    @Html.HiddenFor(m => m.obd_no)
+    @Html.HiddenFor(m => m.obd_date)
+    @Html.HiddenFor(m => m.eta_date)
+    @Html.HiddenFor(m => m.pieces_count)
+    @Html.HiddenFor(m => m.flipkart_order_id)
+    @Html.HiddenFor(m => m.tata_document_type)
+    @Html.HiddenFor(m => m.noValidDays)
+    @Html.HiddenFor(m => m.actualDist)
+    @Html.HiddenFor(m => m.EwayBillJson)
+    @Html.HiddenFor(m => m.pieces_count)
+    @Html.HiddenFor(m => m.Rate)
+    @Html.HiddenFor(m => m.totInvValue)
+    @Html.HiddenFor(m => m.totalValue)
+    @Html.Hidden("RequestType")
+
+    <!-- Compliance Trigger -->
+    @*<div class="d-flex align-items-center bg-soft-success rounded p-2 mb-3 mt-2  card-header  border-bottom-dashed">
+            <h6 class="fw-bold mb-0 fs-13"><i class="ri-file-text-line me-2 align-middle fs-16"></i> Compliance & Invoice Upload</h6>
+        </div>*@
+    <div class="row g-3">
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">EWayBill No</label>
+                @Html.TextBoxFor(m => m.eway_bill_no, new { @class = "form-control required", @placeholder = "Enter EWayBill", @maxlength = 12 })
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="form-group">
+                <label class="form-label">Invoice Upload (Image/PDF)</label>
+                <div class="input-group">
+                    <input type="file" id="UploadFile" name="UploadFile" class="form-control" accept="image/*,application/pdf" />
+                    <button type="button" id="btnScanInvoice" class="btn btn-primary"><i class="ri-qr-scan-line me-1"></i> Scan</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="form-group">
+            </div>
+        </div>
+    </div>
+
+    <div class="clshide" style="display:none">
+        <div class="d-flex align-items-center bg-soft-success rounded p-2 mb-3 mt-2  card-header  border-bottom-dashed">
+            <h6 class="fw-bold mb-0 fs-13"><i class="ri-file-text-line me-2 align-middle fs-16"></i>Consignment Details</h6>
+        </div>
+    </div>
+    <div class="row g-3 clshide" style="display:none">
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">EWayBill Date</label>
+                @Html.TextBoxFor(m => m.eway_bill_date, new { @class = "form-control date-picker required", @placeholder = "Enter EWayBillDate" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">EWayBill Validity</label>
+                @Html.TextBoxFor(m => m.eway_bill_validity, new { @class = "form-control date-picker required", @placeholder = "Enter EWayBillValidity" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Invoice No</label>
+                @Html.TextBoxFor(m => m.invoice_no, new { @class = "form-control required", @placeholder = "Enter InvoiceNo" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Invoice Date</label>
+                @Html.TextBoxFor(m => m.invoice_date, new { @class = "form-control date-picker required", @placeholder = "Enter InvoiceDate" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Ship To</label>
+                <select name="Consignee_Name" id="Consignee_Name" class="form-control select2 required" placeholder="Select Ship To">
+                    <option value=""></option>
+                    @foreach (var ccm in ConsigneeList)
+                    {
+                        <option value="@ccm.Consignee_Name"
+                                data-gst="@ccm.Consignee_GST"
+                                data-address="@ccm.Consignee_Address"
+                                data-city="@ccm.Consignee_City_Name"
+                                data-pincode="@ccm.Consignee_Pincode"
+                                data-pan="@ccm.Consignee_PANNo"
+                                data-code="@ccm.Consignee_Code"
+                                @(Model.Consignee_Name == ccm.Consignee_Name ? "selected=\"selected\"" : "")>
+                            @ccm.Consignee_Name @(string.IsNullOrEmpty(ccm.Consignee_Code) ? "" : $"({ccm.Consignee_Code})")
+                        </option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">To Lane</label>
+                @Html.DropDownListFor(m => m.To_Lane_id, new SelectList(BlankList, "Value", "Text", Model.To_Lane_id), "", new { @class = "form-control select2", @placeholder = "Select To Lane" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Rate Type</label>
+                @*@Html.DropDownListFor(c => c.Rate_Type, new SelectList(Listratetype, "CodeId", "CodeDesc", Model.Content), "", new { @class = "form-control select2 required", @placeholder = "Select Rate Type" })*@
+                @Html.DropDownListFor(m => m.Rate_Type, new SelectList(BlankList, "Value", "Text", Model.Rate_Type), "", new { @class = "form-control select2", @placeholder = "Select Rate Type" })
+
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Product</label>
+                @Html.DropDownListFor(c => c.Content, new SelectList(BlankList, "Value", "Text", Model.Content), "", new { @class = "form-control select2 required", @placeholder = "Select Product" })
+            </div>
+        </div>
+
+        @*<div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Packaging Material</label>
+                @Html.DropDownListFor(c => c.Material, new SelectList(ListpackegType, "CodeId", "CodeDesc", Model.Material), "", new { @class = "form-control select2 required", @placeholder = "Select Material" })
+            </div>
+        </div>*@
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">UOM</label>
+                @Html.DropDownListFor(c => c.UOM, new SelectList(BlankList, "Value", "Text", Model.UOM), "", new { @class = "form-control select2 required", @placeholder = "Select UOM" })
+            </div>
+        </div>
+
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Gross Weight</label>
+                @Html.TextBoxFor(m => m.gross_weight, new { @class = "form-control required", @placeholder = "Enter GrossWeight", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Net Weight</label>
+                @Html.TextBoxFor(m => m.net_weight, new { @class = "form-control required", @placeholder = "Enter NetWeight", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Customer LR No</label>
+                @Html.TextBoxFor(m => m.CustLRNo, new { @class = "form-control required", @placeholder = "Enter Customer LRNo" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Reference No</label>
+                @Html.TextBoxFor(m => m.reference_no, new { @class = "form-control required", @placeholder = "Enter ReferenceNo" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Freight</label>
+                @Html.TextBoxFor(m => m.Freight, new { @class = "form-control required bg-light ", @placeholder = "Enter Freight", @readonly = true })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label">Pieces</label>
+                @Html.TextBoxFor(m => m.pieces_count, new { @class = "form-control", @placeholder = "Enter Pieces", @Value = "1", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+            </div> 
+        </div>
+
+        @*<div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Total</label>
+                @Html.TextBoxFor(m => m.Total, new { @class = "form-control required", @placeholder = "Enter Total" })
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label required-label">Sub Total</label>
+                @Html.TextBoxFor(m => m.Sub_Total, new { @class = "form-control required", @placeholder = "Enter Sub Total" })
+            </div>
+        </div>*@
+
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label">LR Upload (Image/PDF)</label>
+                <input type="file" id="LRUpload" name="LRUpload" class="form-control" accept="image/*,application/pdf" />
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="form-group">
+                <label class="form-label">Other Document (Image/PDF)</label>
+                <input type="file" id="Other_Doc" name="Other_Doc" class="form-control" accept="image/*,application/pdf" />
+            </div>
+        </div>
+    </div>
+    <div class="clshide" style="display:none">
+        <div class="d-flex align-items-center bg-soft-success rounded p-2 mb-3 mt-2  card-header  border-bottom-dashed">
+            <h6 class="fw-bold mb-0 fs-13"><i class="ri-file-text-line me-2 align-middle fs-16"></i> User Defined Fields </h6>
+        </div>
+    </div>
+    <!-- Dynamic Additional Fields -->
+    <div id="dynamicAdditionalFieldsContainer" class="row g-3 mb-3 mt-2 clshide" style="display:none"></div>
+
+    <div class="clshide" style="display:none">
+        <div class="d-flex align-items-center bg-soft-success rounded p-2 mb-3 mt-2  card-header  border-bottom-dashed">
+            <h6 class="fw-bold mb-0 fs-13"><i class="ri-file-text-line me-2 align-middle fs-16"></i> Charges </h6>
+        </div>
+    </div>
+    <!-- Dynamic Charges Container -->
+    <div id="dynamicChargesContainer" class="row g-3 mb-3 mt-2 clshide" style="display:none"></div>
+    <!-- Submit -->
+    <div class="form-actions clshide" style="display:none">
+        <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass" id="btnCancelLR">
+            <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i>@ViewBag.UI.Buttons.Cancel.Label
+        </button>
+        <button type="button" id="btnSaveLR" class="@ViewBag.UI.Buttons.Submit.CssClass">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>@ViewBag.UI.Buttons.Submit.Label
+        </button>
+    </div>
+}
+
+<script>
+    function initInvoiceUploadTab() {
+        var isScanned = false;
+        var initialEwayBill = ($('#eway_bill_no').val() || '').trim().toLowerCase();
+        var isEwbDataFetched = (/^\d{12}$/.test(initialEwayBill));
+        var lastProcessedEwayBill = initialEwayBill;
+
+        function parseCustomDate(dateStr) {
+            if (!dateStr) return null;
+            dateStr = dateStr.trim();
+            if (dateStr === "NA" || dateStr === "na") return null;
+
+            var d = new Date(dateStr);
+            if (!isNaN(d.getTime())) {
+                return d;
+            }
+
+            var parts = dateStr.split(/[\s\-\/]+/);
+            if (parts.length >= 3) {
+                var day = parseInt(parts[0], 10);
+                var year = parseInt(parts[2], 10);
+                var monthStr = parts[1];
+                
+                var month = -1;
+                var months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                var monthIdx = months.indexOf(monthStr.toLowerCase());
+                if (monthIdx !== -1) {
+                    month = monthIdx;
+                } else {
+                    var mNum = parseInt(monthStr, 10);
+                    if (!isNaN(mNum) && mNum >= 1 && mNum <= 12) {
+                        month = mNum - 1;
+                    }
+                }
+
+                if (day > 0 && month >= 0 && year > 0) {
+                    if (year < 100) year += 2000;
+                    return new Date(year, month, day);
+                }
+            }
+            return null;
+        }
+
+        function checkEwayBillValidity(validityDateStr) {
+            if (!validityDateStr || validityDateStr === "NA" || validityDateStr === "na") return true;
+            
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            var validityDate = parseCustomDate(validityDateStr);
+            if (validityDate) {
+                validityDate.setHours(0, 0, 0, 0);
+                if (validityDate < today) {
+                    clearEWBData();
+                    TosterNotification("error", "E-Way Bill has expired.", "Expired");
+                    $("#eway_bill_no").val("");
+                    toggleClsHide();
+                    return false;
+                }
+            }
+            return true;
+        }
+        window.checkEwayBillValidity = checkEwayBillValidity;
+
+        function toggleClsHide() {
+            var ewayBillVal = ($('#eway_bill_no').val() || '').trim().toLowerCase();
+            var isEwayBillValid = (/^\d{12}$/.test(ewayBillVal) && isEwbDataFetched);
+            var fileInput = document.getElementById('UploadFile');
+            var fileUploaded = fileInput && fileInput.files && fileInput.files.length > 0;
+            if (isEwayBillValid || (fileUploaded && isScanned)) {
+                $('.clshide').show();
+            } else {
+                $('.clshide').hide();
+            }
+        }
+        $(document).on('input change', '#eway_bill_no', function () {
+            var ewayBillNo = ($(this).val() || '').trim();
+            var ewayBillVal = ewayBillNo.toLowerCase();
+
+            if (ewayBillVal === lastProcessedEwayBill) {
+                return;
+            }
+            lastProcessedEwayBill = ewayBillVal;
+
+            if (ewayBillVal === "na") {
+                $("#eway_bill_no").val(ewayBillNo).prop('disabled', true).addClass('bg-light');
+                $("#eway_bill_date").val('NA').prop('disabled', true).addClass('bg-light');
+                $("#eway_bill_validity").val('NA').prop('disabled', true).addClass('bg-light');
+                isEwbDataFetched = false;
+                clearEWBData();
+                $(".clshide").hide();
+            } else if (/^\d{12}$/.test(ewayBillVal)) {
+                isEwbDataFetched = false;
+                clearEWBData();
+                fetchEWBData(ewayBillNo);
+            } else {
+                isEwbDataFetched = false;
+                clearEWBData();
+            }
+        });
+        $('#lrEntryForm').on('change', '#UploadFile', function () {
+            isScanned = false;
+            toggleClsHide();
+            var file = this.files[0];
+            if (file) {
+                validateImageFile(file, this);
+            }
+        });
+        $(document).on('change changeDate', '#eway_bill_validity', function () {
+            var val = $(this).val();
+            if (val) {
+                checkEwayBillValidity(val);
+            }
+        });
+        setTimeout(toggleClsHide, 100);
+
+        // Clear default C# DateTime values (0001-01-01 or 1900) on load so inputs show clean placeholders
+        // Clear 'NA' dates ONLY if the eway_bill_no is NOT 'na'
+        var ewayBillVal = ($('#eway_bill_no').val() || '').trim().toLowerCase();
+        $('input.date-picker').each(function () {
+            var val = $(this).val();
+            if (val) {
+                if (val.indexOf('0001') > -1 || val.indexOf('1900') > -1) {
+                    $(this).val('');
+                } else if (val.toLowerCase() === 'na' && ewayBillVal !== 'na') {
+                    $(this).val('');
+                }
+            }
+        });
+
+        // If eway_bill_no is 'na', ensure date fields are 'NA' and styled correctly
+        if (ewayBillVal === 'na') {
+            $('#eway_bill_date').val('NA').prop('disabled', true).addClass('bg-light');
+            $('#eway_bill_validity').val('NA').prop('disabled', true).addClass('bg-light');
+            $('#eway_bill_no').prop('disabled', true).addClass('bg-light');
+        }
+
+        // Make Ship To (Consignee_Name) read-only on page load by disabling it
+        $('#Consignee_Name').addClass('disabled-field').prop('disabled', true);
+
+        // Check validity of initial date on load
+        var validityVal = $('#eway_bill_validity').val();
+        if (validityVal) {
+            checkEwayBillValidity(validityVal);
+        }
+
+        // Handle selection change on Ship To dropdown to populate hidden fields
+        $(document).on('change', '#Consignee_Name', function () {
+            var $opt = $(this).find('option:selected');
+            if ($opt.length && $opt.val() !== "") {
+                $('#Consignee_GST').val($opt.attr('data-gst') || "");
+                $('#Consignee_PANNo').val($opt.attr('data-pan') || "");
+                $('#Consignee_Address').val($opt.attr('data-address') || "");
+                $('#consignee_city').val($opt.attr('data-city') || "");
+                $('#consignee_pincode').val($opt.attr('data-pincode') || "");
+                $('#Consignee_Code').val($opt.attr('data-code') || "");
+            } else {
+                $('#Consignee_GST').val("");
+                $('#Consignee_PANNo').val("");
+                $('#Consignee_Address').val("");
+                $('#consignee_city').val("");
+                $('#consignee_pincode').val("");
+                $('#Consignee_Code').val("");
+            }
+        });
+
+        // Trigger change on load if a value is selected to ensure synchronization
+        if ($('#Consignee_Name').val()) {
+            $('#Consignee_Name').trigger('change');
+        }
+
+        // E-Way Bill auto-fetch is handled by input/change event listener above
+
+        function clearEWBData() {
+            $('#invoice_no').val('');
+            $('#invoice_date').val('');
+            $('#userGstin').val('');
+            $('#consignor_name').val('');
+            $('#consignor_address').val('');
+            $('#consignor_State').val('');
+            //$('#eway_bill_date').val('');
+
+            $('#Consignee_Name').prop('disabled', false).val('').trigger('change').prop('disabled', true);
+
+            $('#consignee_city').val('');
+            $('#consignee_pincode').val('');
+            $('#Consignee_GST').val('');
+            $('#Consignee_Address').val('');
+            $('#Consignee_PANNo').val('');
+            $('#Consignee_Code').val('');
+
+            $('#net_weight').val('');
+            $('#actualDist').val('');
+            $('#noValidDays').val('');
+            $('#EwayBillJson').val('');
+
+            //$('#eway_bill_no').val('');
+            //$('#eway_bill_validity').val('');
+            //$('#eway_bill_date').val('');
+
+            isScanned = false;
+            isEwbDataFetched = false;
+            _ewbConsigneeData = {};
+            toggleClsHide();
+        }
+
+        $('#btnScanInvoice').on('click', function () {
+            var fileInput = document.getElementById('UploadFile');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                isScanned = true;
+                // Immediately show the form details container on Scan click
+                $('.clshide').show();
+
+                var formData = new FormData();
+                formData.append("UploadFile", fileInput.files[0]);
+
+                // Use Project's Custom Loader
+                App.blockUI({ target: 'body', boxed: true, message: 'Scanning Invoice...' });
+
+                $.ajax({
+                    url: '@Url.Action("ProcessInvoiceOCR", "Fleet")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: { "X-Skip-ContentType-Override": "true" },
+                    success: function (res) {
+                        App.unblockUI();
+                        if (res.success) {
+                            var d = res.data;
+                            var isValid = fillMissingFieldsFromOCR(d);
+                            if (isValid !== false) {
+                                ConsigneeValidation();
+                                TosterNotification("success", "Invoice Scanned Successfully!", "Success");
+                            }
+                        } else {
+                            TosterNotification("error", res.message, "Error");
+                        }
+                        toggleClsHide();
+                    },
+                    error: function () {
+                        App.unblockUI();
+                        TosterNotification("error", "Failed to connect to the server", "Error");
+                    }
+                });
+            } else {
+                $('#UploadFile').trigger('click');
+            }
+        });
+
+        $('#btnSaveLR').on('click', function (e) {
+            //// Clear NA sentinels so disabled fields are submitted properly
+            //['#eway_bill_no', '#eway_bill_date', '#eway_bill_validity'].forEach(function (id) {
+            //    if ($(id).val() === 'NA') $(id).val('');
+            //    $(id).prop('disabled', false);
+            //});
+            //if ($('#lrEntryForm').valid()) {
+            //    App.blockUI({ boxed: true, message: 'Saving LR Entry...' });
+            //    $('#lrEntryForm').submit();
+            //}
+            //if ($("#eway_bill_date").val() === 'NA') {
+            //    $("#eway_bill_date").val('');
+            //}
+            //if ($("#eway_bill_validity").val() === 'NA') {
+            //    $("#eway_bill_validity").val('');
+            //}
+            $("#eway_bill_no, #eway_bill_date, #eway_bill_validity, #Consignee_Name").prop('disabled', false);
+
+            App.blockUI({ boxed: true });
+            if (!$('#lrEntryForm').valid()) {
+                App.unblockUI();
+                $("#Consignee_Name").prop('disabled', true);
+                //handleInvoiceAndEWayBillToggle();
+                return false;
+            }
+            ////var id = 7;
+            var id = $("#EventId").val();
+            var prno = $("#PRNo").val();
+            var VehicleNo = $("#VehicleNo").val();
+            var TripNo = $("#TripNo").val();
+            //console.log(id, prno, VehicleNo, TripNo);
+            //$.post(DomainName + '/Fleet/UpdateEventStatus', {
+            //    prno: prno,
+            //    VehicleNo: VehicleNo,
+            //    eventId: id,
+            //    TripNo: TripNo
+            //}, function (res) {
+            //    App.unblockUI();
+            //    if (res) {
+            //        GLModal.showSuccess("Status updated successfully!");
+            //        window.location.reload();
+            //    } else {
+            //        GLModal.showError("Failed to update status.");
+            //    }
+            //});
+
+            document.forms["lrEntryForm"].submit();
+        });
+
+        $('#btnCancelLR').on('click', function () {
+            $('#btnCloseLREntry').trigger('click');
+        });
+        $("#To_Lane_id").on('change', function (e) {
+            var To_Lane_id = $(this).val();
+            var Parameters = {
+                "Contract_Id": $("#Contract_Id").val(),
+                "From_Lane_id": $("#From_Lane_id").val(),
+                "To_Lane_id": To_Lane_id,
+            }
+            if ($("#Contract_Id").val() != "") {
+                FillDropDownfromOtherWithJson("USP_GetRateTypeFor_LR", Parameters, "Rate_Type", "RateType", false, 0, true);
+                var nonEmtpyOptionsToLane = $("#Rate_Type option[value!='']");
+                if (nonEmtpyOptionsToLane.length === 1) {
+                    var firstOpt = nonEmtpyOptionsToLane.val();
+                    $("#Rate_Type").select2("val", firstOpt);
+                    $("#Rate_Type").val(firstOpt).trigger("change");
+                    $("#Rate_Type").valid();
+
+                } else {
+                    $("#Rate_Type").select2("val", "");
+                    $("#Rate_Type").val("").trigger("change");
+                }
+            }
+            else {
+                var PRNo = $("#PRNo").val();
+                var From_Lane_id = $("#From_Lane_id").val();
+                var To_Lane_id = $("#To_Lane_id").val();
+
+                var Para = {
+                    "PRNo": PRNo,
+                    "From_Lane_id": From_Lane_id,
+                    "To_Lane_id": To_Lane_id
+                }
+                $.ajax({
+                    url: DomainName + '/Account/GetDataWithoutAlias',
+                    type: 'POST',
+                    dataType: 'json',
+                    async: false,
+                    data: {
+                        Method: 'USP_SpotPRGetRateTypeFor_LR',
+                        parameters: Para
+                    },
+                    success: function (data) {
+                        //console.log(data);
+                        if (data && data.length > 0) {
+                            var rateTypeVal = data[0].RateType;
+                            var rateTypeDesc = data[0].RateDesc;
+                            if ($("#Rate_Type").find("option[value='" + rateTypeVal + "']").length === 0) {
+                                $("#Rate_Type").append(new Option(rateTypeDesc, rateTypeVal, true, true));
+                            }
+                            $("#Rate_Type").val(rateTypeVal).trigger('change');
+
+                            var materialVal = data[0].Material;
+                            var materialDesc = data[0].MaterialDesc;
+                            if ($("#Content").find("option[value='" + materialVal + "']").length === 0) {
+                                $("#Content").append(new Option(materialDesc, materialVal, true, true));
+                            }
+                            $("#Content").val(materialVal).trigger('change');
+
+                            $("#gross_weight").val(data[0].Weight);
+                            $("#Freight").val(data[0].Freight);
+                            $("#Total").val(data[0].Freight);
+                            $("#Sub_Total").val(data[0].Freight);
+                            $("#Rate").val(data[0].Rate);
+                        }
+                    }
+                });
+                $.ajax({
+                    url: DomainName + '/Account/GetDataWithoutAlias',
+                    type: 'GET',
+                    dataType: 'json',
+                    async: false,
+                    data: {
+                            Method: 'USP_GeneralMasterWithParam_List',
+                            parameters: { Codetype: "UOM"}
+                        },
+                    success: function (data) {
+                            //console.log(data);
+                            //$("#UOM").select2("data", { id: data[0].CodeId, text: data[0].CodeDesc });
+                            var UOM = $('#UOM');
+                            UOM.empty().append(new Option('', '', true, true));
+                            $.each(data, function (i, row) {
+                                UOM.append(new Option(row.CodeDesc, row.CodeId, false, false));
+                            });
+                        }
+                    });
+
+            }
+            fetchStandardChargeRates();
+        });
+
+
+        $("#Rate_Type").on('change', function (e) {
+            if ($("#RequestType").val() == "E") {
+                var Rate_Type = $(this).val();
+                var Parameters = {
+                    "Contract_Id": $("#Contract_Id").val(),
+                    "From_Lane_id": $("#From_Lane_id").val(),
+                    "To_Lane_id": $("#To_Lane_id").val(),
+                    "Rate_Type": Rate_Type
+                }
+
+                FillDropDownfromOtherWithJson("USP_GetProductonRateTypeFor_LR", Parameters, "Content", "Content", false, 0, true);
+                var nonEmtpyOptionsToLane = $("#Content option[value!='']");
+                if (nonEmtpyOptionsToLane.length === 1) {
+                    var firstOpt = nonEmtpyOptionsToLane.val();
+                    $("#Content").select2("val", firstOpt);
+                    $("#Content").val(firstOpt).trigger("change");
+                    $("#Content").valid();
+                } else {
+                    $("#Content").select2("val", "");
+                    $("#Content").val("").trigger("change");
+                }
+                //$("#gross_weight").trigger('change');
+                //$("#Content").trigger('change');
+            }
+            fetchStandardChargeRates();
+        });
+
+        $("#Content").on('change', function (e) {
+            if ($("#RequestType").val() == "E") {
+                var Content = $(this).val();
+                var Parameters = {
+                    "Contract_Id": $("#Contract_Id").val(),
+                    "From_Lane_id": $("#From_Lane_id").val(),
+                    "To_Lane_id": $("#To_Lane_id").val(),
+                    "Rate_Type": $("#Rate_Type").val(),
+                    "ProductGroup": Content
+                }
+
+                FillDropDownfromOtherWithJson("USP_GetUOM_OnProductFor_LR", Parameters, "UOM", "UOM", false, 0, true);
+                var nonEmtpyOptionsToLane = $("#UOM option[value!='']");
+                if (nonEmtpyOptionsToLane.length === 1) {
+                    var firstOpt = nonEmtpyOptionsToLane.val();
+                    $("#UOM").select2("val", firstOpt);
+                    $("#UOM").val(firstOpt).trigger("change");
+                    $("#UOM").valid();
+                } else {
+                    $("#UOM").select2("val", "");
+                    $("#UOM").val("").trigger("change");
+                }
+                //$("#Rate_Type").trigger('change');
+                // $("#UOM").trigger('change');
+            }
+        });
+
+        $("#UOM").on('change', function (e) {
+            if ($("#RequestType").val() == "E") {
+                setTimeout(function () {
+                    GetContractOnGrossWeight(DomainName);
+                });
+            }
+        });
+
+        $("#gross_weight").on('change', function (e) {
+            if ($("#RequestType").val() == "E") {
+                setTimeout(function () {
+                    GetContractOnGrossWeight(DomainName);
+                });
+            }
+        });
+
+        $("#net_weight").on('change', function (e) {
+            if ($("#RequestType").val() == "E") {
+                setTimeout(function () {
+                    GetContractOnGrossWeight(DomainName);
+                });
+            }
+        });
+
+        // Pre-fill PR details
+        setTimeout(function () {
+            var prNo = $('#PRNo').val();
+            if (!prNo) return;
+            $.ajax({
+                url: DomainName + '/Account/GetDataWithoutAlias',
+                type: 'POST', dataType: 'json', async: false,
+                data: { Method: 'USP_GetPRDetailsonPR', parameters: { PRNo: prNo } },
+                success: function (data) {
+                    //console.log(data);
+                    if (data.Table && data.Table.length > 0) {
+                        $('#Customer_Code').val(data.Table[0].Customer_Code);
+                        $('#Contract_Id').val(data.Table[0].Contract_Id);
+                        $('#Organization').val(data.Table[0].Organization);
+                        $('#From_Lane_id').val(data.Table[0].From_Lane_id);
+                        $('#CustomerGST').val(data.Table[0].CustomerGST);
+                        if (data.Table[0].Type == "ENTERPRISE") {
+                            $("#RequestType").val("E");
+                        } else if (data.Table[0].Type == "RETAIL") {
+                            $("#RequestType").val("R");
+                            $("#gross_weight").prop("readonly", true).addClass("bg-light");
+                        }
+                        loadContractAdditionalFields(data.Table[0].Contract_Id);
+                        loadContractStandardCharges(data.Table[0].Contract_Id);
+                    }
+
+                    if (data.Table1 && data.Table1.length > 0) {
+                        var To_Lane_id = $('#To_Lane_id');
+                        To_Lane_id.empty().append(new Option('', '', true, true));
+                        $.each(data.Table1, function (i, row) {
+                            To_Lane_id.append(new Option(row.Text, row.Value, false, false));
+                        });
+
+                        if (data.Table1.length === 1) {
+                            To_Lane_id.val(data.Table1[0].Value).trigger('change');
+                        } else {
+                            To_Lane_id.val('').trigger('change');
+                        }
+                     }
+                }
+            });
+        }, 500);
+
+        $('#lrEntryForm').on('change', '#LRUpload', function () {
+            var file = this.files[0];
+            if (file) {
+                validateImageFile(file, this);
+            }
+        });
+        $('#lrEntryForm').on('change', '#Other_Doc', function () {
+            var file = this.files[0];
+            if (file) {
+                validateImageFile(file, this);
+            }
+        });
+    }
+
+    function loadContractAdditionalFields(contractId) {
+        if (!contractId) {
+            $('#dynamicAdditionalFieldsContainer').empty();
+            return;
+        }
+        $.ajax({
+            url: DomainName + '/Fleet/GetContractAdditionalFields',
+            type: 'GET',
+            data: { contractId: contractId },
+            success: function (res) {
+                var $container = $('#dynamicAdditionalFieldsContainer');
+                $container.empty();
+                if (res && res.success && res.fields && res.fields.length > 0) {
+                    $.each(res.fields, function (i, field) {
+                        var reqClass = field.Required === 'Y' ? 'required-label' : '';
+                        var reqAttr = field.Required === 'Y' ? 'required' : '';
+                        var minLengthAttr = field.MinLength > 0 ? 'minlength="' + field.MinLength + '"' : '';
+                        var maxLengthAttr = field.MaxLength > 0 ? 'maxlength="' + field.MaxLength + '"' : '';
+                        var onKeyPress = '';
+                        var inputClass = 'form-control';
+
+                        if (field.DataType === 'int') {
+                            onKeyPress = 'onkeypress="javascript:return event.charCode >= 48 && event.charCode <= 57"';
+                            inputClass += ' number-only';
+                        } else if (field.DataType === 'decimal') {
+                            onKeyPress = 'onkeypress="javascript:return validDigits(event, this)"';
+                            inputClass += ' decimal-only';
+                        } else if (field.DataType === 'Date') {
+                            inputClass += ' date-picker';
+                        }
+
+                        if (field.Required === 'Y') {
+                            inputClass += ' required';
+                        }
+
+                        var html =
+                            '<div class="col-lg-3 col-md-6">' +
+                            '    <div class="form-group">' +
+                            '        <label class="form-label ' + reqClass + '">' + field.Label + '</label>' +
+                            '        <input type="text" name="' + field.Name + '" id="' + field.Name + '" class="' + inputClass + '" placeholder="Enter ' + field.Label + '" ' + reqAttr + ' ' + minLengthAttr + ' ' + maxLengthAttr + ' ' + onKeyPress + ' />' +
+                            '    </div>' +
+                            '</div>';
+
+                        $container.append(html);
+                    });
+
+                    // Initialize date-picker on newly added dynamic date fields
+                    $container.find('.date-picker').datepicker({ format: "dd M yyyy", autoclose: true, todayBtn: true });
+
+                    // Re-parse validation rules for dynamic elements
+                    if ($.validator && $.validator.unobtrusive) {
+                        $.validator.unobtrusive.parse("#dynamicAdditionalFieldsContainer");
+                    }
+                }
+            },
+            error: function () {
+                console.error('Failed to load contract additional fields.');
+            }
+        });
+    }
+
+    function loadContractStandardCharges(contractId) {
+        if (!contractId) {
+            $('#dynamicChargesContainer').empty();
+            return;
+        }
+        $.ajax({
+            url: DomainName + '/Contract/GetContractStandardCharges',
+            type: 'GET',
+            data: { contractId: contractId },
+            success: function (res) {
+                var container = $('#dynamicChargesContainer');
+                container.empty();
+                //console.log(res);
+                if (res && res.success && res.charges && res.charges.length > 0) {
+                    $.each(res.charges, function (i, charge) {
+                        var reqClass = charge.IsRequired ? 'required-label' : '';
+                        var reqAttr = charge.IsRequired ? 'required' : '';
+                        var inputClass = 'form-control charge-input';
+                        if (charge.IsRequired) {
+                            inputClass += ' required';
+                        }
+
+                        var html =
+                            '<div class="col-lg-3 col-md-6">' +
+                            '    <div class="form-group">' +
+                            '        <label class="form-label ' + reqClass + '">' + charge.chargename + '</label>' +
+                            '        <input type="text" name="charge_' + charge.chargecode + '" id="charge_' + charge.chargecode + '" class="' + inputClass + '" value="0" placeholder="Enter ' + charge.chargename + '" ' + reqAttr + ' onkeypress="javascript:return validDigits(event, this)" />' +
+                            '    </div>' +
+                            '</div>';
+
+                      container.append(html);
+                    });
+
+                    // Re-parse validation rules for dynamic elements
+                    if ($.validator && $.validator.unobtrusive) {
+                        $.validator.unobtrusive.parse("#dynamicChargesContainer");
+                    }
+
+                    // Dynamically fetch rates for the loaded charges
+                    fetchStandardChargeRates();
+                }
+            },
+            error: function () {
+                console.error('Failed to load contract standard charges.');
+            }
+        });
+    }
+
+    function fetchStandardChargeRates() {
+        var contractId = $("#Contract_Id").val();
+        var fromLaneId = $("#From_Lane_id").val();
+        var toLaneId = $("#To_Lane_id").val();
+        var rateType = $("#Rate_Type").val();
+
+        if (!contractId || !fromLaneId || !toLaneId || !rateType) {
+            $(".charge-input").val('0');
+            return;
+        }
+
+        $.ajax({
+            url: DomainName + '/Account/GetDataWithoutAlias',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                Method: 'GetStandaradChargeRate',
+                parameters: {
+                    ContractId: contractId,
+                    From_Lane_id: fromLaneId,
+                    To_Lane_id: toLaneId,
+                    Rate_Type: rateType
+                }
+            },
+            success: function (res) {
+                // Initialize all charge inputs to 0
+                $(".charge-input").val('0');
+
+                var data = res;
+                if (res && res.Table) {
+                    data = res.Table;
+                }
+
+                if (data && data.length > 0) {
+                    $.each(data, function (i, row) {
+                        var code = row.chargecode;
+                        var rate = 0;
+                        if (row.FTL1_TRIP_RATE !== undefined && row.FTL1_TRIP_RATE !== null) {
+                            rate = row.FTL1_TRIP_RATE;
+                        } else if (row.rate !== undefined && row.rate !== null) {
+                            rate = row.rate;
+                        }
+
+                        if (code) {
+                            var $input = $("#charge_" + code);
+                            if ($input.length > 0) {
+                                $input.val(rate);
+                                $input.valid();
+                            }
+                        }
+                    });
+                }
+            },
+            error: function () {
+                console.error('Failed to fetch standard charge rates.');
+            }
+        });
+    }
+
+    function ConsigneeValidation() {
+        var Consignor_GST = $("#CustomerGST").val();
+        var Consigor_GST_API = $("#userGstin").val();
+        var Consignee_GST = $("#Consignee_GST").val();
+        if (!Consignee_GST || Consignee_GST.trim() === "") {
+            if (!_ewbConsigneeData) {
+                _ewbConsigneeData = {};
+            }
+            if (!_ewbConsigneeData.Consignee_GST && Consignee_GST) {
+                _ewbConsigneeData.Consignee_GST = Consignee_GST;
+            }
+            if (!_ewbConsigneeData.Consignee_Name) {
+                _ewbConsigneeData.Consignee_Name = $("#Consignee_Name").val() || "";
+            }
+            if (!_ewbConsigneeData.Consignee_Address) {
+                _ewbConsigneeData.Consignee_Address = $("#Consignee_Address").val() || "";
+            }
+            if (!_ewbConsigneeData.Consignee_Pincode) {
+                _ewbConsigneeData.Consignee_Pincode = $("#consignee_pincode").val() || "";
+            }
+
+            var modalGst = Consignee_GST || (_ewbConsigneeData ? _ewbConsigneeData.Consignee_GST : "") || "";
+            var modalName = ($("#Consignee_Name").val()) || (_ewbConsigneeData ? _ewbConsigneeData.Consignee_Name : "") || "";
+            var modalAddress = ($("#Consignee_Address").val()) || (_ewbConsigneeData ? _ewbConsigneeData.Consignee_Address : "") || "";
+            var modalPincode = ($("#consignee_pincode").val()) || (_ewbConsigneeData ? _ewbConsigneeData.Consignee_Pincode : "") || "";
+
+            var qs = "?gst=" + encodeURIComponent(modalGst) +
+                     "&name=" + encodeURIComponent(modalName) +
+                     "&address=" + encodeURIComponent(modalAddress) +
+                     "&pincode=" + encodeURIComponent(modalPincode);
+
+            $('#glFormModal .modal-dialog').removeClass('modal-lg').addClass('modal-xl');
+
+            GLModal.showForm({
+                title: "Add Consignee (GST Not Registered)",
+                icon: "ri-truck-line",
+                url: DomainName + '/Master/ConsigneeMaster' + qs
+            });
+            // Disable modal close controls for this particular modal
+            disableModalClose();
+            // Pre-fill the consignee modal form once the partial view has loaded
+            prefillConsigneeModal();
+            return;
+        }
+        var Parameters = {
+            "Consignee_GST": Consignee_GST,
+        }
+
+        var strUrl = DomainName + "/Account/GetDataWithoutAlias";
+        $.ajax({
+            url: strUrl,
+            type: 'POST',
+            dataType: "json",
+            async: false,
+            data: {
+                Method: "USP_CheckConsigneeGST",
+                parameters: Parameters
+            },
+            success: function (data) {
+                //console.log('dt', data);
+                if (data && data.length > 0) {
+                    if (data[0].Status == 1) {
+                        // Consignee is registered successfully. Select that shipto in the dropdown.
+                        var found = false;
+                        $('#Consignee_Name option').each(function () {
+                            if ($(this).attr('data-gst') === Consignee_GST) {
+                                $('#Consignee_Name').prop('disabled', false).val($(this).val()).trigger('change').prop('disabled', true);
+                                found = true;
+                                return false; // break loop
+                            }
+                        });
+                        if (!found) {
+                            // If status is 1 but not found in dropdown options, add it dynamically
+                            var displayName = _ewbConsigneeData.Consignee_Name || "Registered Consignee";
+                            var newOpt = $('<option>', {
+                                value: displayName,
+                                text: displayName
+                            });
+                            newOpt.attr('data-gst', Consignee_GST);
+                            newOpt.attr('data-address', _ewbConsigneeData.Consignee_Address || "");
+                            newOpt.attr('data-city', _ewbConsigneeData.Consignee_City || "");
+                            newOpt.attr('data-pincode', _ewbConsigneeData.Consignee_Pincode || "");
+                            newOpt.attr('data-pan', "");
+                            newOpt.attr('data-code', "");
+                            $('#Consignee_Name').append(newOpt);
+                            $('#Consignee_Name').prop('disabled', false).val(displayName).trigger('change').prop('disabled', true);
+                        }
+                    } else {
+                        // Status 0: Show popup modal for adding consignee
+                        // Set modal to extra large for layout side-by-side
+                        $('#glFormModal .modal-dialog').removeClass('modal-lg').addClass('modal-xl');
+
+                        // Ensure the GST from the EWayBill is always in the cache
+                        if (!_ewbConsigneeData) {
+                            _ewbConsigneeData = {};
+                        }
+                        if (!_ewbConsigneeData.Consignee_GST && Consignee_GST) {
+                            _ewbConsigneeData.Consignee_GST = Consignee_GST;
+                        }
+                        if (!_ewbConsigneeData.Consignee_Name) {
+                            _ewbConsigneeData.Consignee_Name = $("#Consignee_Name").val() || "";
+                        }
+                        if (!_ewbConsigneeData.Consignee_Address) {
+                            _ewbConsigneeData.Consignee_Address = $("#Consignee_Address").val() || "";
+                        }
+                        if (!_ewbConsigneeData.Consignee_Pincode) {
+                            _ewbConsigneeData.Consignee_Pincode = $("#consignee_pincode").val() || "";
+                        }
+
+                        var modalGst = Consignee_GST || (_ewbConsigneeData ? _ewbConsigneeData.Consignee_GST : "") || "";
+                        var modalName = ($("#Consignee_Name").val()) || (_ewbConsigneeData ? _ewbConsigneeData.Consignee_Name : "") || "";
+                        var modalAddress = ($("#Consignee_Address").val()) || (_ewbConsigneeData ? _ewbConsigneeData.Consignee_Address : "") || "";
+                        var modalPincode = ($("#consignee_pincode").val()) || (_ewbConsigneeData ? _ewbConsigneeData.Consignee_Pincode : "") || "";
+
+                        var qs = "?gst=" + encodeURIComponent(modalGst) +
+                                 "&name=" + encodeURIComponent(modalName) +
+                                 "&address=" + encodeURIComponent(modalAddress) +
+                                 "&pincode=" + encodeURIComponent(modalPincode);
+
+                        GLModal.showForm({
+                            title: "Add Consignee (GST Not Registered)",
+                            icon: "ri-truck-line",
+                            url: DomainName + '/Master/ConsigneeMaster' + qs
+                        });
+                        // Disable modal close controls for this particular modal
+                        disableModalClose();
+                        // Pre-fill the consignee modal form once the partial view has loaded
+                        prefillConsigneeModal();
+                    }
+                }
+            },
+            error: function (jqXHR, exception) {
+                TosterNotification("error", errorResult(jqXHR, exception), "Oppps..!!");
+                return false;
+            }
+        });
+    }
+    function disableModalClose() {
+        var modalEl = document.getElementById('glFormModal');
+        if (modalEl) {
+            modalEl.setAttribute('data-bs-keyboard', 'false');
+            var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            if (bsModal && bsModal._config) {
+                bsModal._config.keyboard = false;
+            }
+        }
+        $('#glFormModalClose').hide();
+        $('#glFormModal').find('.modal-footer button[data-bs-dismiss="modal"]').hide();
+
+        $('#glFormModal').off('hidden.bs.modal.restoreButtons').on('hidden.bs.modal.restoreButtons', function () {
+            var mEl = document.getElementById('glFormModal');
+            if (mEl) {
+                mEl.setAttribute('data-bs-keyboard', 'true');
+                var bsM = bootstrap.Modal.getOrCreateInstance(mEl);
+                if (bsM && bsM._config) {
+                    bsM._config.keyboard = true;
+                }
+            }
+            $('#glFormModalClose').show();
+            $('#glFormModal').find('.modal-footer button[data-bs-dismiss="modal"]').show();
+        });
+    }
+    var _ewbConsigneeData = {};
+    function prefillConsigneeModal() {
+        var maxAttempts = 40;   // 40 × 150ms = 6 seconds max wait
+        var attempts = 0;
+
+        var timer = setInterval(function () {
+            attempts++;
+
+            // The consignee partial renders inside #glFormModal
+            var $gstField = $('#glFormModal').find('#Consignee_GST');
+
+            if ($gstField.length > 0) {
+                clearInterval(timer);
+
+                var d = _ewbConsigneeData;
+
+                // ── GST ──────────────────────────────────────────────────
+                if (d.Consignee_GST) {
+                    $gstField.val(d.Consignee_GST).trigger('input');
+                    // Trigger the GST lookup that the form uses (CheckDuplicateGST → GetGSTDetails)
+                    // but only fire the duplicate check; do NOT trigger the full 'change' to avoid
+                    // overwriting the pre-filled name/address from EWayBill.
+                }
+
+                // ── Name ─────────────────────────────────────────────────
+                if (d.Consignee_Name) {
+                    $('#glFormModal').find('#Consignee_Name').val(d.Consignee_Name);
+                }
+
+                // ── Address ──────────────────────────────────────────────
+                if (d.Consignee_Address) {
+                    $('#glFormModal').find('#Consignee_Address').val(d.Consignee_Address);
+                }
+
+                // ── Pincode (Select2) ────────────────────────────────────
+                if (d.Consignee_Pincode) {
+                    var pin = $('#glFormModal').find('#Consignee_Pincode');
+                    if (pin.data('select2')) {
+                        pin.select2('data', { id: d.Consignee_Pincode, text: d.Consignee_Pincode });
+                    } else {
+                        pin.val(d.Consignee_Pincode);
+                    }
+                    // Trigger the pincode change handler to auto-fill state/city/country
+                    pin.trigger('change');
+                }
+
+                // Show a friendly banner inside the modal so the user knows data was pre-filled
+                var fieldsContainer = $('#glFormModal').find('#fieldsContainer');
+                if (fieldsContainer.length && !fieldsContainer.find('#ewb-prefill-banner').length) {
+                    fieldsContainer.prepend(
+                        '<div id="ewb-prefill-banner" class="alert alert-info alert-dismissible py-2 mb-3" role="alert" style="font-size:13px;">'
+                        + '<i class="ri-magic-line me-1"></i>'
+                        + '<strong>Auto-filled from Invoice / E-Way Bill data.</strong> Please verify and complete any missing fields.'
+                        + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+                        + '</div>'
+                    );
+                }
+
+            } else if (attempts >= maxAttempts) {
+                clearInterval(timer);
+                console.warn('prefillConsigneeModal: form not found within timeout.');
+            }
+        }, 150);
+
+        $("#Consignee_Pincode").change();
+    }
+
+    var GetContractOnGrossWeight = function (DomainName) {
+        var Contract_Id = $("#Contract_Id").val();
+        var From_Lane_id = $("#From_Lane_id").val();
+        var To_Lane_id = $("#To_Lane_id").val();
+        var Rate_Type = $("#Rate_Type").val();
+        var UOM = $("#UOM").val();
+        var Content = $("#Content").val();
+        var gross_weight = $("#gross_weight").val();
+        var net_weight = $("#net_weight").val();
+        if (Contract_Id != "" && From_Lane_id != "" && To_Lane_id != "" && Rate_Type != "" && UOM != "" && Content != "" && gross_weight > 0 && net_weight > 0) {
+            var Parameters = {
+                "Contract_Id": Contract_Id,
+                "From_Lane_id": From_Lane_id,
+                "To_Lane_id": To_Lane_id,
+                "Rate_Type": Rate_Type,
+                "UOM": UOM,
+                "Product": Content,
+                "GrossWeight": gross_weight,
+                "NetWeight": net_weight
+            }
+            var strUrl = DomainName + "/Account/GetDataWithoutAlias";
+            $.ajax({
+                url: strUrl,
+                type: 'POST',
+                dataType: "json",
+                async: false,
+                data: {
+                    Method: "USP_GetContractFor_LR",
+                    parameters: Parameters
+                },
+                success: function (data) {
+                    //console.log(Parameters);
+                    //console.log('s', data[0]);
+
+                    if (data && data.length > 0) {
+                        var rate = data[0].rate;
+                        $("#Rate").val(data[0].rate);
+                        var Km = data[0].ContractualDistance;
+                        var minqty = data[0].MinimumGuarantee;
+
+                        var Calculatedrate = 0;
+                        if (Rate_Type == "N1") {
+                            $("#Freight").val(rate);
+                            $("#Total").val(rate);
+                            $("#Sub_Total").val(rate);
+                        }
+                        else if (Rate_Type == "N2") {
+                            Calculatedrate = rate * Km;
+                            $("#Freight").val(Calculatedrate);
+                            $("#Total").val(Calculatedrate);
+                            $("#Sub_Total").val(Calculatedrate);
+                        }
+                        else if (Rate_Type == "N3") {
+                            if (data[0].ChargeableOn == 2) {
+                                if (minqty > net_weight) {
+                                    Calculatedrate = rate * minqty;
+                                    $("#Freight").val(Calculatedrate);
+                                    $("#Total").val(Calculatedrate);
+                                    $("#Sub_Total").val(Calculatedrate);
+                                }
+                                else {
+                                    Calculatedrate = rate * net_weight;
+                                    $("#Freight").val(Calculatedrate);
+                                    $("#Total").val(Calculatedrate);
+                                    $("#Sub_Total").val(Calculatedrate);
+                                }
+                            }
+                            else {
+                                if (minqty > gross_weight) {
+                                    Calculatedrate = rate * minqty;
+                                    $("#Freight").val(Calculatedrate);
+                                    $("#Total").val(Calculatedrate);
+                                    $("#Sub_Total").val(Calculatedrate);
+                                }
+                                else {
+                                    Calculatedrate = rate * gross_weight;
+                                    $("#Freight").val(Calculatedrate);
+                                    $("#Total").val(Calculatedrate);
+                                    $("#Sub_Total").val(Calculatedrate);
+                                }
+                            }
+                        }
+                        else if (Rate_Type == "N4") {
+                            if (data[0].ChargeableOn == 2) {
+                                if (minqty > net_weight) {
+                                    Calculatedrate = rate * minqty * Km;
+                                    $("#Freight").val(Calculatedrate);
+                                    $("#Total").val(Calculatedrate);
+                                    $("#Sub_Total").val(Calculatedrate);
+                                }
+                                else {
+                                    Calculatedrate = rate * net_weight * Km;
+                                    $("#Freight").val(Calculatedrate);
+                                    $("#Total").val(Calculatedrate);
+                                    $("#Sub_Total").val(Calculatedrate);
+                                }
+                            }
+                            else {
+                                if (minqty > gross_weight) {
+                                    Calculatedrate = rate * minqty * Km;
+                                    //console.log('m', Calculatedrate);
+                                    $("#Freight").val(Calculatedrate);
+                                    $("#Total").val(Calculatedrate);
+                                    $("#Sub_Total").val(Calculatedrate);
+                                }
+                                else {
+                                    Calculatedrate = rate * gross_weight * Km;
+                                    //console.log(Calculatedrate);
+
+                                    $("#Freight").val(Calculatedrate);
+                                    $("#Total").val(Calculatedrate);
+                                    $("#Sub_Total").val(Calculatedrate);
+                                }
+                            }
+                        }
+                        //TosterNotification("success", "Invoice Scanned Successfully!", "Success");
+                    } else {
+                        TosterNotification("error", "There is no Rate for Rate Type : " + $("#Rate_Type option:selected").text() + " Product : " + $("#Content option:selected").text() + " UOM : " + $("#UOM option:selected").text() + " ", "Error");
+                    }
+
+                },
+                error: function (jqXHR, exception) {
+                    TosterNotification("error", errorResult(jqXHR, exception), "Oppps..!!");
+                    return false;
+                }
+            });
+        }
+    }
+
+    function fillMissingFieldsFromOCR(d) {
+        // Helper to check if a field is considered empty or holding a default/placeholder value
+        function isFieldEmptyOrDefault(val) {
+            if (val === undefined || val === null) return true;
+            var s = String(val).trim();
+            return s === "" || s === "0001-01-01T00:00:00";
+        }
+
+        var validityDateStr = "";
+        if (isFieldEmptyOrDefault($("#eway_bill_validity").val())) {
+            validityDateStr = isValidDateValue(d.eway_bill_validity) ? fmtEWBDate(d.eway_bill_validity) : "";
+        } else {
+            validityDateStr = $("#eway_bill_validity").val();
+        }
+
+        if (validityDateStr && !checkEwayBillValidity(validityDateStr)) {
+            $(".clshide").hide();
+            return false;
+        }
+
+        // Secondary Priority: Only fill if field is empty (Never overwrite existing valid EWB values)
+        if (isFieldEmptyOrDefault($("#eway_bill_no").val())) $("#eway_bill_no").val(d.eway_bill_no);
+        if (isFieldEmptyOrDefault($("#invoice_no").val())) $("#invoice_no").val(d.invoice_no);
+        if (isFieldEmptyOrDefault($("#gross_weight").val())) $("#gross_weight").val(d.gross_weight);
+        if (isFieldEmptyOrDefault($("#net_weight").val())) $("#net_weight").val(d.net_weight);
+        if (isFieldEmptyOrDefault($("#CustLRNo").val())) $("#CustLRNo").val(d.lr_no);
+        if (isFieldEmptyOrDefault($("#reference_no").val())) $("#reference_no").val(d.reference_no);
+        if (isFieldEmptyOrDefault($("#UOM").val())) $("#UOM").val(d.UOM);
+
+        // Hidden fields on parent page
+        if (isFieldEmptyOrDefault($("#consignor_name").val())) $("#consignor_name").val(d.consignor_name);
+        if (isFieldEmptyOrDefault($("#consignor_address").val())) $("#consignor_address").val(d.consignor_address);
+        if (isFieldEmptyOrDefault($("#Consignee_Name").val())) $("#Consignee_Name").prop('disabled', false).val(d.consignee_name || d.ship_to_name).trigger('change').prop('disabled', true);
+        if (isFieldEmptyOrDefault($("#Consignee_Address").val())) $("#Consignee_Address").val(d.consignee_address || d.ship_to_address);
+        if (isFieldEmptyOrDefault($("#consignee_city").val())) $("#consignee_city").val(d.consignee_city || d.ship_to_city);
+        if (isFieldEmptyOrDefault($("#consignee_pincode").val())) $("#consignee_pincode").val(d.consignee_pincode || d.ship_to_pincode);
+        if (isFieldEmptyOrDefault($("#Consignee_GST").val())) $("#Consignee_GST").val(d.ship_to_gst || d.consignee_gst);
+        if (isFieldEmptyOrDefault($("#so_number").val())) $("#so_number").val(d.so_number);
+        if (isFieldEmptyOrDefault($("#do_number").val())) $("#do_number").val(d.do_number);
+
+        // Always store remaining OCR fields in hidden fields if they are currently empty
+        if (isFieldEmptyOrDefault($("#detected_document_type").val())) $("#detected_document_type").val(d.detected_document_type || "");
+        if (isFieldEmptyOrDefault($("#wrong_document").val())) $("#wrong_document").val(d.wrong_document !== undefined ? d.wrong_document : "");
+        if (isFieldEmptyOrDefault($("#is_blurry").val())) $("#is_blurry").val(d.is_blurry !== undefined ? d.is_blurry : "");
+        if (isFieldEmptyOrDefault($("#ship_to_state_code").val())) $("#ship_to_state_code").val(d.ship_to_state_code || "");
+        if (isFieldEmptyOrDefault($("#transporter_name").val())) $("#transporter_name").val(d.transporter_name || "");
+        if (isFieldEmptyOrDefault($("#vehicle_number").val())) $("#vehicle_number").val(d.vehicle_number || "");
+        if (isFieldEmptyOrDefault($("#delivery_no").val())) $("#delivery_no").val(d.delivery_no || "");
+        if (isFieldEmptyOrDefault($("#di_no").val())) $("#di_no").val(d.di_no || "");
+        if (isFieldEmptyOrDefault($("#shipment_no").val())) $("#shipment_no").val(d.shipment_no || "");
+        if (isFieldEmptyOrDefault($("#pieces_count").val())) $("#pieces_count").val(d.pieces_count !== undefined ? d.pieces_count : "");
+        if (isFieldEmptyOrDefault($("#flipkart_order_id").val())) $("#flipkart_order_id").val(d.flipkart_order_id || "");
+        if (isFieldEmptyOrDefault($("#tata_document_type").val())) $("#tata_document_type").val(d.tata_document_type || "");
+
+        // Populate the modal prefill cache with Invoice OCR details
+        if (!_ewbConsigneeData) {
+            _ewbConsigneeData = {};
+        }
+        if (!_ewbConsigneeData.Consignee_GST) {
+            _ewbConsigneeData.Consignee_GST = d.ship_to_gst || d.consignee_gst || "";
+        }
+        if (!_ewbConsigneeData.Consignee_Name) {
+            _ewbConsigneeData.Consignee_Name = d.consignee_name || d.ship_to_name || "";
+        }
+        if (!_ewbConsigneeData.Consignee_Address) {
+            _ewbConsigneeData.Consignee_Address = d.consignee_address || d.ship_to_address || "";
+        }
+        if (!_ewbConsigneeData.Consignee_Pincode) {
+            _ewbConsigneeData.Consignee_Pincode = d.consignee_pincode || d.ship_to_pincode || "";
+        }
+
+        // Handle dates
+        if (isFieldEmptyOrDefault($("#invoice_date").val())) {
+            $("#invoice_date").val(isValidDateValue(d.invoice_date) ? fmtEWBDate(d.invoice_date) : "");
+        }
+
+        var ewbNoVal = ($("#eway_bill_no").val() || "").trim().toLowerCase();
+        if (ewbNoVal === "na") {
+            $("#eway_bill_date").val("NA");
+            $("#eway_bill_validity").val("NA");
+        } else {
+            if (isFieldEmptyOrDefault($("#eway_bill_date").val())) {
+                $("#eway_bill_date").val(isValidDateValue(d.eway_bill_date) ? fmtEWBDate(d.eway_bill_date) : "");
+            }
+            if (isFieldEmptyOrDefault($("#eway_bill_validity").val())) {
+                $("#eway_bill_validity").val(isValidDateValue(d.eway_bill_validity) ? fmtEWBDate(d.eway_bill_validity) : "");
+            }
+        }
+
+        if (isFieldEmptyOrDefault($("#lr_date").val())) {
+            $("#lr_date").val(isValidDateValue(d.lr_date) ? fmtEWBDate(d.lr_date) : "");
+        }
+
+        if (isFieldEmptyOrDefault($("#delivery_date").val())) {
+            $("#delivery_date").val(isValidDateValue(d.delivery_date) ? fmtEWBDate(d.delivery_date) : "");
+        }
+        if (isFieldEmptyOrDefault($("#odn_date").val())) {
+            $("#odn_date").val(isValidDateValue(d.odn_date) ? fmtEWBDate(d.odn_date) : "");
+        }
+        if (isFieldEmptyOrDefault($("#obd_date").val())) {
+            $("#obd_date").val(isValidDateValue(d.obd_date) ? fmtEWBDate(d.obd_date) : "");
+        }
+        if (isFieldEmptyOrDefault($("#eta_date").val())) {
+            $("#eta_date").val(isValidDateValue(d.eta_date) ? fmtEWBDate(d.eta_date) : "");
+        }
+
+        if (isFieldEmptyOrDefault($("#odn_no").val())) $("#odn_no").val(d.odn_no || "");
+        if (isFieldEmptyOrDefault($("#obd_no").val())) $("#obd_no").val(d.obd_no || "");
+
+        var currentEwbVal = ($("#eway_bill_no").val() || '').trim().toLowerCase();
+        if (/^\d{12}$/.test(currentEwbVal)) {
+            isEwbDataFetched = true;
+            lastProcessedEwayBill = currentEwbVal;
+        }
+    }
+    function handleInvoiceToggle() {
+        var f = document.getElementById('UploadFile');
+        var hasFile = f && f.files && f.files.length > 0;
+        ['#eway_bill_no', '#eway_bill_date', '#eway_bill_validity'].forEach(function (id) {
+            if (hasFile) { $(id).val('NA').prop('disabled', true).addClass('bg-light'); }
+            else { if ($(id).val() === 'NA') $(id).val(''); $(id).prop('disabled', false).removeClass('bg-light'); }
+        });
+    }
+
+    function fetchEWBData(ewbNo) {
+        App.blockUI({ target: 'body', boxed: true, message: 'Fetching E-Way Bill...' });
+        $.ajax({
+            url: DomainName + '/Fleet/FetchEWayBillData',
+            type: 'GET', data: { ewayBillNo: ewbNo },
+            success: function (res) {
+                App.unblockUI();
+                var isSuccess = false;
+                var ewbData = null;
+                var errorCode = "";
+                var errorMsg = "";
+
+                // Check Shape A (results wrapper)
+                var status = res.status || (res.results ? res.results.status : null);
+                if (status === "Success" && res.results && typeof res.results.message === 'object') {
+                    isSuccess = true;
+                    ewbData = res.results.message;
+                } 
+                // Check Shape B (data wrapper)
+                else if (res && res.data) {
+                    if (res.data.status_cd === "0" || res.data.error) {
+                        isSuccess = false;
+                        if (res.data.error) {
+                            errorCode = res.data.error.error_cd || "";
+                            errorMsg = res.data.error.message || "";
+                        }
+                    } else {
+                        isSuccess = true;
+                        ewbData = res.data;
+                    }
+                }
+
+                if (isSuccess && ewbData) {
+                    $('#EwayBillJson').val(JSON.stringify(ewbData));
+                    isEwbDataFetched = true;
+                    var isValid = populateEWB(ewbData);
+                    if (isValid !== false) {
+                        ConsigneeValidation();
+                        TosterNotification("success", "E-Way Bill Data Fetched!", "Success");
+                    }
+                    toggleClsHide();
+                } else {
+                    isEwbDataFetched = false;
+                    // Extract error details from whichever shape is available
+                    if (!errorCode) {
+                        errorCode = res.nic_code || (res.results ? res.results.nic_code : "") || (res.data && res.data.error ? res.data.error.error_cd : "");
+                    }
+                    if (!errorMsg) {
+                        errorMsg = (res.results && typeof res.results.message === 'string' ? res.results.message : res.message) || (res.data && res.data.error ? res.data.error.message : "") || "Failed to fetch data";
+                    }
+
+                    if (errorCode == "325") {
+                        errorMsg = "E-Way Bill Number is invalid or does not exist (Error 325)";
+                        $("#eway_bill_no").val("");
+                    }
+                    TosterNotification("error", errorMsg, "Error");
+                    clearEWBData();
+                }
+            },
+            error: function () { 
+                App.unblockUI(); 
+                TosterNotification('error', 'Request failed', 'Error'); 
+                isEwbDataFetched = false;
+                clearEWBData();
+            }
+        });
+    }
+
+    function populateEWB(d) {
+        // Helper to check if a field is considered empty or holding a default/placeholder value
+        function isFieldEmptyOrDefault(val) {
+            if (val === undefined || val === null) return true;
+            var s = String(val).trim();
+            return s === "" || s === "0001-01-01T00:00:00";
+        }
+
+        var validityDateStr = "";
+        if (isValidDateValue(d.validUpto)) {
+            validityDateStr = fmtEWBDate(d.validUpto);
+        } else if (isFieldEmptyOrDefault($('#eway_bill_validity').val())) {
+            validityDateStr = "";
+        } else {
+            validityDateStr = $('#eway_bill_validity').val();
+        }
+
+        if (validityDateStr && !checkEwayBillValidity(validityDateStr)) {
+            $(".clshide").hide();
+            return false;
+        }
+
+        if (d.ewbNo) $('#eway_bill_no').val(d.ewbNo);
+
+        if (isValidDateValue(d.ewayBillDate)) {
+            $('#eway_bill_date').val(fmtEWBDate(d.ewayBillDate));
+        } else if (isFieldEmptyOrDefault($('#eway_bill_date').val())) {
+            $('#eway_bill_date').val("");
+        }
+
+        if (d.docNo) $('#invoice_no').val(d.docNo);
+
+        if (isValidDateValue(d.docDate)) {
+            $('#invoice_date').val(fmtEWBDate(d.docDate));
+        } else if (isFieldEmptyOrDefault($('#invoice_date').val())) {
+            $('#invoice_date').val("");
+        }
+
+        if (d.userGstin) $('#userGstin').val(d.userGstin);
+
+        if (d.fromTrdName) {
+            $('#consignor_name').val(d.fromTrdName);
+        }
+        if (d.fromAddr1) $('#consignor_address').val(d.fromAddr1 + (d.fromAddr2 ? ", " + d.fromAddr2 : ""));
+
+        if (d.toTrdName) $('#Consignee_Name').prop('disabled', false).val(d.toTrdName).trigger('change').prop('disabled', true);
+        if (d.toPlace) {
+            $('#consignee_city').val(d.toPlace);
+        }
+        if (d.toPincode) {
+            $('#consignee_pincode').val(d.toPincode);
+        }
+        if (d.toGstin) {
+            $('#Consignee_GST').val(d.toGstin);
+        }
+        if (d.toAddr1) {
+            var fullAddr = d.toAddr1 + (d.toAddr2 ? ", " + d.toAddr2 : "");
+            $('#Consignee_Address').val(fullAddr);
+        }
+        if (d.totInvValue) $('#totInvValue').val(d.totInvValue);
+        if (d.totalValue) $('#totalValue').val(d.totalValue);
+        if (d.actualDist) $('#actualDist').val(d.actualDist);
+        if (d.noValidDays) $('#noValidDays').val(d.noValidDays);
+        if (d.fromStateCode) $('#consignor_State').val(d.fromStateCode);
+
+        if (isValidDateValue(d.validUpto)) {
+            $('#eway_bill_validity').val(fmtEWBDate(d.validUpto));
+        } else if (isFieldEmptyOrDefault($('#eway_bill_validity').val())) {
+            $('#eway_bill_validity').val("");
+        }
+
+        // Fields not present in EWay Bill API (Dates like lr_date, delivery_date, odn_date, obd_date, eta_date)
+        // If they are currently empty or default, we assign them the default date.
+        // If they already have a value (e.g. from invoice), we preserve it.
+        var nonEwbDates = ["#lr_date", "#delivery_date", "#odn_date", "#obd_date", "#eta_date"];
+        nonEwbDates.forEach(function (id) {
+            if (isFieldEmptyOrDefault($(id).val())) {
+                $(id).val("");
+            }
+        });
+
+        _ewbConsigneeData = {
+            Consignee_GST: d.toGstin || _ewbConsigneeData.Consignee_GST || "",
+            Consignee_Name: d.toTrdName || _ewbConsigneeData.Consignee_Name || "",
+            Consignee_Address: (d.toAddr1 ? (d.toAddr1 + (d.toAddr2 ? ", " + d.toAddr2 : "")) : "") || _ewbConsigneeData.Consignee_Address || "",
+            Consignee_Pincode: d.toPincode || _ewbConsigneeData.Consignee_Pincode || ""
+        };
+    }
+
+    function isValidDateValue(val) {
+        if (val === undefined || val === null) return false;
+        var s = String(val).trim().toLowerCase();
+        if (s === "" || s === "null" || s === "undefined" || s === "na") return false;
+        return true;
+    }
+
+    function fmtEWBDate(s) {
+        if (!s) return '';
+        var p = s.split(' ')[0].split('/');
+        if (p.length === 3) {
+            var mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return p[0] + ' ' + mo[parseInt(p[1]) - 1] + ' ' + p[2];
+        }
+        return s;
+    }
+
+    function scanInvoiceOCR(file) {
+        var fd = new FormData();
+        fd.append('UploadFile', file);
+        App.blockUI({ target: 'body', boxed: true, message: 'Scanning Invoice...' });
+        $.ajax({
+            url: DomainName + '/Fleet/ProcessInvoiceOCR',
+            type: 'POST', data: fd, processData: false, contentType: false,
+            success: function (res) {
+                App.unblockUI();
+                if (res && res.success) {
+                    TosterNotification('success', 'Invoice scanned successfully', 'OCR');
+                }
+            },
+            error: function () { App.unblockUI(); }
+        });
+    }
+
+    window.onConsigneeAdded = function (response) {
+        // Get city name from the modal city dropdown before it is hidden/closed
+        var cityName = $('#form_consignee_modal').find('#Consignee_City option:selected').text();
+
+        // Close the modal
+        var modalEl = document.getElementById('glFormModal');
+        if (modalEl) {
+            var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            bsModal.hide();
+        }
+
+        // Add the new option to the Consignee_Name select dropdown
+        var displayName = response.Consignee_Name;
+        if (response.ConsigneeCode) {
+            displayName += " (" + response.ConsigneeCode + ")";
+        }
+
+        var select = $('#Consignee_Name');
+        var optExists = select.find('option[value="' + response.Consignee_Name + '"]').length > 0;
+
+        if (!optExists) {
+            var newOpt = $('<option>', {
+                value: response.Consignee_Name,
+                text: displayName
+            });
+            newOpt.attr('data-gst', response.Consignee_GST || "");
+            newOpt.attr('data-address', response.Consignee_Address || "");
+            newOpt.attr('data-city', cityName || "");
+            newOpt.attr('data-pincode', response.Consignee_Pincode || "");
+            newOpt.attr('data-pan', response.Consignee_PANNo || "");
+            newOpt.attr('data-code', response.ConsigneeCode || "");
+
+            select.append(newOpt);
+        }
+
+        // Select the new option and trigger change to populate hidden fields
+        select.prop('disabled', false).val(response.Consignee_Name).trigger('change').prop('disabled', true);
+
+        TosterNotification("success", "Consignee registered successfully!", "Success");
+    };
+</script>
+

@@ -1,0 +1,44 @@
+@* ═══════════════════════════════════════════════════════════════════════
+   GreenLine Modal System — Partial View
+   Include this once in _Layout.cshtml. All modal calls use gl-modal.js API.
+   ═══════════════════════════════════════════════════════════════════════ *@
+
+<div class="gl-modal-overlay" id="glModalOverlay">
+    <div class="gl-modal" role="dialog" aria-modal="true" aria-labelledby="glModalTitle" id="glModalDialog">
+
+        @* ── Header (Universal Indicator) ── *@
+        <div class="gl-modal__header" id="glModalHeader">
+            <div class="gl-modal__title-group">
+                <div class="gl-modal__header-icon" id="glModalHeaderIcon">
+                    <i id="glModalHeaderIconI"></i>
+                </div>
+                <h5 class="gl-modal__title" id="glModalTitle"></h5>
+            </div>
+            <button type="button" class="gl-modal__close" id="glModalCloseBtn" aria-label="Close">&times;</button>
+        </div>
+
+
+        @* ── Body ── *@
+        <div class="gl-modal__body">
+            @* ── STATUS ICON (Prominent centered icon) ── *@
+            <div id="glModalStatusIconContainer" style="display:none;">
+                <div class="gl-modal__status-wrapper" id="glModalStatusWrapper">
+                    <div class="gl-modal__status-icon" id="glModalStatusIcon">
+                        <i id="glModalStatusIconI"></i>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="gl-modal__body-title" id="glModalBodyTitle" style="display:none;"></h4>
+            <p class="gl-modal__body-message" id="glModalBodyMsg"></p>
+            <p class="gl-modal__body-sub" id="glModalBodySub" style="display:none;"></p>
+        </div>
+
+        @* ── Footer (Action Buttons) ── *@
+        <div class="gl-modal__footer" id="glModalFooter">
+            <button type="button" class="gl-modal__btn gl-modal__btn--cancel" id="glModalCancelBtn">Cancel</button>
+            <button type="button" class="gl-modal__btn gl-modal__btn--confirm" id="glModalConfirmBtn">Confirm</button>
+        </div>
+
+    </div>
+</div>

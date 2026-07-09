@@ -1,0 +1,167 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_Master_Menu>
+@{
+    ViewBag.Title = "Change Menu Rights for User : ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    int i = 1;
+    string UID = ViewBag.UserId;
+}
+<link rel="stylesheet" href="@Url.Content("~/assets/jqwidgets/styles/jqx.base.css")" type="text/css" />
+<script src="@Url.Content("~/assets/plugins/jquery-1.10.2.min.js")" type="text/javascript"></script>
+<script type="text/javascript" src="@Url.Content("~/assets/jqwidgets/jqxcore.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/assets/jqwidgets/jqxbuttons.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/assets/jqwidgets/jqxscrollbar.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/assets/jqwidgets/jqxpanel.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/assets/jqwidgets/jqxtree.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/assets/jqwidgets/jqxcheckbox.js")"></script>
+
+<script type="text/javascript">
+
+    var ftree = $.noConflict();
+    ftree(document).ready(function () {
+        // create jqxTree
+        ftree('#jqxTree').jqxTree({ hasThreeStates: true, checkboxes: true, width: '100%' });
+        ftree('#jqxTree').css('visibility', 'visible');
+        ftree('#jqxTree').jqxTree('expandAll');
+
+        var items = ftree('#jqxTree').jqxTree('getItems');
+        ftree.each(items, function (Menuid, item) {
+            //alert("hii");
+
+            var itemID = item.id;
+            // alert(itemID);
+            var myArray = itemID.split('XXX');
+            // item.checked = $("#itemID")[1]
+
+            //   alert(myArray[0] + "   " + myArray[1]);
+            var chkst = false;
+            if (myArray[1] == "True")
+                chkst = true;
+
+            ftree("#jqxTree").jqxTree('checkItem', $("#" + itemID)[0], chkst);
+
+
+        });
+
+        ftree('#jqxTree').on('checkChange', function (event) {
+            var args = event.args;
+            var element = args.element;
+            var checked = args.checked;
+            //alert("hello");
+        });
+
+        $(".btnSubmit").click(function () {
+            App.blockUI({ boxed: true });
+            OnbtnSubmit();
+            document.forms["submit_form"].submit();
+        });
+        function OnbtnSubmit() {
+            var items = ftree('#jqxTree').jqxTree('getItems');
+
+            ftree.each(items, function (Menuid, item) {
+
+                var itemID = item.id;
+                var myArray = itemID.split('XXX');
+                var isChecked = item.checked;
+                //  alert(myArray[0] + " " + isChecked)
+                if (isChecked == null)
+                    isChecked = "true";
+                $("#model" + myArray[0] + "__UserId").val($("#UserId").val());
+                $("#model" + myArray[0] + "__MenuId").val(myArray[0]);
+                $("#model" + myArray[0] + "__HasAccess").val(isChecked);
+
+            });
+        }
+
+    });
+</script>
+<style>
+    /* Display tree sections side by side */
+    #jqxTree {
+        border: none !important;
+        background: transparent !important;
+    }
+    #jqxTree > ul {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        background: transparent !important;
+        border: none !important;
+    }
+    #jqxTree > ul > li {
+        width: 32% !important;
+        margin-bottom: 20px !important;
+        background: #fff;
+        padding: 10px;
+        border: 1px solid #e9ebec;
+        border-radius: 5px;
+        box-shadow: 0 1px 2px rgba(56,65,74,.05);
+    }
+    #jqxTree > ul > li > div {
+        font-weight: bold;
+        color: #405189;
+        margin-bottom: 5px;
+        font-size: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+    }
+    /* Button colors from UITheme */
+</style>
+
+<div class="row pt-3 pb-3 justify-content-center">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0">
+            <div class="border-bottom pb-2">
+                <h4 class="mb-0 ui-page-header">
+                    <i class="ri-user-settings-line me-1"></i> Menu Rights for User : <b>@UID</b>
+                </h4>
+            </div>
+            <div class="card-body form">
+                <div class="form-body">
+                    @using (Html.BeginForm("ChangeRights", "Master", FormMethod.Post, new { @id = "submit_form", @class = "form-horizontal" }))
+                    {
+
+                        <div class="form-actions text-center mt-3 mb-4">
+                            <a class="@ViewBag.UI.Buttons.Back.CssClass" href="@Url.Content("~/Master/UserList")"><i class="@ViewBag.UI.Buttons.Back.Icon align-middle"></i>&nbsp;@ViewBag.UI.Buttons.Back.Label</a>
+                            <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass controls btnSubmit"><i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i>&nbsp;@ViewBag.UI.Buttons.Submit.Label</button>
+                            @Html.Hidden("UserId", UID)
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <div class="col-md-offset-1 col-md-10">
+                                <div id='jqxTree' style='visibility: hidden;'>
+                                    @Html.MenuTree(UID)
+                                </div>
+                            </div>
+                        </div>
+                        foreach (var itm in Model)
+                        {
+
+                            string uId = "model" + itm.MenuID + "__UserId";
+                            string mId = "model" + itm.MenuID + "__MenuId";
+                            string hId = "model" + itm.MenuID + "__HasAccess";
+
+                            string uIdn = "model[" + itm.MenuID + "].TUserId";
+                            string mIdn = "model[" + itm.MenuID + "].MenuId";
+                            string hIdn = "model[" + itm.MenuID + "].HasAccess";
+
+                            <div>
+                                <input type="hidden" name="model.index" autocomplete="off" value="@itm.MenuID" />
+                                <input type="hidden" id="@uId" name="@uIdn" />
+                                <input type="hidden" id="@mId" name="@mIdn" />
+                                <input type="hidden" id="@hId" name="@hIdn" />
+                            </div>
+                            i++;
+                        }
+                        <div class="form-actions">
+                            <a class="@ViewBag.UI.Buttons.Back.CssClass" href="@Url.Content("~/Master/UserList")"><i class="@ViewBag.UI.Buttons.Back.Icon align-middle"></i>&nbsp;@ViewBag.UI.Buttons.Back.Label</a>
+                            <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass controls btnSubmit"><i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i>&nbsp;@ViewBag.UI.Buttons.Submit.Label</button>
+                            @Html.Hidden("UserId", UID)
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

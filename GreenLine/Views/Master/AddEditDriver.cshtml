@@ -1,0 +1,2979 @@
+@model GreenLineDataService.ViewModel.DriverViewModel
+
+@using GreenLineDataService.Models
+
+@using GreenLine.Classes
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+
+    var Text = "Submit"; bool Active = false; bool License = false; bool Address = false; bool ElectricityBill = false; bool TelephoneBill = false;
+
+    bool BankAcc = false; bool Passport = false; bool RationCard = false; bool Driver_Regi = false; bool ID_Passport = false;
+
+    bool Licence = false; bool VoterId = false; bool Pancard = false; bool Aadhar_Card = false; bool Vaccine_Certificate = false;
+
+    bool Police_Verification_Certificate = false;
+
+    var type = "Add";
+
+    if (Model.WFDM.Driver_Id != 0)
+
+    {
+
+        Text = "Update";
+
+        type = "Edit";
+
+    }
+
+    if (Model.WFDM.ActiveFlag != null && Model.WFDM.ActiveFlag.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Active = true;
+
+    }
+
+    if (type == "Add")
+
+    {
+
+        if (Model.WFDM.ActiveFlag == null)
+
+        {
+
+            Active = true;
+
+            Model.WFDM.ActiveFlag = "Y";
+
+        }
+
+    }
+
+    if (Model.WFDDD.License_Verified != null && Model.WFDDD.License_Verified.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        License = true;
+
+    }
+
+    if (Model.WFDDD.Address_Verified != null && Model.WFDDD.Address_Verified.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Address = true;
+
+    }
+
+    if (Model.WFDDD.Electricity_Bill_YN != null && Model.WFDDD.Electricity_Bill_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        ElectricityBill = true;
+
+    }
+
+    if (Model.WFDDD.Telephone_Bill_YN != null && Model.WFDDD.Telephone_Bill_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        TelephoneBill = true;
+
+    }
+
+    if (Model.WFDDD.BankAcc_YN != null && Model.WFDDD.BankAcc_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        BankAcc = true;
+
+    }
+
+    if (Model.WFDDD.Passport_YN != null && Model.WFDDD.Passport_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Passport = true;
+
+    }
+
+    if (Model.WFDDD.Rationcard_YN != null && Model.WFDDD.Rationcard_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        RationCard = true;
+
+    }
+
+    if (Model.WFDDD.Driver_Registration_Form_YN != null && Model.WFDDD.Driver_Registration_Form_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Driver_Regi = true;
+
+    }
+
+    if (Model.WFDDD.ID_Passport_YN != null && Model.WFDDD.ID_Passport_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        ID_Passport = true;
+
+    }
+
+    if (Model.WFDDD.Driving_lic_YN != null && Model.WFDDD.Driving_lic_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Licence = true;
+
+    }
+
+    if (Model.WFDDD.VoterId_YN != null && Model.WFDDD.VoterId_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        VoterId = true;
+
+    }
+
+    if (Model.WFDDD.PAN_YN != null && Model.WFDDD.PAN_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Pancard = true;
+
+    }
+
+    if (Model.WFDDD.Aadhar_card_YN != null && Model.WFDDD.Aadhar_card_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Aadhar_Card = true;
+
+    }
+
+    if (Model.WFDDD.Vaccine_Certificate_YN != null && Model.WFDDD.Vaccine_Certificate_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Vaccine_Certificate = true;
+
+    }
+
+    if (Model.WFDDD.Police_Verification_Certificate_YN != null && Model.WFDDD.Police_Verification_Certificate_YN.ToUpper() == "Y" || Model.WFDM.Driver_Id == null)
+
+    {
+
+        Police_Verification_Certificate = true;
+
+    }
+
+
+
+    GreenLineDataService.Helper.MasterService MS = new GreenLineDataService.Helper.MasterService();
+
+    List<CYGNUS_citymaster> CityList = MS.GetCityMaster().Where(c => c.activeflag == "Y").ToList().OrderBy(c => c.Location).ToList();
+
+    List<CYGNUS_Master_General> GenralList = MS.GetGeneralMaster().Where(c => c.StatusCode == "Y").ToList().OrderBy(c => c.CodeDesc).ToList();
+
+    List<CYGNUS_location> ListLocations = MS.GetLocationDetailsForDriver().OrderBy(c => c.LocName).ToList();
+
+
+
+    List<CYGNUS_acctinfo> VehicleAccountCodeList = MS.GetVehicleAccountCodeObject().ToList();
+
+    Model.WFDM.DriverAccountCode = "LIA0138";
+
+
+
+    ViewBag.Title = @type + " Driver";
+
+}
+
+
+
+<!-- start page title -->
+
+<div class="row">
+
+    <div class="col-12">
+
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+
+            <h4 class="mb-sm-0">@ViewBag.Title @(Model.WFDM.Driver_Id != 0 ? "#" + Model.WFDM.Driver_Id.ToString() : "")</h4>
+
+            <div class="page-title-right d-flex align-items-center gap-2">
+
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">Master</a></li>
+
+                    <li class="breadcrumb-item active">@ViewBag.Title</li>
+
+                </ol>
+
+                @if (Model.WFDM.Driver_Id != null)
+
+                {
+
+                    <a class="@ViewBag.UI.Buttons.Add.CssClass" href="@Url.Content("~/Fleet/AddEditDriver")">
+
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+
+                    </a>
+
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- end page title -->
+
+<style>
+
+    .card {
+
+        box-shadow: 0 1px 2px rgba(56,65,74,.15) !important;
+
+        margin-bottom: 24px;
+
+        background-color: #fff;
+
+    }
+
+    .select2-container {
+
+        width: 100% !important;
+
+    }
+
+    span.field-validation-error, span.error, label.error, form .help-block, .has-error .help-block {
+
+        color: #b94a48 !important;
+
+        font-size: 12px;
+
+        margin-top: 4px;
+
+        display: block;
+
+    }
+
+    input.error, select.error, .has-error .select2-selection {
+
+        border-color: #b94a48 !important;
+
+    }
+
+    .input-group.date {
+
+        margin-bottom: 4px;
+
+    }
+
+    label.required-field::after {
+
+        content: " *";
+
+        color: #b94a48;
+
+        font-weight: bold;
+
+    }
+
+    /* Switch container */
+
+    .switch {
+
+        position: relative;
+
+        display: inline-block;
+
+        width: 38px;
+
+        height: 20px;
+
+    }
+
+    .slider {
+
+        position: absolute;
+
+        cursor: pointer;
+
+        background-color: #dee2e6;
+
+        transition: .3s;
+
+        border-radius: 20px;
+
+        top: 0; left: 0; right: 0; bottom: 0;
+
+    }
+
+    .slider:before {
+
+        position: absolute;
+
+        content: "";
+
+        height: 14px;
+
+        width: 14px;
+
+        left: 3px;
+
+        bottom: 3px;
+
+        background-color: white;
+
+        transition: .3s;
+
+        border-radius: 50%;
+
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+    }
+
+    .switch input:checked + .slider {
+
+        background-color: @ViewBag.UI.Switch.ActiveColor;
+
+    }
+
+    .switch input:checked + .slider:before {
+
+        transform: translateX(18px);
+
+    }
+
+</style>
+
+@using (Html.BeginForm("AddEditDriver", "Master", FormMethod.Post, new { @id = "submit_form", @enctype = "multipart/form-data", @class = "form-horizontal" }))
+
+{
+
+    <div class="alert alert-danger display-hide">
+
+        <button class="close" data-close="alert"></button>
+
+        You have some form errors. Please check below.
+
+    </div>
+
+    <div class="alert alert-success display-hide">
+
+        <button class="close" data-close="alert"></button>
+
+        Your form validation is successful!
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-12">
+
+            <div class="card shadow-sm border-0 rounded-0">
+
+                <div class="card-header align-items-center d-flex ui-page-header section-header-bg">
+
+                    <h5 class="card-title mb-0 flex-grow-1">
+
+                        <i class="ri-user-line align-middle me-1"></i> Driver Details
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="form-body">
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3" style="display:none;">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Driver Code
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.Driver_Id, new { placeholder = "System Generated", @class = "form-control", @readonly = "true" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Manual Driver Code
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.Manual_Driver_Code, new { placeholder = "Manual Driver Code", @class = "form-control required" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Driver Name:
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.Driver_Name, new { placeholder = "Driver Name", @class = "form-control required" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            License No.
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.License_No, new
+
+                                            {
+
+                                                placeholder = "License No.",
+
+                                                @class = "form-control required"@*, @minlength = 15, @maxlength = 16,title="Enter a valid license number"*@})
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Mobile Number
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.Mobileno, new { placeholder = "Mobile Number", @class = "form-control required", @onkeypress = "javascript:return validInt(event,this.getAttribute('id'))", @maxlength = 10 })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Date Of Birth
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDM.D_DOB, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDM.D_DOB).ToString("dd MMM yyyy")), new { @class = " form-control date-picker required" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                            <span id="DOB_error" class="text-danger"></span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Driver's Father Name
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.DFather_Name, new { placeholder = "Driver's Father Name", @class = "form-control" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Location
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @*@Html.TextBoxFor(c => c.WFDM.Driver_Location, new { placeholder = "Location", @class = "form-control" })*@
+
+                                            @Html.DropDownListFor(c => c.WFDM.Driver_Location, new SelectList(ListLocations, "LocCode", "LocName_LocCode"), "", new { @class = "select2 required form-control", @placeholder = "Location" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Driver Category Id
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.DropDownListFor(c => c.WFDM.D_category, new SelectList(GenralList.Where(c => c.CodeType == "DRIVERCAT"), "CodeId", "CodeDesc"), "", new { @class = "select2 form-control required", @placeholder = "Select Driver Category Id" })
+
+                                            @Html.ValidationMessageFor(c => c.WFDM.D_category)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                @*<div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            PinCode
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.P_Pincode, new { placeholder = "Permanent PinCode", @class = "form-control", @onkeypress = "javascript:return validInt(event,this.getAttribute('id'))", @maxlength = "6" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Permanent Address
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextAreaFor(c => c.WFDM.P_Address, new { placeholder = "Permanent Address", @class = "form-control" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            City
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.DropDownListFor(c => c.WFDM.P_City, new SelectList(CityList, "Location", "Location"), "", new { @class = "select2 required form-control", @placeholder = "Select Permanent City" })
+
+                                            @Html.ValidationMessageFor(c => c.WFDM.VEHNO)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>*@
+
+                                
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            PinCode
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.C_Pincode, new { placeholder = "Current PinCode", @class = "form-control", @onkeypress = "javascript:return validInt(event,this.getAttribute('id'))", @maxlength = "6" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            City
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.DropDownListFor(c => c.WFDM.C_City, new SelectList(CityList, "city_code", "Location"), "", new { @class = "select2 required form-control", @placeholder = "Select Current City" })
+
+                                            @Html.ValidationMessageFor(c => c.WFDM.VEHNO)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Current Address
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextAreaFor(c => c.WFDM.C_Address, new { placeholder = "Current Address", @class = "form-control " })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Guarantor Name
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.Guarantor_Name, new { placeholder = "Guarantor Name", @class = "form-control required" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Ethnicity
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.DropDownListFor(c => c.WFDM.D_Ethnicity_Id, new SelectList(GenralList.Where(c => c.CodeType == "DRVETH"), "CodeId", "CodeDesc"), "", new { @class = "select2 form-control", @placeholder = "Select Ethnicity" })
+
+                                            @Html.ValidationMessageFor(c => c.WFDM.D_Ethnicity_Id)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Validity From Date
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDM.Valdity_dt, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDM.Valdity_dt).ToString("dd MMM yyyy")), new { @class = " form-control date-picker required" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Validity To Date
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDM.Valdity_Todt, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDM.Valdity_Todt).ToString("dd MMM yyyy")), new { @class = " form-control date-picker required" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Issued By RTO
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.Issue_By_RTO, new { placeholder = "Issued By RTO", @class = "form-control required" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            License Initial Issue Date
+
+                                        </label>
+
+                                        <div class="col-12">
+
+
+
+                                            <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDM.D_Lic_Initial_Issuance_Date, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDM.D_Lic_Initial_Issuance_Date).ToString("dd MMM yyyy")), new { @class = " form-control date-picker required" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            License Current Issue Date
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @*data-date-start-date="+1d"*@
+
+                                            <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDM.D_Lic_Current_Issuance_Date, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDM.D_Lic_Current_Issuance_Date).ToString("dd MMM yyyy")), new { @class = " form-control date-picker required" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            License Verified Date
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDDD.License_Verified_Dt, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDDD.License_Verified_Dt).ToString("dd MMM yyyy")), new { @class = " form-control date-picker required" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Name Of Bank :
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.Name_Of_bank, new { placeholder = "System Generated", @class = "form-control" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Bank A/c Number :
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.Bank_AC_Number, new { placeholder = "Bank A/c Number ", @class = "form-control required" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            IFSC Code
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.TextBoxFor(c => c.WFDM.IFSC_Code, new { placeholder = "IFSC Code", @class = "form-control required" })
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Vehicle Account Code
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.DropDownListFor(c => c.WFDM.DriverAccountCode, new SelectList(VehicleAccountCodeList, "Acccode", "Accdesc", Model.WFDM.DriverAccountCode), "", new { @class = "select2 required form-control", @placeholder = "Select Vehicle Code" })
+
+                                            @Html.ValidationMessageFor(c => c.WFDM.VEHNO)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Date of Joining
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDM.Date_of_Joining, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDM.Date_of_Joining).ToString("dd MMM yyyy")), new { @class = " form-control date-picker required" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Date of ReJoining
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDM.Date_of_ReJoining, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDM.Date_of_ReJoining).ToString("dd MMM yyyy")), new { @class = " form-control date-picker", @placeholder = "dd MMM yyyy" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                            <span id="rejoining_error" class="text-danger"></span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Date of Exit
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <div class="input-group date " data-date-format="dd MMM yyyy">
+
+                                                @Html.TextBoxFor(c => c.WFDM.Date_of_Exit, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WFDM.Date_of_Exit).ToString("dd MMM yyyy")), new { @class = " form-control date-picker", @placeholder = "dd MMM yyyy" })
+
+                                                <span class="input-group-btn">
+
+                                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+
+                                                </span>
+
+                                            </div>
+
+                                            <span id="exitDate_error" class="text-danger"></span>
+
+                                        </div>
+
+
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Reason for Exit
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            @Html.DropDownListFor(c => c.WFDM.Reason_for_Exit, new SelectList(GenralList.Where(c => c.CodeType == "REFE"), "CodeId", "CodeDesc"), "", new { @class = "select2 form-control", @placeholder = "Select Reason" })
+
+                                            @Html.ValidationMessageFor(c => c.WFDM.Reason_for_Exit)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            License Verified
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <label class="switch">
+
+                                                <input type="checkbox" name="License_Verified" @(License ? "checked" : "") class="chk" data-value="WFDDD_License_Verified">
+
+                                                <span class="slider round"></span>
+
+                                            </label>
+
+                                            @Html.HiddenFor(c => c.WFDDD.License_Verified)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Address Verified
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <label class="switch">
+
+                                                <input type="checkbox" name="Address_Verified" @(Address ? "checked" : "") class="chk" data-value="WFDDD_Address_Verified">
+
+                                                <span class="slider round"></span>
+
+                                            </label>
+
+                                            @Html.HiddenFor(c => c.WFDDD.Address_Verified)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Status
+
+                                        </label>
+
+                                        <div class="col-12">
+
+                                            <label class="switch">
+
+                                                <input type="checkbox" name="Active" @(Active ? "checked" : "") class="chk" data-value="WFDM_ActiveFlag">
+
+                                                <span class="slider round"></span>
+
+                                            </label>
+
+                                            @Html.HiddenFor(c => c.WFDM.ActiveFlag)
+
+                                            @Html.HiddenFor(c => c.WFDM.DeiverPhotoBase64)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3" id="divImg" style="display:none">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Photo :
+
+                                        </label>
+
+                                        <div class="col-12" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn btn-file">
+
+                                                        <img id="img" height="200px" width="170px" src="" />
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDM.Driver_Photo)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDM.Driver_Photo">@Model.WFDM.Driver_Photo</a>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2 pt-3 border-top">
+
+                        <a href="@Url.Content("~/Master/DriverList")" class="@ViewBag.UI.Buttons.Cancel.CssClass btnBacktoList">
+
+                            <i class="@ViewBag.UI.Buttons.Cancel.Icon align-middle"></i> @ViewBag.UI.Buttons.Cancel.Label
+
+                        </a>
+
+                        <button type="submit" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave">
+
+                            <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i> @Text
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row" style="display:none">
+
+        <div class="col-12">
+
+            <div class="card shadow-sm border-0 rounded-0">
+
+                <div class="card-header align-items-center d-flex ui-page-header section-header-bg">
+
+                    <h5 class="card-title mb-0 flex-grow-1">
+
+                        <i class="ri-file-text-line align-middle me-1"></i> Address Proof Document Type &amp; No
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="form-body">
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("Electricity_Bill_YN", @ElectricityBill, new { @class = "chk", @data_value = "WFDDD_Electricity_Bill_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.Electricity_Bill_YN)
+
+                                            Electricity Bill :
+
+                                        </label>
+
+                                        <div class="col-12" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.Electricity_Bill_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.Electricity_Bill_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Electricity_Bill_File">@Model.WFDDD.Electricity_Bill_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("Telephone_Bill_YN", @TelephoneBill, new { @class = "chk", @data_value = "WFDDD_Telephone_Bill_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.Telephone_Bill_YN)
+
+                                            Telephone Bill :
+
+                                        </label>
+
+                                        <div class="col-12" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.Telephone_Bill_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.Telephone_Bill_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Telephone_Bill_File">@Model.WFDDD.Telephone_Bill_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("BankAcc_YN", @BankAcc, new { @class = "chk", @data_value = "WFDDD_BankAcc_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.BankAcc_YN)
+
+                                            Account Statement  :
+
+                                        </label>
+
+                                        <div class="col-12" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.BankAcc_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.BankAcc_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.BankAcc_File">@Model.WFDDD.BankAcc_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("Passport_YN", @Passport, new { @class = "chk", @data_value = "WFDDD_Passport_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.Passport_YN)
+
+                                            Passport  :
+
+                                        </label>
+
+                                        <div class="col-12" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.Passport_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.Passport_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Passport_File">@Model.WFDDD.Passport_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                        <div class="form-group">
+
+                                            <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                @Html.CheckBox("Rationcard_YN", @RationCard, new { @class = "chk", @data_value = "WFDDD_Rationcard_YN" })
+
+                                                @Html.HiddenFor(c => c.WFDDD.Rationcard_YN)
+
+                                                Ration Card :
+
+                                            </label>
+
+                                            <div class="col-12" data-title="Upload Document">
+
+                                                <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                    <div class="col-12">
+
+                                                        <span class="btn blue btn-file">
+
+                                                            <input type="file" id="@Model.WFDDD.Rationcard_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                        </span>
+
+                                                    </div>
+
+                                                    <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                        @Html.HiddenFor(c => c.WFDDD.Rationcard_File)
+
+                                                    </div>
+
+                                                    <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Rationcard_File">@Model.WFDDD.Rationcard_File</a>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("Driver_Registration_Form_YN", @Driver_Regi, new { @class = "chk", @data_value = "WFDDD_Driver_Registration_Form_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.Driver_Registration_Form_YN)
+
+                                            Driver’s Registration Form:
+
+                                        </label>
+
+                                        <div class="col-12" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.Driver_Registration_Form_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.Driver_Registration_Form_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Driver_Registration_Form_File">@Model.WFDDD.Driver_Registration_Form_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row" style="display:none">
+
+        <div class="col-12">
+
+            <div class="card shadow-sm border-0 rounded-0">
+
+                <div class="card-header align-items-center d-flex ui-page-header section-header-bg">
+
+                    <h5 class="card-title mb-0 flex-grow-1">
+
+                        <i class="ri-id-card-line align-middle me-1"></i> ID Proof Document Type &amp; No
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="form-body">
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("ID_Passport_YN", @ID_Passport, new { @class = "chk", @data_value = "WFDDD_ID_Passport_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.ID_Passport_YN)
+
+                                            Passport :
+
+                                        </label>
+
+                                        <div class="col-md-2" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.ID_Passport_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.ID_Passport_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.ID_Passport_File">@Model.WFDDD.ID_Passport_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-12">
+
+                                            <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                Passport No.
+
+                                            </label>
+
+                                            <div class="col-12">
+
+                                                @Html.TextBoxFor(c => c.WFDM.Passport_No, new { placeholder = "Passport No.", @class = "form-control", @minlength = 9, @maxlength = 9, title = "Enter a valid passport number." })
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("Driving_lic_YN", @Licence, new { @class = "chk", @data_value = "WFDDD_Driving_lic_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.Driving_lic_YN)
+
+                                            Driving License :
+
+                                        </label>
+
+                                        <div class="col-md-2" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.Driving_lic_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.Driving_lic_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Driving_lic_File">@Model.WFDDD.Driving_lic_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-12">
+
+                                            <div class="form-group">
+
+                                                <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                    License No.
+
+                                                </label>
+
+                                                <div class="col-12">
+
+                                                    @Html.TextBoxFor(c => c.WFDM.License_No, new { placeholder = "License No.", @class = "form-control required", @minlength = 15, @maxlength = 16, title = "Enter a valid license number." })
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            Thumb Impression:
+
+                                        </label>
+
+                                        <div class="col-12" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.Thumb_Impression_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.Thumb_Impression_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Thumb_Impression_File">@Model.WFDDD.Thumb_Impression_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                        <div class="form-group">
+
+                                            <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                @Html.CheckBox("VoterId_YN", @VoterId, new { @class = "chk", @data_value = "WFDDD_VoterId_YN" })
+
+                                                @Html.HiddenFor(c => c.WFDDD.VoterId_YN)
+
+                                                Voter's Id  :
+
+                                            </label>
+
+                                            <div class="col-md-2" data-title="Upload Document">
+
+                                                <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                    <div class="col-12">
+
+                                                        <span class="btn blue btn-file">
+
+                                                            <input type="file" id="@Model.WFDDD.VoterId_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                        </span>
+
+                                                    </div>
+
+                                                    <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                        @Html.HiddenFor(c => c.WFDDD.VoterId_File)
+
+                                                    </div>
+
+                                                    <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.VoterId_File">@Model.WFDDD.VoterId_File</a>
+
+                                                </div>
+
+                                            </div>
+
+                                            <div class="col-12">
+
+                                                <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                    Voter's Id
+
+                                                </label>
+
+                                                <div class="col-12">
+
+                                                    @Html.TextBoxFor(c => c.WFDM.Voter_Id, new { placeholder = "Voter's Id", @class = "form-control", @minlength = 10, @maxlength = 10, pattern = "[A-Z]{3}[0-9]{7}", title = "Enter a valid Voter ID. It should be as {AAA0000000}" })
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                        <div class="form-group">
+
+                                            <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                @Html.CheckBox("PAN_YN", @Pancard, new { @class = "chk", @data_value = "WFDDD_PAN_YN" })
+
+                                                @Html.HiddenFor(c => c.WFDDD.PAN_YN)
+
+                                                PAN Card   :
+
+                                            </label>
+
+                                            <div class="col-md-2" data-title="Upload Document">
+
+                                                <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                    <div class="col-12">
+
+                                                        <span class="btn blue btn-file">
+
+                                                            <input type="file" id="@Model.WFDDD.PAN_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                        </span>
+
+                                                    </div>
+
+                                                    <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                        @Html.HiddenFor(c => c.WFDDD.PAN_File)
+
+                                                    </div>
+
+                                                    <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.PAN_File">@Model.WFDDD.PAN_File</a>
+
+                                                </div>
+
+                                            </div>
+
+
+
+                                            <div class="col-12">
+
+                                                <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                    PAN No.
+
+                                                </label>
+
+                                                <div class="col-12">
+
+                                                    @Html.TextBoxFor(c => c.WFDM.PAN_No, new { placeholder = "PAN No.", @class = "form-control", @minlength = 10, @maxlength = 10, pattern = "[A-Z]{5}[0-9]{4}[A-Z]{1}", title = "Enter a valid PAN number. It should be as {AAAAA0000A}" })
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                        <div class="form-group">
+
+                                            <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                Photo :
+
+                                            </label>
+
+                                            <div class="col-12" data-title="Upload Document">
+
+                                                <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                    <div class="col-12">
+
+                                                        <span class="btn blue btn-file">
+
+                                                            <input type="file" id="@Model.WFDM.Driver_Photo" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                        </span>
+
+                                                    </div>
+
+                                                    <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                        @Html.HiddenFor(c => c.WFDM.Driver_Photo)
+
+                                                    </div>
+
+                                                    <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDM.Driver_Photo">@Model.WFDM.Driver_Photo</a>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                        <div class="form-group">
+
+                                            <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                @Html.CheckBox("Aadhar_card_YN", @Aadhar_Card, new { @class = "chk", @data_value = "WFDDD_Aadhar_card_YN" })
+
+                                                @Html.HiddenFor(c => c.WFDDD.Aadhar_card_YN)
+
+                                                Aadhaar Card :
+
+                                            </label>
+
+                                            <div class="col-md-2" data-title="Upload Document">
+
+                                                <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                    <div class="col-12">
+
+                                                        <span class="btn blue btn-file">
+
+                                                            <input type="file" id="@Model.WFDDD.Aadhar_card_YN" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                        </span>
+
+                                                    </div>
+
+                                                    <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                        @Html.HiddenFor(c => c.WFDDD.Aadhar_card_File)
+
+                                                    </div>
+
+                                                    <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Aadhar_card_File">@Model.WFDDD.Aadhar_card_File</a>
+
+                                                </div>
+
+                                            </div>
+
+                                            <div class="col-12">
+
+                                                <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                    Aadhar No.
+
+                                                </label>
+
+                                                <div class="col-12">
+
+                                                    @Html.TextBoxFor(c => c.WFDM.Aadhar_No, new { placeholder = "Aadhar No.", @class = "form-control required", @minlength = 12, @maxlength = 12, @onkeypress = "javascript:return validDigits(event,this.id)", title = "Enter a valid Aadhar number." })
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("Vaccine_Certificate_YN", @Vaccine_Certificate, new { @class = "chk", @data_value = "WFDDD_Vaccine_Certificate_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.Vaccine_Certificate_YN)
+
+                                            Vaccine Certificate :
+
+                                        </label>
+
+                                        <div class="col-md-2" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.Vaccine_Certificate_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.Vaccine_Certificate_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Vaccine_Certificate_File">@Model.WFDDD.Vaccine_Certificate_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-12">
+
+                                            <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                Vaccine No.
+
+                                            </label>
+
+                                            <div class="col-12">
+
+                                                @Html.TextBoxFor(c => c.WFDM.Vaccine_No, new { placeholder = "Vaccine No.", @class = "form-control", title = "Enter a valid Vaccine number." })
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 mb-3">
+
+                                    <div class="form-group">
+
+                                        <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                            @Html.CheckBox("Police_Verification_Certificate_YN", @Police_Verification_Certificate, new { @class = "chk", @data_value = "WFDDD_Police_Verification_Certificate_YN" })
+
+                                            @Html.HiddenFor(c => c.WFDDD.Police_Verification_Certificate_YN)
+
+                                            Police Verification Certificate  :
+
+                                        </label>
+
+                                        <div class="col-md-2" data-title="Upload Document">
+
+                                            <div class="fileinput fileinput-new" data-provides="fileinput">
+
+                                                <div class="col-12">
+
+                                                    <span class="btn blue btn-file">
+
+                                                        <input type="file" id="@Model.WFDDD.Police_Verification_Certificate_File" name="file" /><i class="fa fa-plus"></i> Select
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="col-md-3 fileinput-preview fileinput-exists thumbnail" style="max-width: 30px; max-height: 50px;">
+
+                                                    @Html.HiddenFor(c => c.WFDDD.Police_Verification_Certificate_File)
+
+                                                </div>
+
+                                                <a class="col-md-2 margin-top-5 text-primary" target="_blank" href="~/Images/Driver/@Model.WFDM.Driver_Id/@Model.WFDDD.Police_Verification_Certificate_File">@Model.WFDDD.Police_Verification_Certificate_File</a>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-12">
+
+                                            <label class="form-label fw-medium mb-1 mt-2 text-muted">
+
+                                                Police Verification
+
+                                            </label>
+
+                                            <div class="col-12">
+
+                                                @Html.TextBoxFor(c => c.WFDM.Police_Verification, new { placeholder = "Police verification", @class = "form-control" })
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    @*<div class="d-flex justify-content-center gap-2 pt-3 border-top">
+
+                        <a href="@Url.Content("~/Master/DriverList")" class="@ViewBag.UI.Buttons.Cancel.CssClass btnBacktoList">
+
+                            <i class="@ViewBag.UI.Buttons.Cancel.Icon align-middle"></i> @ViewBag.UI.Buttons.Cancel.Label
+
+                        </a>
+
+                        <button type="submit" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave">
+
+                            <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i> @Text
+
+                        </button>
+
+                    </div>*@
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+}
+
+
+
+<style>
+
+    .modal-content {
+
+        animation: popIn 0.3s ease-in-out;
+
+    }
+
+
+
+    @@keyframes popIn {
+
+        from {
+
+            transform: scale(0.9);
+
+            opacity: 0;
+
+        }
+
+
+
+        to {
+
+            transform: scale(1);
+
+            opacity: 1;
+
+        }
+
+    }
+
+</style>
+
+
+
+<script type="text/javascript">
+
+    var FormComponents = function (DomainName) {
+
+        var FormValidate = function (DomainName) {
+
+            var form1 = $('#submit_form');
+
+            var error1 = $('.alert-danger', form1);
+
+            var success1 = $('.alert-success', form1);
+
+
+
+            form1.validate({
+
+                doNotHideMessage: true,
+
+                errorElement: 'span', //default input error message container
+
+                errorClass: 'help-block', // default input error message class
+
+                // errorClass: 'validate-inline',
+
+                focusInvalid: false, // do not focus the last invalid input
+
+
+
+
+
+                rules: {
+
+                    //account dateFuture
+
+                },
+
+                messages: {
+
+
+
+                },
+
+                errorPlacement: function (error, element) {
+
+                    if (element.parent('.input-group').length) {
+
+                        error.insertAfter(element.parent());
+
+                    } else {
+
+                        error.insertAfter(element);
+
+                    }
+
+                },
+
+                invalidHandler: function (event, validator) { //display error alert on form submit
+
+                    success1.hide();
+
+                    error1.show();
+
+                    App.scrollTo(error1, -200);
+
+                },
+
+                highlight: function (element) { // hightlight error inputs
+
+                    $(element)
+
+                        .closest('.form-group').addClass('has-error'); // set error class to the control group
+
+                },
+
+                unhighlight: function (element) { // revert the change done by hightlight
+
+                    $(element)
+
+                        .closest('.form-group').removeClass('has-error'); // set error class to the control group
+
+                },
+
+                success: function (label) {
+
+                    label
+
+                        .closest('.form-group').removeClass('has-error'); // set success class to the control group
+
+                },
+
+                submitHandler: function (form) {
+
+                    success1.show();
+
+                    error1.hide();
+
+                    App.blockUI({ boxed: true });
+
+                    document.forms["submit_form"].submit();
+
+                }
+
+            });
+
+        }
+
+
+
+        var Events = function (DomainName) {
+
+
+
+            $.ajax({
+
+                url: DomainName + '/Master/GetDriverDetailsFromAPI?dlnumber=' + $('#WFDM_License_No').val() + '&dob=' + $('#WFDM_D_DOB').val(),
+
+                type: 'POST',
+
+                success: function (result) {
+
+
+
+                    App.unblockUI();
+
+                    if (result.length > 0) {
+
+
+
+                        $('#WFDM_D_Lic_Initial_Issuance_Date').val(result[0].dlIssueDt);
+
+                        $('#WFDM_D_Lic_Current_Issuance_Date').val(result[0].dlNtValdFrDt);
+
+                        $('#WFDM_Valdity_dt').val(result[0].dlNtValdToDt);
+
+                        if (result[0].dlStatus == 'Active') {
+
+
+
+                        }
+
+                    }
+
+                },
+
+                error: function (req, status, error) {
+
+                    TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+
+                    App.unblockUI();
+
+                }
+
+            });
+
+
+
+        }
+
+
+
+        var GetDriverDetailsFromAPI = function (DomainName) {
+
+
+
+            $.ajax({
+
+                url: DomainName + '/Fleet/GetDriverDetailsFromAPINew?dlnumber=' + $('#WFDM_License_No').val() + '&dob=' + $('#WFDM_D_DOB').val(),
+
+                type: 'POST',
+
+                success: function (result) {
+
+                    console.log(result);
+
+                    App.unblockUI();
+
+                    if (result.response[0].responseStatus == "SUCCESS") {
+
+
+
+                        /*$('#WFDM_D_Lic_Initial_Issuance_Date').val(result[0].dlIssueDt);
+
+                        $('#WFDM_D_Lic_Current_Issuance_Date').val(result[0].dlNtValdFrDt);
+
+                        $('#WFDM_Valdity_dt').val(result[0].dlNtValdToDt);
+
+                        if (result[0].dlStatus == 'Active') {
+
+
+
+                        }*/
+
+
+
+                        $("#WFDM_Driver_Name").val(result.response[0].response.dldetobj[0].bioObj.bioFullName);
+
+                        $("#WFDM_DFather_Name").val(result.response[0].response.dldetobj[0].bioObj.bioSwdFname);
+
+                        $("#WFDM_P_City").val(result.response[0].response.dldetobj[0].dlobj.omOfficeTownname).change();
+
+                        $("#WFDM_C_City").val(result.response[0].response.dldetobj[0].dlobj.omOfficeTownname).change();
+
+                        $("#WFDM_P_Pincode").val(result.response[0].response.dldetobj[0].bioObj.bioPermPin);
+
+                        $("#WFDM_C_Pincode").val(result.response[0].response.dldetobj[0].bioObj.bioTempPin);
+
+                        $("#WFDM_Issue_By_RTO").val(result.response[0].response.dldetobj[0].dlobj.omRtoFullname);
+
+                        $("#WFDM_Valdity_dt").val(result.response[0].response.dldetobj[0].dlobj.dlNtValdfrDt);
+
+                        $("#WFDM_Valdity_Todt").val(result.response[0].response.dldetobj[0].dlobj.dlNtValdtoDt);
+
+                        $("#WFDM_D_Lic_Initial_Issuance_Date").val(result.response[0].response.dldetobj[0].dlobj.dlIssuedt);
+
+                        $("#WFDM_D_Lic_Current_Issuance_Date").val(result.response[0].response.dldetobj[0].dlobj.dlIssuedt);
+
+
+
+                        $("#divImg").show();
+
+                        document.getElementById("img").src = 'data:image/png;base64,' + result.response[0].response.dldetobj[0].bioImgObj.biPhoto;
+
+                        $("#WFDM_DeiverPhotoBase64").val(result.response[0].response.dldetobj[0].bioImgObj.biPhoto);
+
+
+
+                        /*var img = document.createElement("img");
+
+                        // added `width` , `height` properties to `img` attributes
+
+                        img.width = "250px";
+
+                        img.height = "250px";
+
+                        img.src = "data:image/png;base64," + result.response[0].response.dldetobj[0].bioImgObj.biPhoto;
+
+                        var preview = document.getElementById("img_preview");
+
+                        preview.appendChild(img);*/
+
+
+
+                    }
+
+                },
+
+                error: function (req, status, error) {
+
+                    TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+
+                    App.unblockUI();
+
+                }
+
+            });
+
+
+
+        }
+
+        return {
+
+            //main function to initiate the module
+
+            init: function (DomainName) {
+
+                FormValidate(DomainName);
+
+                $('.required').closest('.form-group').find('label.form-label').addClass('required-field');
+
+                //Events(DomainName);
+
+                //event(DomainName);
+
+                if ('@Model.WFDM.Driver_Id' == 0)
+
+                {
+
+                    $("#WFDM_Date_of_ReJoining").val("");
+
+                    $("#WFDM_Date_of_Exit").val("");
+
+                }
+
+                if ($("#WFDM_Date_of_ReJoining").val() == "01 Jan 1900") {
+
+                    $("#WFDM_Date_of_ReJoining").val("");
+
+                }
+
+                if ($("#WFDM_Date_of_Exit").val() == "01 Jan 1900") {
+
+                    $("#WFDM_Date_of_Exit").val("");
+
+                }
+
+                $(document).on("focusout", "#WFDM_Manual_Driver_Code", function () {
+
+                    var code = $(this).val();
+
+                    var StrURL = DomainName + "/Master/CheckDuplicateDriverCode?Code=" + code + "";
+
+                    $.ajax({
+
+                        url: StrURL,
+
+                        cache: false,
+
+                        data: {},
+
+                        type: 'POST',
+
+                        success: function (data) {
+
+                            if (data.Count > "0") {
+
+                                TosterNotification("error", 'Driver Manual code: <b>"' + code + '"</b> already exists!!!', "Oops..!!");
+
+                            }
+
+                            App.unblockUI('#addNew');
+
+                        },
+
+                        error: function (req, status, error) {
+
+                            TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+
+                            App.unblockUI('#addNew');
+
+                        }
+
+                    });
+
+                   
+
+                });
+
+                $(document).on("focusout", "#WFDM_License_No", function () {
+
+                    var number = $(this).val();
+
+                    var StrURL = DomainName + "/Master/CheckDuplicateDriver?number=" + number + "";
+
+                    $.ajax({
+
+                        url: StrURL,
+
+                        cache: false,
+
+                        data: {},
+
+                        type: 'POST',
+
+                        success: function (data) {
+
+                            if (data.Count > "0") {
+
+                                TosterNotification("error", 'Number : <b>"' + number + '"</b> already exists!!!', "Oops..!!");
+
+                            }
+
+                            else {
+
+                              //  if ($("#WFDM_D_DOB").val() != null && $("#WFDM_D_DOB").val() != "")
+
+                                  //  GetDriverDetailsFromAPI(DomainName);
+
+                            }
+
+                            App.unblockUI('#addNew');
+
+                        },
+
+                        error: function (req, status, error) {
+
+                            TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+
+                            App.unblockUI('#addNew');
+
+                        }
+
+                    });
+
+
+
+                });
+
+
+
+                $("#Active").click(function () {
+
+                    var dateInput = $("#WFDM_Date_of_Exit");
+
+                    var dateButton = dateInput.siblings(".input-group-btn").find(".date-set");
+
+                    console.log(dateButton);
+
+
+
+                    if ($(this).is(':checked')) {
+
+                        $("#WFDM_VEHNO").addClass("required required2");
+
+                        dateInput.prop("disabled", true);
+
+                        dateButton.prop("disabled", true);
+
+                        $("#exitDate_error").hide();
+
+                    } else {
+
+                        $("#WFDM_VEHNO").removeClass("required required2");
+
+                        dateInput.prop("disabled", false);
+
+                        dateButton.prop("disabled", false);
+
+                        $("#exitDate_error").show();
+
+                    }
+
+                });
+
+
+
+                $("#ID_Passport_YN").click(function () {
+
+                    if ($(this).is(':checked')) {
+
+                        $("#WFDM_Passport_No").addClass("required required2");
+
+                    }
+
+                    else {
+
+                        $("#WFDM_Passport_No").removeClass("required required2");
+
+                    }
+
+                });
+
+
+
+                $("#PAN_YN").click(function () {
+
+                    if ($(this).is(':checked')) {
+
+                        $("#WFDM_PAN_No").addClass("required required2");
+
+                    }
+
+                    else {
+
+                        $("#WFDM_PAN_No").removeClass("required required2");
+
+                    }
+
+                });
+
+
+
+                $("#Vaccine_Certificate_YN").click(function () {
+
+                    if ($(this).is(':checked')) {
+
+                        $("#WFDM_Vaccine_No").addClass("required required2");
+
+                    }
+
+                    else {
+
+                        $("#WFDM_Vaccine_No").removeClass("required required2");
+
+                    }
+
+                });
+
+
+
+                $("#VoterId_YN").click(function () {
+
+                    if ($(this).is(':checked')) {
+
+                        $("#WFDM_Voter_Id").addClass("required required2");
+
+                    }
+
+                    else {
+
+                        $("#WFDM_Voter_Id").removeClass("required required2");
+
+                    }
+
+                });
+
+
+
+                $("#Police_Verification_Certificate_YN").click(function () {
+
+                    if ($(this).is(':checked')) {
+
+                        $("#WFDM_Police_Verification").addClass("required required2");
+
+                    }
+
+                    else {
+
+                        $("#WFDM_Police_Verification").removeClass("required required2");
+
+                    }
+
+                });
+
+
+
+                $("#WFDM_Date_of_ReJoining").on('change', function () {
+
+                    var joiningDate = new Date($("#WFDM_Date_of_Joining").val());
+
+                    var rejoiningDate = new Date($(this).val());
+
+
+
+                    if (rejoiningDate <= joiningDate) {
+
+                        $("#rejoining_error").text('Please select the valid Rejoining Date, it should be greater than joining date.');
+
+                    } else {
+
+                        $("#rejoining_error").text('');
+
+                    }
+
+                });
+
+
+
+                $("#WFDM_Date_of_Exit").on('change', function () {
+
+                    var joiningDate = new Date($("#WFDM_Date_of_Joining").val());
+
+                    var exitDate = new Date($(this).val());
+
+
+
+                    if (exitDate <= joiningDate) {
+
+                        $("#exitDate_error").text('Please select the valid Exit Date, it should be greater than joining date.');
+
+                    }
+
+                    else {
+
+                        $("#exitDate_error").text('');
+
+                    }
+
+                })
+
+
+
+                $("#WFDM_D_DOB").on('change', function () {
+
+                    var selectedDate = new Date($(this).val());
+
+                    var currentDate = new Date();
+
+                    var ageDate = new Date(currentDate - selectedDate);
+
+                    var age = Math.abs(ageDate.getUTCFullYear() - 1970);
+
+
+
+                    if (age < 18) {
+
+                        $("#DOB_error").text('Age must be 18 years or older.');
+
+                    }
+
+                    else {
+
+                        $("#DOB_error").text('');
+
+                      
+
+                    }
+
+                });
+
+
+
+                $('.date-picker').datepicker({
+
+                    rtl: App.isRTL(),
+
+                    format: "dd M yyyy",
+
+                    autoclose: true,
+
+                    todayBtn: true,
+
+                });
+
+
+
+                $("#WFDM_Date_of_Exit").on("change", function () {
+
+                    if ($("#WFDM_Date_of_Exit").val() != '' && $("#WFDM_Date_of_Exit").val() != null) {
+
+                        $("#WFDM_Reason_for_Exit").addClass("required required2");
+
+                    }
+
+                    else {
+
+                        $("#WFDM_Reason_for_Exit").removeClass("required required2");
+
+                    }
+
+                });
+
+                $('.chk').change(function () {
+
+                    var gid = $(this).attr('id');
+
+                    var sid = $(this).data('value');
+
+                    if ($("#" + gid).is(":checked")) {
+
+                        $("#" + sid).val("Y");
+
+                    }
+
+                    else {
+
+                        $("#" + sid).val("N");
+
+                    }
+
+                });
+
+
+
+                // Handle toggle switch changes
+
+                $(document).on('change', '.switch input[type="checkbox"]', function() {
+
+                    var hiddenFieldName = $(this).data('value');
+
+                    var isChecked = $(this).is(':checked');
+
+                    if (isChecked) {
+
+                        $("#" + hiddenFieldName).val("Y");
+
+                    } else {
+
+                        $("#" + hiddenFieldName).val("N");
+
+                    }
+
+                });
+
+
+
+                $(".btnBacktoList").click(function () {
+
+                    App.blockUI({ boxed: true });
+
+                });
+
+
+
+                $('#WFDM_License_No').change(function () {
+
+                    if ($('#WFDM_License_No').val() != "" && $('#WFDM_D_DOB').val() != "") {
+
+                    }
+
+                });
+
+
+
+                $('#WFDM_D_DOB').change(function () {
+
+                    if ($('#WFDM_License_No').val() != "" && $('#WFDM_D_DOB').val() != "") {
+
+                    }
+
+                });
+
+
+
+                $("#WFDM_Mobileno").inputmask("mask", {
+
+                    "mask": "9999999999"
+
+                });
+
+            }
+
+        }
+
+    }();
+
+</script>
+
+<link href="~/assets/plugins/bootstrap-fileinput/bootstrap-fileinput.css" rel="stylesheet" />

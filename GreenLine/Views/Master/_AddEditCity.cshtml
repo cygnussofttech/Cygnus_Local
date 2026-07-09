@@ -1,0 +1,102 @@
+@model GreenLineDataService.Models.CYGNUS_citymaster
+@using GreenLineDataService.Models;
+@{
+    var Text = "Submit"; var type = "Add";
+    if (Model.city_code != null && Model.city_code > 0)
+    {
+        Text = "Update";
+        type = "Edit";
+    }
+
+    bool Active = true;
+    if (Model.activeflag != null && Model.activeflag.ToUpper() == "N")
+    {
+        Active = false;
+    }
+
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    List<CYGNUS_State> stateList = _masterService.GetStateMaster().Where(c => c.activeflag == null ? c.activeflag == null : c.activeflag == "Y").OrderBy(c => c.stnm).ToList();
+    List<CYGNUS_Master_General> zoneList = _masterService.GetGeneralMasterWithParam("ZONE").OrderBy(c => c.CodeDesc).ToList();
+}
+
+@using (Html.BeginForm("AddEditCity", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-horizontal form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(c => c.city_code, new { id = "city_code" })
+    @Html.HiddenFor(c => c.oldcity_code, new { id = "oldcity_code" })
+    @Html.HiddenFor(c => c.oldstate, new { id = "oldstate" })
+
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-map-pin-2-line align-middle me-1"></i> Basic Information
+        </h5>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">City Name</label>
+                    @Html.TextBoxFor(m => m.Location, new { placeholder = "City Name", @class = "required form-control", @type = "char" })
+                    @Html.ValidationMessageFor(m => m.Location)
+                </div>
+            </div>            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">State</label>
+                    @Html.DropDownListFor(m => m.state, new SelectList(stateList, "stcd", "stnm", Model.state), "", new { @class = "select2 required" })
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Zone</label>
+                    @Html.DropDownListFor(m => m.Region, new SelectList(zoneList, "CodeId", "CodeDesc", Model.Region), "", new { @class = "select2 required" })
+                </div>
+            </div>
+            @if (Model.city_code != null && Model.city_code > 0)
+            {
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="form-check form-switch pt-1">
+                            @Html.CheckBox("activeflag", @Active, new { @class = "form-check-input", @id = "activeflag" })
+                            <label class="form-check-label" for="activeflag">Status</label>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#Region').prop('disabled', true).addClass('disabled-field');
+
+        $('#Location').on('input', function () {
+            var inputValue = $(this).val();
+            var sanitizedValue = inputValue.replace(/[-_/]/g, ''); // Remove "-" and "_"
+            $(this).val(sanitizedValue);
+        });
+        $('#state').change(function () {
+            var State = $(this).val();
+            if (!State) {
+                $("#Region").val(null).trigger("change");
+                return;
+            }
+            $.ajax({
+                url: DomainName + '/Master/Get_Country_State_City_Zone_on_Pincode?Code=' + State + '&Type=S',
+                type: 'GET',
+                dataType: "json",
+                success: function (response) {
+                    if (response && response.length > 0) {
+
+                        $("#Region").val(response[0].ZoneId).trigger('change');
+                    }
+                    App.unblockUI();
+                },
+                error: function (jqXHR, exception) {
+                    result = { Status: false, Message: "Error occurred while contacting database or API." };
+                }
+            });
+
+        });
+    });
+</script>

@@ -1,0 +1,413 @@
+@model GreenLineDataService.ViewModel.LocationViewModel
+@using GreenLineDataService.Models
+@{
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+    List<SelectListItem> ListLocationOwnership = new List<SelectListItem>();
+    ListLocationOwnership.Add(new SelectListItem { Text = "Company", Value = "C" });
+    ListLocationOwnership.Add(new SelectListItem { Text = "BA", Value = "B" });
+    ListLocationOwnership.Add(new SelectListItem { Text = "Customer", Value = "O" });
+    ListLocationOwnership.Add(new SelectListItem { Text = "Franchise", Value = "F" });
+    ListLocationOwnership.Add(new SelectListItem { Text = "Vendor", Value = "V" });
+
+    List<SelectListItem> ListOctroi = new List<SelectListItem>();
+    ListOctroi.Add(new SelectListItem { Text = "Inside Octroi Limit", Value = "I" });
+    ListOctroi.Add(new SelectListItem { Text = "Outside Octroi Limit", Value = "O" });
+    ListOctroi.Add(new SelectListItem { Text = "Octroi Not Applicable", Value = "N" });
+
+
+    string Computerised = "", ActiveFlag = "";
+    if (Model.WL.Computerised != null && Model.WL.Computerised == "Y")
+    {
+        Computerised = "checked";
+    }
+    if (Model.WL.ActiveFlag != null && Model.WL.ActiveFlag == "Y")
+    {
+        ActiveFlag = "checked";
+    }
+
+    List<CYGNUS_citymaster> ListCity = new List<CYGNUS_citymaster>();
+    List<CYGNUS_location> ListLocations = new List<CYGNUS_location>();
+    List<SelectListItem> BlankList = new List<SelectListItem>();
+
+    ListLocations = _masterService.GetLocationDetails();
+    List<CYGNUS_pincode_master> ListPincode = _masterService.GetPincodeMaster().Where(c => c.ActiveFlag == "Y" || c.pincode.ToString() == Model.WL.LocPincode).GroupBy(c => c.pincode).Select(g => g.First()).OrderBy(c => c.pincode).ToList();
+    List<CYGNUS_Master_General> ListLocLevel = Model.ListGnMST.Where(c => c.CodeType == "HRCHY" && c.StatusCode == "Y").OrderBy(c => c.CodeId).ToList();
+    List<CYGNUS_Master_General> ListLocationsType = Model.ListGnMST.Where(c => c.CodeType == "LOCTYPE" && c.StatusCode == "Y").OrderBy(c => c.CodeId).ToList();
+    List<CYGNUS_Master_General> ListZone = Model.ListGnMST.Where(c => c.CodeType == "ZONE" && c.StatusCode == "Y").OrderBy(c => c.CodeId).ToList();
+
+    var Text = "Submit"; var type = "Add";
+    if (Model.EditFlag == "true")
+    {
+        ListCity = _masterService.GetCityMaster();
+        ListCity = ListCity.Where(c => c.state == Model.WL.LocState).OrderBy(m => m.Location).ToList();
+        ListLocations = ListLocations.Where(c => c.Loc_Level == Convert.ToDecimal(Model.WL.Report_Level) && c.ActiveFlag == "Y").OrderBy(m => m.LocName).ToList();
+
+        Text = "Update";
+        type = "Edit";
+    }
+}
+
+@using (Html.BeginForm("LocationMasterSubmit", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0 text-capitalize">@(type) Location</h4>
+
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                        <li class="breadcrumb-item"><a href="@Url.Action("LocationList", "Master")">Location List</a></li>
+                        <li class="breadcrumb-item active text-capitalize">@(type)</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+
+    <!-- Main Card -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title"><i class="ri-map-pin-line"></i> Basic Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Location Hierarchy</label>
+                        @Html.DropDownListFor(model => model.WL.Loc_Level, new SelectList(ListLocLevel, "CodeId", "CodeDesc", Model.WL.Loc_Level), "", new { @class = "select2 required", @placeholder = "Select Hierarchy" })
+                        @Html.HiddenFor(model => model.EditFlag)
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Reporting To</label>
+                        @Html.DropDownListFor(model => model.WL.Report_Level, new SelectList(ListLocLevel, "CodeId", "CodeDesc", Model.WL.Report_Level), "", new { @class = "select2 required", @placeholder = "Select Reporting Level" })
+                        @Html.HiddenFor(model => model.WL.Report_Level)
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Reporting Location</label>
+                        @Html.DropDownListFor(model => model.WL.Report_Loc, new SelectList(ListLocations, "LocCode", "LocName", Model.WL.Report_Loc), "", new { @class = "select2 required", @placeholder = "Select Location" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Location Code</label>
+                        @if (Model.EditFlag == "true")
+                        {
+                            @Html.TextBoxFor(m => m.WL.LocCode, new { @class = "required form-control", @placeholder = "Location Code", @readonly = true, @maxlength = 4 })
+                        }
+                        else
+                        {
+                            @Html.TextBoxFor(m => m.WL.LocCode, new { @class = "required form-control", @placeholder = "Location Code", @maxlength = 4 })
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Location Name</label>
+                        @Html.TextBoxFor(m => m.WL.LocName, new { @class = "required form-control", @placeholder = "Location Name" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">PinCode</label>
+                        @Html.DropDownListFor(m => m.WL.LocPincode, new SelectList(ListPincode, "pincode", "pincode", Model.WL.LocPincode), "", new { @class = "required select2", @placeholder = "Select PinCode", @id = "WL_LocPincode" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">City</label>
+                        @Html.DropDownListFor(model => model.WL.LocCity, new SelectList(ListCity, "city_code", "Location", Model.WL.LocCity), "", new { @class = "required select2", @placeholder = "Select City", @disabled = "disabled", @id = "WL_LocCity_Disabled" })
+                        @Html.HiddenFor(model => model.WL.LocCity, new { @id = "WL_LocCity" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">State</label>
+                        @Html.DropDownListFor(model => model.WL.LocState, new SelectList(Model.ListLocState.Where(c => c.activeflag == "Y"), "stcd", "stnm", Model.WL.LocState), "", new { @class = "required select2", @placeholder = "Select State", @disabled = "disabled", @id = "WL_LocState_Disabled" })
+                        @Html.HiddenFor(model => model.WL.LocState, new { @id = "WL_LocState" })
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Address</label>
+                        @Html.TextAreaFor(model => model.WL.LocAddr, new { @class = "required form-control", @placeholder = "Address", @rows = "2" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">STD Code</label>
+                        @Html.TextBoxFor(model => model.WL.LocSTDCode, new { @class = "form-control", @placeholder = "STD Code", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">Telephone No.</label>
+                        @Html.TextBoxFor(model => model.WL.LocTelno, new { @class = "required form-control", @placeholder = "Telephone No.", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Computerised</label>
+                        <div class="form-check form-switch form-switch-success">
+                            @Html.HiddenFor(m => m.WL.Computerised)
+                            <input type="checkbox" id="Computerised" @Computerised class="form-check-input cursor-pointer" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">POC Name</label>
+                        @Html.TextBoxFor(model => model.WL.PocName, new { @class = "required Name form-control", @placeholder = "Name of point of contact" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">POC Mobile No.</label>
+                        @Html.TextBoxFor(model => model.WL.Locmobile, new { @class = "required Mobile form-control", @placeholder = "Mobile Number", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">POC Email</label>
+                        @Html.TextBoxFor(model => model.WL.LocEmail, new { @class = "required email form-control", @placeholder = "Email" })
+                    </div>
+                </div>
+                @if (Model.EditFlag == "true")
+                {
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <div class="form-check form-switch form-switch-success">
+                                @Html.HiddenFor(m => m.WL.ActiveFlag)
+                                <input type="checkbox" id="ActiveFlag" @ActiveFlag class="form-check-input cursor-pointer" />
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @Html.Hidden("WL.ActiveFlag", "Y")
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Operation & Other Information -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="ri-settings-3-line"></i> Operation Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Default Next Location</label>
+                                @Html.DropDownListFor(model => model.WL.Default_NextLoc, new SelectList(Model.listWS.Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList(), "LocCode", "LocName", Model.WL.Default_NextLoc), "", new { @class = "select2", @placeholder = "Select Location" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Nearest Previous Location</label>
+                                @Html.DropDownListFor(model => model.WL.Nearest_PrevLoc, new SelectList(Model.listWS.Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList(), "LocCode", "LocName", Model.WL.Nearest_PrevLoc), "", new { @class = "select2", @placeholder = "Select Location" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Location Ownership</label>
+                                @Html.DropDownListFor(model => model.WL.OutSource_Own, new SelectList(ListLocationOwnership, "Value", "Text", Model.WL.OutSource_Own), "", new { @class = "form-group required select2", @placeholder = "Select Ownership" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Delivery Control Location</label>
+                                @Html.DropDownListFor(model => model.WL.Delivery_Control_Loc, new SelectList(Model.listWS.Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList(), "LocCode", "LocName", Model.WL.Delivery_Control_Loc), "", new { @class = "required select2", @placeholder = "Select Location" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Booking MinFreight</label>
+                                @Html.TextBoxFor(model => model.WL.BookingLoc_MinFreight, new { @class = "required form-control", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @min = "1" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Towards MinFreight</label>
+                                @Html.TextBoxFor(model => model.WL.TowardsLoc_MinFreight, new { @class = "required form-control", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @min = "1" })
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="customer">
+                            <div class="form-group">
+                                <label class="form-label">Customer Name</label>
+                                @Html.DropDownListFor(model => model.WL.Cust_Code, new SelectList(BlankList, "Value", "Text", Model.WL.Cust_Code), "", new { @class = "select2", @placeholder = "Select Customer" })
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="LocationType">
+                            <div class="form-group">
+                                <label class="form-label">Location Type</label>
+                                @Html.DropDownListFor(model => model.WL.Loc_Type, new SelectList(ListLocationsType, "CodeId", "CodeDesc", Model.WL.Loc_Type), "", new { @class = "select2", @placeholder = "Select Type" })
+                                @Html.HiddenFor(model => model.WL.Loc_Type)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="ri-information-line"></i> Other Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Zone</label>
+                                @Html.DropDownListFor(model => model.WL.LocRegion, new SelectList(ListZone, "CodeId", "CodeDesc", Model.WL.LocRegion), "", new { @class = "select2 required", @placeholder = "Select Zone", @disabled = "disabled", @id = "WL_LocRegion_Disabled" })
+                                @Html.HiddenFor(model => model.WL.LocRegion, new { @id = "WL_LocRegion" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Accounting Location</label>
+                                @Html.DropDownListFor(model => model.WL.Loc_Account, new SelectList(Model.listWS.Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList(), "LocCode", "LocName", Model.WL.Loc_Account), "", new { @class = "select2", @placeholder = "Select Location" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Data Entry Location</label>
+                                @Html.DropDownListFor(model => model.WL.Dataentry, new SelectList(Model.listWS.Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList(), "LocCode", "LocName", Model.WL.Dataentry), "", new { @class = "select2", @placeholder = "Select Location" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Location Start Date</label>
+                                <div class="input-group">
+                                    @Html.TextBoxFor(m => m.WL.loc_startdt, String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.WL.loc_startdt)), new { @class = "form-control required date-picker", @placeholder = "dd MMM yyyy" })
+                                    <span class="input-group-text bg-light"><i class="ri-calendar-line"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Location End Date</label>
+                                <div class="input-group">
+                                    @Html.TextBoxFor(m => m.WL.loc_enddt, String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.WL.loc_enddt)), new { @class = "form-control required date-picker", @placeholder = "dd MMM yyyy" })
+                                    <span class="input-group-text bg-light"><i class="ri-calendar-line"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Opening Time</label>
+                                @Html.TextBoxFor(model => model.WL.LocationInTime, new { @class = "required form-control timepicker timepicker-24", @maxlength = 8, @placeholder = "00:00:00" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Closing Time</label>
+                                @Html.TextBoxFor(model => model.WL.LocationOutTime, new { @class = "required form-control timepicker timepicker-24", @maxlength = 8, @placeholder = "00:00:00" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Details -->
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="ri-bank-line"></i> Bank Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Account Holder</label>
+                                @Html.TextBoxFor(c => c.WL.AccHolderName, new { placeholder = "Account Holder Name", @class = "form-control", @autocomplete = "off" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Bank Name</label>
+                                @Html.TextBoxFor(c => c.WL.BankName, new { placeholder = "Bank Name", @class = "form-control", @autocomplete = "off" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Account Number</label>
+                                @Html.TextBoxFor(c => c.WL.AccountNo, new { placeholder = "Account Number", @class = "form-control", @autocomplete = "off", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">IFSC Code</label>
+                                @Html.TextBoxFor(c => c.WL.IfscCode, new { placeholder = "IFSC Code", @class = "form-control", @autocomplete = "off" })
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="form-label">Bank Address</label>
+                                @Html.TextAreaFor(c => c.WL.Address, new { placeholder = "Bank Address", @class = "form-control", @rows = "1", @autocomplete = "off" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="ri-truck-line"></i> Delivery Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Latitude</label>
+                                @Html.TextBoxFor(model => model.WL.Latitude, new { @class = "required form-control", @placeholder = "0.000000", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-label">Longitude</label>
+                                @Html.TextBoxFor(model => model.WL.Longitude, new { @class = "required form-control", @placeholder = "0.000000", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Billed At</label>
+                                @Html.DropDownListFor(model => model.WL.BilledAt, new SelectList(Model.listWS.Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList(), "LocCode", "LocName", Model.WL.BilledAt), "", new { @class = "select2", @placeholder = "Select Location" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+        <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass" onclick="location.href='@Url.Content("~/Master/LocationList")'">
+            <i class="@ViewBag.UI.Buttons.Cancel.Icon me-1"></i> @ViewBag.UI.Buttons.Cancel.Label
+        </button>
+        <button type="button" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon me-1"></i> @ViewBag.UI.Buttons.Submit.Label
+        </button>
+    </div>
+}

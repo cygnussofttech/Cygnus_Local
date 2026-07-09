@@ -1,0 +1,143 @@
+@model GreenLineDataService.ViewModel.CYGNUS_Master_GeneralViewModel
+@using GreenLineDataService.Models
+@{
+    List<CYGNUS_location> mainZoneList = new List<CYGNUS_location>();
+    //GreenLineDataService.MasterService _masterService = new GreenLineDataService.MasterService();
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    if (Model.WMG.CodeType.ToUpper() == "ZONE")
+    {
+        mainZoneList = _masterService.GetLocationDetails().Where(c => c.Loc_Level == 2 && c.ActiveFlag == "Y").ToList();
+    }
+    List<CYGNUS_Master_General> GenearlList = new List<CYGNUS_Master_General>();
+    if (Model.WMG.CodeType.ToUpper() == "HSNCAT")
+    {
+        GenearlList = _masterService.GetMasterGeneralObject("", "GSTPER").Where(c => c.StatusCode == "Y" && c.CodeDesc != "0").ToList();
+    }
+    if (Model.WMG.CodeType.ToUpper() == "TRN")
+    {
+        GenearlList = _masterService.GetMasterGeneralObject("", "HSNCAT").Where(c => c.StatusCode == "Y" && c.CodeDesc != "0").ToList();
+    }
+    if (Model.WMG.CodeType.ToUpper() == "VENDTY")
+    {
+        GenearlList = _masterService.GetMasterGeneralObject("", "VENDTY").Where(c => c.StatusCode == "Y" && c.CodeDesc != "0").ToList();
+    }
+    if (Model.WMG.CodeType.ToUpper() == "VEHSUBSTATUS")
+    {
+        GenearlList = _masterService.GetMasterGeneralObject("", "VEHSTATUS").Where(c => c.StatusCode == "Y" && c.CodeDesc != "0").ToList();
+    }
+    if (Model.WMG.CodeType.ToUpper() == "VEHSUBSTATUS1")
+    {
+        GenearlList = _masterService.GetMasterGeneralObject("", "VEHSUBSTATUS").Where(c => c.StatusCode == "Y" && c.CodeDesc != "0").ToList();
+    }
+}
+<div class="table-responsive table-card">
+    <table class="table table-hover table-striped align-middle table-nowrap" id="GeneralMaster">
+        <thead class="table-light">
+            <tr>
+                <th class="text-center">Id</th>
+                <th>@Model.WMCT.Name_Desc</th>
+                <th class="d-none"></th>
+                @if (Model.WMG.CodeType.ToUpper() == "ZONE")
+                {
+                    <th>Main Zone</th>
+                }
+                @if (Model.WMG.CodeType.ToUpper() == "HSNCAT")
+                {
+                    <th>SAC Code</th>
+                    <th>GST %</th>
+                }
+                @if (Model.WMG.CodeType.ToUpper() == "TRN")
+                {
+                    <th>SAC Code</th>
+                }
+                @if (Model.WMG.CodeType.ToUpper() == "VENDTY")
+                {
+                    <th>Modules</th>
+                }
+                @if (Model.WMG.CodeType.ToUpper() == "VSL")
+                {
+                    <th>Days</th>
+                }
+                @if (Model.WMG.CodeType.ToUpper() == "VEHSUBSTATUS")
+                {
+                    <th>Vehicle Status</th>
+                }
+                @if (Model.WMG.CodeType.ToUpper() == "VEHSUBSTATUS1")
+                {
+                    <th>Vehicle Stage</th>
+                }
+                <th class="text-center no-cc">Status</th>
+                <th class="text-center no-cc">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.listWMG)
+            {
+                string TrId = "TR" + item.CodeId.ToString();
+                <tr id="@TrId">
+                    <td class="text-center">@item.CodeId</td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm clsCodeDesc required" id="txt_@item.CodeId" data-id="@item.CodeId" value="@item.CodeDesc" data-codetype="@item.CodeType" disabled />
+                    </td>
+                    <td class="d-none">@item.CodeDesc</td>
+                    @if (Model.WMG.CodeType.ToUpper() == "ZONE")
+                    {
+                        <td>
+                            @Html.DropDownListFor(m => item.codefor, new SelectList(mainZoneList, "LocCode", "LocName"), "", new { @class = "select2 form-control form-control-sm required2 required", placeholder = "Select Main Zone" })
+                        </td>
+                    }
+                    @if (Model.WMG.CodeType.ToUpper() == "HSNCAT")
+                    {
+                        <td>
+                            @Html.TextBox("item_" + item.CodeId + "_codefor", item.codefor, new { @class = "form-control form-control-sm required2 required clsCodeDesc", placeholder = "SAC Code", @disabled = "true" })
+                        </td>
+                        <td>
+                            @Html.DropDownList("item_" + item.CodeId + "_noofdigits", new SelectList(GenearlList, "CodeId", "CodeDesc", item.noofdigits.ToString()), "", new { @class = "select2 form-control form-control-sm required2 required clsCodeDesc", placeholder = "Select GST %", @disabled = "true" })
+                        </td>
+                    }
+                    @if (Model.WMG.CodeType.ToUpper() == "TRN")
+                    {
+                        <td>
+                            @Html.DropDownList("item_" + item.CodeId + "_codefor", new SelectList(GenearlList, "CodeId", "CodeDesc", item.codefor), "", new { @class = "select2 form-control form-control-sm required2 required clsCodeDesc", @disabled = "true" })
+                        </td>
+                    }
+                    @if (Model.WMG.CodeType.ToUpper() == "VENDTY" || Model.WMG.CodeType.ToUpper() == "VEHSUBSTATUS" || Model.WMG.CodeType.ToUpper() == "VEHSUBSTATUS1")
+                    {
+                        <td>
+                            @Html.TextBox("item_" + item.CodeId + "_codefor", item.codefor, new { @class = "form-control form-control-sm required2 required clsCodeDesc", placeholder = "Select Module", @disabled = "true" })
+                        </td>
+                    }
+                    @if (Model.WMG.CodeType.ToUpper() == "VSL")
+                    {
+                        <td>
+                            <input type="text" class="form-control form-control-sm clsCodeDesc required" id="item_@(item.CodeId)_noofdigits" data-id="@item.CodeId" value="@item.noofdigits" data-codetype="@item.CodeType" disabled />
+                        </td>
+                    }
+                    <td class="text-center">
+                        <div class="form-check form-switch form-switch-md d-flex justify-content-center">
+                            @if (item.StatusCode.ToUpper() == "Y")
+                            {
+                                <input type="checkbox" class="form-check-input statusChange" checked="checked" data-codeid="@item.CodeId" data-codetype="@item.CodeType" />
+                            }
+                            else
+                            {
+                                <input type="checkbox" class="form-check-input statusChange" data-codeid="@item.CodeId" data-codetype="@item.CodeType" />
+                            }
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-soft-info btn-sm btnMasterEdit" title="Edit" id="btnEdit_@item.CodeId.ToString()" data-codetype="@item.CodeType" data-id="@item.CodeId">
+                                <i class="ri-pencil-fill align-middle"></i>
+                            </button>
+                            <button type="button" style="display:none" class="btn btn-success btn-sm btnMasterSave" title="Save" id="btnSave_@item.CodeId.ToString()" data-codetype="@item.CodeType" data-id="@item.CodeId">
+                                <i class="ri-save-2-fill align-middle"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,442 @@
+@model GreenLineDataService.ViewModel.CYGNUS_CountryViewModel
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Country Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">@ViewBag.Title</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">@ViewBag.Title</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Countries</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light" id="btnDownloadMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" id="addEdit">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="jsGrid">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Country Code</th>
+                            <th class="text-center">Country Name</th>
+                            <th class="text-center no-cc">Status</th>
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="addCountryModal" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Header -->
+            <div class="modal-header bg-light p-3 border-bottom">
+                <h5 class="modal-title fw-bold text-primary" style="color: #405189 !important; font-size: 16px;">
+                    <span id="txt_headerLabel">Add New Country</span>
+                </h5>
+                <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            @using (Html.BeginForm("AddEditCountryMaster", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-horizontal", enctype = "multipart/form-data" }))
+            {
+                <div class="modal-body p-4">
+                    <!-- Section 1: Basic Information -->
+                    <div class="section-box mb-3">
+                        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+                            <i class="ri-information-line align-middle me-1"></i> Basic Information
+                            @Html.HiddenFor(m => m.CM.Id)
+                        </h5>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Country Name</label>
+                                    @Html.TextBoxFor(m => m.CM.CountryName, new { id = "CountryName", placeholder = "Enter Country Name", @class = "form-control required", onKeyPress = "return ValidateAlpha(event);" })
+                                    @Html.ValidationMessageFor(model => model.CM.CountryName)
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-label">Country Code</label>
+                                    @Html.TextBoxFor(m => m.CM.CountryCode, new { id = "CountryCode", placeholder = "Enter Country Code", @class = "form-control required", onKeyPress = "return ValidateAlpha(event);" })
+                                    @Html.ValidationMessageFor(model => model.CM.CountryCode)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer bg-light p-3 border-top rounded-bottom">
+                    <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass me-2" data-bs-dismiss="modal">
+                        <i class="@ViewBag.UI.Buttons.Cancel.Icon align-middle me-1"></i>@ViewBag.UI.Buttons.Cancel.Label
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass" id="btnMasterSave">
+                        <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>@ViewBag.UI.Buttons.Submit.Label
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Section box styling - Minimal and Spacious */
+    .section-box {
+        background: transparent;
+        padding: 0 5px;
+    }
+
+    .form-check-input {
+        width: 1.5em;
+        height: 1.5em;
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        padding-top: 2px;
+    }
+
+    /* Validation pattern from Location Master */
+    .required-label::after {
+        content: " *";
+        color: #f06548;
+        font-weight: bold;
+    }
+
+    /* Validation Message and Error Styling */
+    .help-block, .text-danger, label.error, span.error, .field-validation-error {
+        color: #f06548 !important;
+        font-size: 11px !important;
+        margin-top: 4px !important;
+        display: block !important;
+        font-weight: 500 !important;
+    }
+
+    /* Switch container matching UserList */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 38px;
+        height: 20px;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        background-color: #dee2e6;
+        transition: .3s;
+        border-radius: 20px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+    input:checked + .slider {
+        background-color: #3577f1;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+</style>
+
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                rules: {
+                    "CM.CountryName": { required: true },
+                    "CM.CountryCode": { required: true },
+                },
+                messages: {
+                    "CM.CountryName": "Please enter country name",
+                    "CM.CountryCode": "Please enter country code",
+                },
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible") || element.next(".select2-container").length > 0) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                }
+            });
+        }
+
+        var loadData = function (DomainName, TableName) {
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: DomainName + "/Account/GetDataWithoutAlias",
+                type: 'POST',
+                dataType: "json",
+                data: {
+                    Method: "USP_CountryMaster_List",
+                    parameters: { "CustCode": "" }
+                },
+                success: function (data) {
+                    var tableData = data;
+                    if (typeof data === 'object' && !Array.isArray(data)) {
+                        var tableNames = Object.keys(data);
+                        for (var i = 0; i < tableNames.length; i++) {
+                            if (Array.isArray(data[tableNames[i]])) {
+                                tableData = data[tableNames[i]];
+                                break;
+                            }
+                        }
+                    }
+
+                    GlDataTable.refresh(TableName, {
+                        data: tableData,
+                        statusFilter: 2,
+                        columns: [
+                            { data: "CountryCode"},
+                            { data: "CountryName"},
+                            { data: "IsActive", columnControl: false },
+                            { data: "Id", columnControl: false },
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [2],
+                                render: function (data, type, full, meta) {
+                                  
+                                    var isActive = data == true ? "checked" : "";
+                                    return '<label class="switch"><input type="checkbox" ' + isActive + ' class="btnToggleStatus" data-id="' + full.Id + '" data-name="' + full.CountryName + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [3],
+                                render: function (data, type, full) {
+                                    return '<button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass btnMasterEdit" title="Edit" data-id="' + data + '">' +
+                                           '<i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>';
+                                }
+                            },
+                            { orderable: false, targets: [2, 3] }
+                        ],
+                        createdRow: function (row, data) {
+                            $(row).find('td').addClass('text-center');
+                        }
+                    });
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function () {
+                    TosterNotification("error", 'Failed to load data', "Error");
+                    App.unblockUI();
+                }
+            });
+        }
+
+        var getDetails = function(id, DomainName) {
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: DomainName + '/Master/GetCountryDetailsById',
+                type: 'GET',
+                data: { id: id },
+                success: function (res) {
+                    // set values
+                    $("#CM_Id").val(res.Id);
+                    $("#CountryName").val(res.CountryName);
+                    $("#CountryCode").val(res.CountryCode);
+
+                    // modal title
+                    $("#txt_headerLabel").text("Edit Country");
+
+                    // open modal
+                    $("#addCountryModal").modal("show");
+                    App.unblockUI();
+                }
+            });
+        };
+        var CheckDuplicateCountryName = function (DomainName) {
+            var countryName = $("#CountryName").val();
+            var id = $("#CM_Id").val() || 0;
+            if (!countryName) return;
+
+            $.ajax({
+                url: DomainName + '/Master/CheckDuplicateCountryName',
+                type: 'POST',
+                data: { CountryName: countryName, Id: id },
+                success: function (count) {
+                    if (count > 0 || count === "1" || count === "True") {
+                        TosterNotification("error", 'Country Name already exists!', "Duplicate");
+                        $("#CountryName").val('').focus();
+                    }
+                }
+            });
+        };
+
+        var CheckDuplicateCountryCode = function (DomainName) {
+            var countryCode = $("#CountryCode").val();
+            var id = $("#CM_Id").val() || 0;
+            if (!countryCode) return;
+
+            $.ajax({
+                url: DomainName + '/Master/CheckDuplicateCountryCode',
+                type: 'POST',
+                data: { CountryCode: countryCode, Id: id },
+                success: function (count) {
+                    if (count > 0 || count === "1" || count === "True") {
+                        TosterNotification("error", 'Country Code already exists!', "Duplicate");
+                        $("#CountryCode").val('').focus();
+                    }
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                loadData(DomainName, "jsGrid");
+
+                $(document).on('blur', "#CountryName", function () {
+                    CheckDuplicateCountryName(DomainName);
+                });
+
+                $(document).on('blur', "#CountryCode", function () {
+                    CheckDuplicateCountryCode(DomainName);
+                });
+
+                $(document).on('click', '#btnDownloadMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "COUNTRY", "Country_Master_List");
+                });
+
+                $("#addEdit").on('click', function() {
+                    $("#IsActive").prop("checked", true);
+                    $("#addCountryModal").modal("show");
+                });
+
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    // Revert checkbox country until confirmed
+                    checkbox.prop('checked', !isChecked);
+
+                    showConfirm({
+                        title: action + " Country",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for country <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActiveCountry', { id: id }, function(res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Country updated successfully!");
+                                    loadData(DomainName, "jsGrid");
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $(document).on('click', '#btnMasterSave', function (e) {
+                    e.preventDefault();
+                    if (!$('#form_sample').valid()) return;
+                    
+                    App.blockUI({ boxed: true });
+                    $.ajax({
+                        url: DomainName + '/Master/AddEditCountryMaster',
+                        data: $("#form_sample").serialize(),
+                        type: 'POST',
+                        success: function (data) {
+                            if (data) {
+                                $("#addCountryModal").modal('hide');
+                                GLModal.showSuccess("Country saved successfully!");
+                                loadData(DomainName, "jsGrid");
+                            } else {
+                                TosterNotification("error", 'Operation failed..!!', "Oops..!!");
+                            }
+                            App.unblockUI();
+                        }
+                    });
+                });
+
+                $(document).on("click", ".btnMasterEdit", function () {
+                    var id = $(this).data("id");
+                    getDetails(id, DomainName);
+                });
+
+                $('#addCountryModal').on('hidden.bs.modal', function () {
+                    var form = $('#form_sample');
+                    form[0].reset();
+                    form.validate().resetForm();
+                    form.find('.is-invalid').removeClass('is-invalid');
+                    $("#CM_Id").val(0);
+                    $("#txt_headerLabel").text("Add New Country");
+                });
+            }
+        }
+    }();
+</script>

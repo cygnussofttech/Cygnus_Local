@@ -1,0 +1,20 @@
+﻿@model GreenLineDataService.Models.CygnusVendorGSTDetails
+@using GreenLine.Helpers
+
+<tr>
+    @using (Html.BeginCollectionItem("ListVendorGSTDetails", Model.statecode.ToString()))
+    {
+        @Html.HiddenFor(c => c.statecode)
+        @Html.HiddenFor(c => c.vendcode)
+        @Html.HiddenFor(c => c.statename)
+        <td class="align-middle">
+            @Model.statename
+
+        </td>
+        <td >
+            @Html.TextBoxFor(c => c.gst_registration_no, new { @class = "form-control form-control-sm  GSTNo " + Model.statename.ToLower().Replace(" ", "") + "", @placeholder = "GST Registration No.", style = "text-transform:uppercase;", maxlength = "15", minlength = "15" })
+        </td>
+    }
+</tr>
+
+

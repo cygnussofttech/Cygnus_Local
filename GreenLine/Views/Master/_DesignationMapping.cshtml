@@ -1,0 +1,21 @@
+@model GreenLineDataService.Models.CYGNUS_Designation_Mapping
+@using GreenLineDataService.Models
+@using GreenLine.Helpers
+@{
+    var generalMasterList = (List<CYGNUS_Master_General>)ViewBag.GeneralMasterList;
+    var categoryDesc = generalMasterList?.FirstOrDefault(c => c.CodeType?.ToUpper() == "HIERARCHY" && string.Equals(c.CodeId?.Trim(), Model.Category?.Trim(), StringComparison.OrdinalIgnoreCase))?.CodeDesc ?? Model.Category;
+}
+<tr class="editorRow align-middle">
+    @Html.Hidden("hdnblnk", Model.SrNo, new { @class = "iHidden" })
+    @using (Html.BeginCollectionItem("MappingList", Model.SrNo.ToString()))
+    {
+        <td class="text-center">@Model.SrNo</td>
+        <td>
+            @Html.HiddenFor(m => m.Category)
+            <span>@categoryDesc</span>
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.Designation, new { placeholder = "Select Designation(s)", @class = "form-control form-control-sm required drpUser" })
+        </td>
+    }
+</tr>

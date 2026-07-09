@@ -1,0 +1,117 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_Designation_Mapping>
+@{
+    ViewBag.Title = "Designation Mapping";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var i = 1;
+}
+<style>
+    /* Compact Select2 dropdowns for Designation Mapping */
+    .select2-container-multi .select2-choices {
+        min-height: 28px !important;
+        padding: 0 4px !important;
+        font-size: 13px !important;
+        border-radius: 4px !important;
+        border: 1px solid #ccc !important;
+        background-image: none !important;
+    }
+    .select2-container-multi .select2-choices .select2-search-choice {
+        padding: 3px 20px 3px 6px !important;
+        margin: 2px 0 2px 4px !important;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+    }
+    .select2-container-multi .select2-choices .select2-search-field input {
+        height: 24px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+</style>
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Designation Mapping</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Designation Mapping</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+@using (Html.BeginForm("DesignationMappingSubmit", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-horizontal", enctype = "multipart/form-data" }))
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-0">
+                <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                    <h4 class="card-title mb-0 flex-grow-1">
+                        <i class="ri-links-line align-middle me-1"></i> Designation Mapping
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle mb-0" id="tblDesignationMapping">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center" style="width: 5%">Sr.No</th>
+                                    <th style="width: 25%">Category</th>
+                                    <th style="width: 70%">Designation(s)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="Tbody">
+                                @foreach (var item in Model)
+                                {
+                                    item.SrNo = i;
+                                    Html.RenderPartial("_DesignationMapping", item);
+                                    i++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer border-top-dashed py-3 d-flex justify-content-center">
+                    <button type="submit" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave">
+                        <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i> @ViewBag.UI.Buttons.Submit.Label
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        return {
+            init: function (DomainName) {
+                // Hide rows until Select2 replaces raw IDs with named tags
+                $('#Tbody').css('visibility', 'hidden');
+
+                // Single AJAX call initialises ALL designation dropdowns at once
+                $.ajax({
+                    url: DomainName + '/Master/GetDesignationListJsonWithIdName',
+                    dataType: 'json',
+                    data: { str: '' },
+                    success: function (response) {
+                        $(".drpUser").each(function () {
+                            $(this).select2({
+                                tags: true,
+                                data: response,
+                                placeholder: 'Select Designation(s)',
+                                multiple: true,
+                                allowClear: true,
+                                width: '100%'
+                            });
+                        });
+                        $('#Tbody').css('visibility', 'visible');
+                    }
+                });
+
+                $("#btnSubmit").on("click", function () {
+                    App.blockUI({ boxed: true });
+                });
+            }
+        }
+    }();
+</script>

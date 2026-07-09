@@ -1,0 +1,38 @@
+@model GreenLineDataService.Models.Cygnus_Cutomer_KMA_Details
+@using GreenLine.Helpers;
+
+<tr class="editorRow">
+    @using (Html.BeginCollectionItem("ListCustomerKMAdetails", Model.KMATypeId.ToString()))
+    {
+        <td class="center" style="vertical-align: middle !important;">
+            @Html.DisplayFor(m => Model.KMATypeId)
+        </td>
+        <td>
+            @Html.DisplayFor(m => Model.KMATypedesc)
+            @Html.HiddenFor(m => Model.KMATypeId)
+        </td>
+        <td>
+            @if (Model.KMATypeId == "1" || Model.KMATypeId == "2")
+            {
+                @Html.TextBoxFor(m => m.EmployeeName, new { placeholder = "Employee Name", @class = "form-control text-uppercase required clsEmp" })
+            }
+            else
+            {
+                @Html.TextBoxFor(m => m.EmployeeName, new { placeholder = "Employee Name", @class = "form-control text-uppercase clsEmp" })
+            }
+        </td>
+        <td style="display:none">
+            @Html.TextBoxFor(m => m.EmployeeID, new { placeholder = "Employee Id", @class = "form-control text-uppercase" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.Designation, new { placeholder = "Designation", @class = "form-control text-uppercase" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.Mobile, new { placeholder = "Mobile No", @class = "form-control", @maxlength = "10", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.Email, new { placeholder = "Email", @class = "form-control email" })
+            @Html.ValidationMessageFor(m => m.Email)
+        </td>
+    }
+</tr>

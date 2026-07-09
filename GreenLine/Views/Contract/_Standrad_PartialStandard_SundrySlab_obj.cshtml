@@ -1,0 +1,22 @@
+﻿@model IEnumerable<GreenLineDataService.Models.CYGNUS_CustContract_FRTMatrix_SingleSlab>
+@using GreenLineDataService.Models
+@using GreenLine.Helpers
+
+<thead>
+    <tr>
+        <th>Id</th>
+        <th>From Lane</th>
+        <th>To Lane</th>
+        @*<th>To(<a href="@Url.Action("LaneMaster","Master")" target="_blank">Lane Master</a>)</th>*@
+        @*<th>Lane Code</th>*@
+        <th>Rate</th>
+        <th>Rate Type</th>
+        @*<th>X</th>*@
+    </tr>
+</thead>
+<tbody id="tblcharge">
+    @foreach (var item in Model)
+    {
+        Html.RenderPartial("_Standrad_PartialStandard_SundrySlab", item);
+    }
+</tbody>

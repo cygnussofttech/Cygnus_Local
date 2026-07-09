@@ -1,0 +1,35 @@
+﻿@{
+    ViewBag.Title = "Change Report Rights ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row pt-3 pb-3 justify-content-center" style="margin-top:10%;">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="border-bottom pb-2">
+                <h4 class="mb-0 ui-page-header">
+                    <i class="ri-check-line me-1"></i> @ViewBag.Title
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>
+                                    @ViewBag.Title Successfully Done for User : @ViewBag.UserId.
+                                </th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <span class="badge bg-danger">
+                    Your Next Step
+                </span>&nbsp;
+                <span>
+                    <a href="@Url.Action("ChangeReportRights", "Master", new { Id = ViewBag.UserId })" style="cursor:pointer"><b> @ViewBag.Title </b></a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

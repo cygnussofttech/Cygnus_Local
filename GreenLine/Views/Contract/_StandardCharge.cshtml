@@ -1,0 +1,113 @@
+@model GreenLineDataService.ViewModel.ContractStandardChargeViewModel
+@using GreenLineDataService.Models;
+
+<style type="text/css">
+    .TxtVertical {
+        vertical-align: middle !important;
+    }
+
+    #tblStndfreightSlab thead tr th, #tblStndfreightSlab tbody tr td, #tblStndfreightSlab tfoot tr td {
+        padding: 5px !important;
+        font-family: Verdana !important;
+        font-size: 12px !important;
+        border: 1px solid #CCC !important;
+        vertical-align: middle !important;
+    }
+        #tblStndfreightSlab tbody tr td input {
+            padding: 5px !important;
+        }
+
+        #tblStndfreightSlab tbody tr td .select2-container .select2-choice {
+            padding: 5px !important;
+            height: 30px !important;
+        }
+</style>
+
+@using (Html.BeginForm("GetStandardCharge", "Contract", FormMethod.Post, new { id = "form_StandardCharge", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.chargeContraint.ContractId)
+    @Html.HiddenFor(m => m.chargeContraint.Custcode)
+    <div class="row">   
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-calculator-line align-middle me-1"></i> Standard Charge - Selection Criteria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 d-flex justify-content-center">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Trans Mode</label>
+                                <div class="col-12">
+                                    @Html.DropDownListFor(m => m.chargeContraint.TransMode, new SelectList(ViewBag.objMasterList, "CodeId", "CodeDesc"), new { placeholder = "Select  Matrix Type", @class = "form-control select2  required", @disabled = "disabled" })
+                                    @Html.HiddenFor(m => m.chargeContraint.TransMode)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Matrix Type</label>
+                                <div class="col-12">
+                                    @Html.DropDownListFor(m => m.chargeContraint.Matrixtype, new SelectList(ViewBag.objMasterMatrixList, "CodeId", "CodeDesc"), new { placeholder = "Select  Matrix Type", @class = "form-control select2  required", @disabled = "disabled" })
+                                    @Html.HiddenFor(m => m.chargeContraint.Matrixtype)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label required-field">Charge Name</label>
+                            @Html.DropDownListFor(m => m.chargeContraint.basedon, new SelectList(ViewBag.objListCharge, "chargecode", "chargename"), "", new { @class = "required select2 form-control", placeholder = "Select Charge Name" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" id="divStandardMultiple" style="display:none">
+        <div class="col-md-12">
+            <div class="card m-0">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-list-check align-middle me-1"></i> Standard Charge - List
+                    </h5>
+                </div>
+                <div class="card-body">
+                        @*<div class="row AdditemCharge">
+                            <div class="offset-2 col-md-2 text-end">
+                                <label class="control-label">No Of Rows </label>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    @Html.TextBox("StandardRows", "1", new { placeholder = "No. Rows", @class = "input-small form-control required" })
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    <button type="button" id="btnStanardAddRows" class="@ViewBag.UI.Buttons.Add.CssClass"><i class="@ViewBag.UI.Buttons.Add.Icon"></i>Add New Row</button>
+                                </div>
+                            </div>
+                        </div>
+                        <br />*@
+                        <table id="tblStndfreightSlab" class="table table-striped table-bordered table-hover m-0">
+                            @*_Standrad_PartialStandard_SundrySlab_obj*@
+                        </table>
+                        @*<div class="form-group AdditemCharge">
+                            <div class="col-md-12 d-flex justify-content-center">
+                                <div class="col-md-3">
+                                    <button type="button" id="btnDocketCharge" class="@ViewBag.UI.Buttons.Add.CssClass" ><i class="@ViewBag.UI.Buttons.Add.Icon"></i>Add New Row</button>
+                                </div>
+                            </div>
+                        </div>*@
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="form-actions">
+    <button type="button" onclick="goToTab(6)" id="btnStandardChargePre" class="@ViewBag.UI.Buttons.Previous.CssClass"><i class="@ViewBag.UI.Buttons.Previous.Icon"></i>@ViewBag.UI.Buttons.Previous.Label</button>
+    <button type="button" id="btnGetStandardCharge" class="@ViewBag.UI.Buttons.Edit.CssClass btn-label"><i class="ri-file-download-line label-icon align-middle fs-16 me-2"></i>Get Standard Charges</button>
+    <button type="button" id="btnStandardChargeStay" data-mode="stay"  style="display:none" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Save & Stay On Page</button>
+    <button type="button" id="btnStandardCharge" data-mode="next" style="display:none" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Save & Next</button>
+    <button type="button" id="btnStandardChargeNext" onclick="goToTab(8)" class="@ViewBag.UI.Buttons.Next.CssClass"><i class="@ViewBag.UI.Buttons.Next.Icon"></i>@ViewBag.UI.Buttons.Next.Label</button>
+</div>

@@ -1,0 +1,409 @@
+@using GreenLine.Classes
+@{
+    var ui = (UIThemeConfig)ViewBag.UI;
+}
+@if (ui != null)
+{
+    <style>
+        /* ===== UI Theme - Generated from Content/UITheme.json ===== */
+        /* Edit Content/UITheme.json to change any style below       */
+
+        /* Page Header */
+        .ui-page-header {
+            background-color: @(ui.PageHeader.BackgroundColor) !important;
+            color: @(ui.PageHeader.TextColor) !important;
+            font-weight: @(ui.PageHeader.FontWeight) !important;
+            font-size: @(ui.PageHeader.FontSize) !important;
+            padding: @(ui.PageHeader.Padding) !important;
+            margin: 0 !important;
+        }
+
+        /* Buttons - all states locked to same color (no hover change) */
+        @foreach (var btn in new[] {
+            new { cls = "ui-btn-add",     b = ui.Buttons.Add },
+            new { cls = "ui-btn-edit",    b = ui.Buttons.Edit },
+            new { cls = "ui-btn-delete",  b = ui.Buttons.Delete },
+            new { cls = "ui-btn-excel",   b = ui.Buttons.Excel },
+            new { cls = "ui-btn-back",    b = ui.Buttons.Back },
+            new { cls = "ui-btn-cancel",  b = ui.Buttons.Cancel },
+            new { cls = "ui-btn-submit",  b = ui.Buttons.Submit },
+            new { cls = "ui-btn-menu",    b = ui.Buttons.MenuRights },
+            new { cls = "ui-btn-reports", b = ui.Buttons.ReportsRights },
+            new { cls = "ui-btn-reset",   b = ui.Buttons.ResetPassword },
+            new { cls = "ui-btn-unblock", b = ui.Buttons.UnblockUser },
+            new { cls = "ui-btn-view",    b = ui.Buttons.View },
+            new { cls = "ui-btn-prev",    b = ui.Buttons.Previous },
+            new { cls = "ui-btn-next",    b = ui.Buttons.Next },
+            new { cls = "ui-btn-approve", b = ui.Buttons.Approve },
+            new { cls = "ui-btn-reject",  b = ui.Buttons.Reject },
+            new { cls = "ui-btn-clear",   b = ui.Buttons.Clear }
+        })
+        {
+            if (btn.b != null)
+            {
+                <text>
+                    .@(btn.cls),
+                    .@(btn.cls):hover,
+                    .@(btn.cls):focus,
+                    .@(btn.cls):active,
+                    .@(btn.cls):focus-visible,
+                    .@(btn.cls).active {
+                        background-color: @(btn.b.BackgroundColor) !important;
+                        color: @(btn.b.TextColor) !important;
+                        border-color: @(btn.b.BorderColor) !important;
+                        box-shadow: none !important;
+                        outline: none !important;
+                    }
+                </text>
+            }
+        }
+
+        /* Switch toggle - consistent size and color across all pages */
+        .form-switch .form-check-input {
+            width: 46px !important;
+            height: 24px !important;
+            cursor: pointer;
+        }
+        .form-switch .form-check-input:checked {
+            background-color: @(ui.Switch.ActiveColor) !important;
+            border-color: @(ui.Switch.ActiveColor) !important;
+        }
+
+        /* Standardized Switch (.switch/.slider pattern used in legacy lists) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+            margin-bottom: 0;
+            vertical-align: middle;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #dee2e6;
+            transition: .3s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .switch input:checked + .slider {
+            background-color: @(ui.Switch.ActiveColor) !important;
+        }
+        .switch input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        /* Badges */
+        .ui-badge-active   { background-color: @(ui.Badge.Active.BackgroundColor) !important;   color: @(ui.Badge.Active.TextColor) !important; }
+        .ui-badge-inactive { background-color: @(ui.Badge.Inactive.BackgroundColor) !important; color: @(ui.Badge.Inactive.TextColor) !important; }
+
+        /* DataTable - pagination, search, info (applies to ALL pages) */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            padding: 10px 16px;
+            font-size: 0.875rem;
+            color: #495057;
+        }
+        .dataTables_wrapper .dataTables_paginate {
+            float: right !important;
+            text-align: right !important;
+        }
+        /* Keep length "Show X entries" and search "Search: [input]" on one line */
+        .dataTables_wrapper .dataTables_length label,
+        .dataTables_wrapper .dataTables_filter label {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-wrap: nowrap !important;
+            margin-bottom: 0 !important;
+            white-space: nowrap;
+        }
+        /* Select2 container inside length control */
+        .dataTables_wrapper .dataTables_length .select2-container {
+            width: auto !important;
+            min-width: 70px !important;
+        }
+        .dataTables_wrapper .dataTables_length .select2-selection--single {
+            border: 1px solid #ced4da !important;
+            border-radius: 5px !important;
+            height: 32px !important;
+            line-height: 30px !important;
+        }
+        .dataTables_wrapper .dataTables_length .select2-selection__rendered {
+            line-height: 30px !important;
+            padding: 0 8px !important;
+        }
+        .dataTables_wrapper .dataTables_length .select2-selection__arrow {
+            height: 30px !important;
+        }
+        /* Search input */
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #ced4da !important;
+            border-radius: 5px !important;
+            padding: 5px 10px !important;
+            font-size: 0.875rem !important;
+            outline: none !important;
+            min-width: 180px;
+        }
+        /* Custom Status Filter (Global Extension) */
+        .gl-sf-wrap {
+            margin-left: 20px;
+        }
+        .gl-sf-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .gl-sf-btn {
+            border: 1px solid #ced4da !important;
+            background: #fff !important;
+            color: #495057 !important;
+            padding: 4px 12px;
+            font-size: 0.85rem;
+        }
+        .gl-sf-btn:hover {
+            background: #f8f9fa !important;
+        }
+        .gl-sf-active {
+            background: @(ui.PageHeader.BackgroundColor) !important;
+            color: @(ui.PageHeader.TextColor) !important;
+            border-color: @(ui.PageHeader.BackgroundColor) !important;
+            font-weight: 500;
+        }
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: @(ui.PageHeader.BackgroundColor) !important;
+            box-shadow: 0 0 0 2px @(ui.PageHeader.FocusGlowColor) !important;
+        }
+        /* Pagination buttons */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: 5px !important;
+            padding: 4px 10px !important;
+            margin: 0 2px;
+            font-size: 0.8rem;
+            border: 1px solid #dee2e6 !important;
+            background: #fff !important;
+            color: #495057 !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: @(ui.PageHeader.BackgroundColor) !important;
+            color: @(ui.PageHeader.TextColor) !important;
+            border-color: @(ui.PageHeader.BackgroundColor) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:not(.disabled):not(.current):hover {
+            background: @(ui.PageHeader.BackgroundColor) !important;
+            color: @(ui.PageHeader.TextColor) !important;
+            border-color: @(ui.PageHeader.BackgroundColor) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+            background: #f8f9fa !important;
+            color: #adb5bd !important;
+            cursor: not-allowed;
+        }
+        /* Info text */
+        .dataTables_wrapper .dataTables_info {
+            font-size: 0.8rem;
+            color: #6c757d;
+            padding-top: 12px !important;
+        }
+        table.dataTable thead th {
+            position: relative;
+            text-align: center !important;            
+            vertical-align: middle !important;
+        }
+        /* Info text - "Showing X to Y of Z entries" */
+        .dataTables_wrapper .dataTables_info {
+            font-size: 0.82rem !important;
+            color: #6c757d !important;
+            font-style: italic !important;
+            padding: 6px 0 !important;
+        }
+        /* Hide ColumnControl buttons in no-cc columns (e.g. Active, Action) */
+        th.no-cc .dtcc,
+        th.no-cc span[class^="dtcc"],
+        th.no-cc button[class*="dtcc"] {
+            display: none !important;
+        }
+        /* ColumnControl dropdown popup - ensure it floats above table */
+        table.dataTable thead,
+        table.dataTable thead tr {
+            overflow: visible !important;
+        }
+        /* ============================================
+           ColumnControl Popup - Professional Design
+           ============================================ */
+        .dtcc-dropdown {
+            z-index: 9999 !important;
+            width: 200px !important;
+            margin: 4px 0 0 !important;
+            background: #ffffff !important;
+            border: 1px solid #d0d5dd !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.14), 0 2px 6px rgba(0,0,0,0.08) !important;
+            overflow: hidden !important;
+        }
+        .dtcc-dropdown-liner {
+            background-color: #ffffff !important;
+            padding: 8px 0 6px !important;
+        }
+        /* Search rows - CSS Grid: row1=icon+select, row2=icon+input */
+        .dtcc-search > div {
+            display: grid !important;
+            grid-template-columns: 22px 1fr !important;
+            grid-template-rows: auto auto !important;
+            gap: 5px !important;
+            padding: 4px 10px 6px !important;
+        }
+        .dtcc-status-search > div {
+            grid-template-rows: auto !important;
+        }
+        .dtcc-search-type-icon {
+            grid-column: 1 !important;
+            grid-row: 1 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #6c757d !important;
+        }
+        .dtcc-search select {
+            grid-column: 2 !important;
+            grid-row: 1 !important;
+            border: 1px solid #ced4da !important;
+            border-radius: 5px !important;
+            padding: 5px 7px !important;
+            font-size: 0.825rem !important;
+            background-color: #fff !important;
+            color: #343a40 !important;
+            outline: none !important;
+            cursor: pointer !important;
+            width: 100% !important;
+            margin: 0 !important;
+        }
+        .dtcc-search-icon {
+            grid-column: 1 !important;
+            grid-row: 2 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #6c757d !important;
+        }
+        .dtcc-search input[type="text"],
+        .dtcc-search input[type="search"],
+        .dtcc-search input {
+            grid-column: 2 !important;
+            grid-row: 2 !important;
+            border: 1px solid #ced4da !important;
+            border-radius: 5px !important;
+            padding: 5px 7px !important;
+            font-size: 0.825rem !important;
+            background-color: #f8f9fa !important;
+            color: #343a40 !important;
+            outline: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+        }
+        .dtcc-search-clear {
+            grid-column: 2 !important;
+            grid-row: 2 !important;
+            display: none !important;
+        }
+        .dtcc-search select:focus {
+            border-color: @(ui.PageHeader.BackgroundColor) !important;
+            box-shadow: 0 0 0 2px rgba(64,81,137,0.12) !important;
+            background-color: #fff !important;
+        }
+        .dtcc-search input:focus {
+            border-color: @(ui.PageHeader.BackgroundColor) !important;
+            box-shadow: 0 0 0 2px rgba(64,81,137,0.12) !important;
+            background-color: #fff !important;
+        }
+        /* Separator */
+        .dtcc-spacer {
+            border: none !important;
+            border-top: 1px solid #e9ecef !important;
+            margin: 4px 0 !important;
+        }
+        /* Sort buttons */
+        .dtcc-button {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            padding: 7px 12px !important;
+            font-size: 0.85rem !important;
+            font-weight: 500 !important;
+            color: #212529 !important;
+            background: transparent !important;
+            width: 100% !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+            cursor: pointer !important;
+            border: none !important;
+            transition: background 0.15s ease !important;
+        }
+        .dtcc-button-icon {
+            flex: 0 0 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #555 !important;
+        }
+        .dtcc-button-text {
+            flex: 1 !important;
+            font-size: 0.85rem !important;
+            font-weight: 500 !important;
+            color: #212529 !important;
+        }
+        .dtcc-button-state {
+            margin-left: auto !important;
+            color: @(ui.PageHeader.BackgroundColor) !important;
+            font-weight: 700 !important;
+        }
+        .dtcc-button:hover,
+        .dtcc-button:focus {
+            background-color: #f0f4ff !important;
+        }
+        .dtcc-button:hover .dtcc-button-text,
+        .dtcc-button:focus .dtcc-button-text {
+            color: #405189 !important;
+        }
+        .dtcc-button_active .dtcc-button-text {
+            color: #405189 !important;
+            font-weight: 700 !important;
+        }
+        /* Hide ::before arrow - keep only ::after combined ↕ icon */
+        table.dataTable thead th.sorting::before,
+        table.dataTable thead th.sorting_asc::before,
+        table.dataTable thead th.sorting_desc::before,
+        table.dataTable thead th.sorting_asc_disabled::before,
+        table.dataTable thead th.sorting_desc_disabled::before {
+            display: none !important;
+        }
+        /* Sort icon inline next to header text */
+        table.dataTable thead th.sorting::after,
+        table.dataTable thead th.sorting_asc::after,
+        table.dataTable thead th.sorting_desc::after,
+        table.dataTable thead th.sorting_asc_disabled::after,
+        table.dataTable thead th.sorting_desc_disabled::after {
+            position: static !important;
+            display: inline-block !important;
+            margin-left: 4px !important;
+            top: auto !important;
+            right: auto !important;
+            vertical-align: middle !important;
+        }
+    </style>
+}

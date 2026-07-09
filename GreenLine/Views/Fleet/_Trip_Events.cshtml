@@ -1,0 +1,554 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@{
+    var trip = Model.CTM;
+
+    var events = Model.listEvents ?? new List<GreenLineDataService.Models.Cygnus_Master_Event>();
+
+    var stageActivities = Model.listStageActivities ?? new List<GreenLineDataService.ViewModel.CYGNUS_TripStageActivity>();
+}
+
+<style>
+    /* Timeline Container */
+    .timeline-steps {
+        position: relative;
+        padding-left: 20px;
+        margin-left: 10px;
+        border-left: 2px dashed var(--vz-border-color, #e9ebec);
+    }
+    
+    .timeline-step-item {
+        position: relative;
+        padding-bottom: 12px;
+        cursor: pointer;
+    }
+    
+    .timeline-step-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    /* Timeline node dot/icon */
+    .timeline-icon {
+        position: absolute;
+        left: -31px; /* Aligns dot directly on the border-left line */
+        top: 6px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+    }
+    
+    /* Timeline step state styles */
+    .timeline-step-item.is-disabled {
+        cursor: not-allowed !important;
+        opacity: 0.55;
+    }
+    
+    /* Content Card */
+    .timeline-content {
+        padding: 6px 12px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        width: 100%;
+    }
+    
+    /* Selected state shows a standard border */
+    .timeline-step-item.bg-soft-primary {
+        background-color: transparent !important;
+        border: none !important;
+    }
+    
+    .timeline-step-item.bg-soft-primary .timeline-content {
+        border-color: var(--vz-border-color, #e9ebec) !important;
+    }
+</style>
+
+<!-- Header -->
+<div class="mb-4">
+    <div class="fs-11 text-muted fw-semibold letter-spacing-1 mb-1">Workflow Sequence Manager</div>
+    <h5 class="fw-bold text-dark mb-0 fs-17">Trip Logistics Progress</h5>
+    <p class="text-muted fs-12 mb-0 mt-1">Events must be recorded chronologically, representing standard transit stages.
+    </p>
+</div>
+
+<div class="row g-3">
+    <!-- Left: Event Checklist -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header border-bottom-dashed">
+                <h5 class="card-title mb-0 fs-13 text-muted fw-bold letter-spacing-1">Execution Checklist</h5>
+            </div>
+            <div class="card-body p-3">
+                <div id="eventChecklist" class="timeline-steps">
+                    @Html.Partial("_Trip_Events_Checklist", Model)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Event Action Form -->
+    <div class="col-md-8">
+        <!-- Placeholder Card -->
+        <div class="card border-0 shadow-sm" id="eventActionFormPlaceholder">
+            <div class="card-body p-5 text-center">
+                <i class="ri-information-line text-muted fs-36 mb-3 d-block"></i>
+                <h6 class="text-muted fw-semibold mb-0">Select an active, rule-configured stage from the checklist to record progress.</h6>
+            </div>
+        </div>
+
+        <!-- Action Form Card -->
+        <form id="frmTripEvents" onsubmit="return false;" class="form-modern-ui">
+            <div class="card" id="eventActionFormContainer" style="display: none;">
+                <div class="card-header border-bottom-dashed">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-information-line align-middle text-primary"></i>
+                        <span id="nextEventTitle">Select an event from the checklist</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Dynamic Docket List for POD Received (shown on the right side) -->
+                        <div class="col-md-12" id="rightDocketListContainer" style="display: none;">
+                            <div class="alert alert-info py-2 fs-12 mb-3">
+                                <i class="ri-information-line me-1 align-middle fs-14"></i>
+                                Upload the POD document for each of the following dockets.
+                            </div>
+                            <div class="row g-3" id="rightDocketListGrid">
+                                <!-- Dynamic docket cards -->
+                            </div>
+                        </div>
+
+                        <div class="col-md-12" id="rightRemarksContainer">
+                            <div class="form-group">
+                                <label class="form-label required-field">Remarks / Notes</label>
+                                <textarea id="evtRemarks" name="evtRemarks" class="form-control fs-13 required" rows="3" placeholder="Enter Remark/Notes..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" id="rightNormalFormActions">
+                        <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass btn-sm" id="btnEventsClear">
+                            <i class="@ViewBag.UI.Buttons.Cancel.Icon align-middle me-1"></i>@ViewBag.UI.Buttons.Cancel.Label
+                        </button>
+                        <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave btn-sm" id="btnAcknowledgeEvent">
+                            <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle me-1"></i>@ViewBag.UI.Buttons.Submit.Label
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden container holding the partial view for file upload form -->
+<div id="commonUploadPartialContainer" style="display: none;">
+    @Html.Partial("_Upload_DO_POD")
+</div>
+
+<script>
+    function initEventsTab() {
+        var eventForm = $('#frmTripEvents');
+        var selectedEventId = '';
+        var selectedStopId = '';
+        var selectedIsRule = false;
+        var selectedIsPrevCompleted = true;
+        var selectedIsMandatory = false;
+        var selectedPrevName = '';
+
+        eventForm.validate({
+            errorElement: 'span',
+            errorClass: 'help-block',
+            focusInvalid: false,
+            ignore: ":hidden",
+            rules: {},
+            messages: {},
+            errorPlacement: function (error, element) {
+                if (element.parent(".input-group").length) {
+                    error.insertAfter(element.parent(".input-group"));
+                } else if (element.hasClass("select2-hidden-accessible")) {
+                    error.insertAfter(element.next(".select2-container"));
+                } else {
+                    error.insertAfter(element);
+                }
+            },
+            highlight: function (element) {
+                $(element).closest('.form-group').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error');
+            },
+            success: function (label) {
+                label.closest('.form-group').removeClass('has-error');
+            }
+        });
+
+        // Reusable function to bind click handlers to checklist items
+        function bindTimelineClicks() {
+            $('.event-step-item').off('click').on('click', function () {
+                if ($(this).hasClass('disabled-step')) {
+                    var isCompleted = ($(this).data('completed') === true || $(this).data('completed') === 'true');
+                    var isNextCompleted = ($(this).data('isnextcompleted') === true || $(this).data('isnextcompleted') === 'true');
+                    if (isCompleted) {
+                        TosterNotification('info', 'This stage is already completed.', 'Information');
+                    } else if (isNextCompleted) {
+                        //TosterNotification('warning', 'This stage is locked because a subsequent stage has already been completed.', 'Validation Warning');
+                    } else {
+                        // var prevName = $(this).data('prevname');
+                        // TosterNotification('warning', 'Please complete the previous stage "' + (prevName || 'previous stage') + '" first.', 'Validation Warning');
+                    }
+                    return;
+                }
+
+                $('.event-step-item').removeClass('bg-soft-primary border');
+                $(this).addClass('bg-soft-primary border');
+
+                var isRule = $(this).data('isrule');
+                var nextStageId = $(this).data('nextstageid');
+                var isCompleted = $(this).data('completed');
+                var eventName = $(this).data('event') || "";
+
+                selectedEventId = $(this).data('stageid');
+                selectedStopId = $(this).data('stopid');
+                selectedIsRule = isRule;
+                selectedIsPrevCompleted = $(this).data('isprevcompleted');
+                selectedIsMandatory = $(this).data('mandatory');
+                selectedPrevName = $(this).data('prevname');
+
+                var hasNextStage = nextStageId !== undefined && nextStageId !== null && nextStageId !== "" && nextStageId.toString().trim() !== "";
+
+                // Reset panel form inputs and validation state natively
+                if (eventForm.data('validator')) {
+                    eventForm.validate().resetForm();
+                }
+                eventForm.find('.has-error').removeClass('has-error');
+                $('#evtFile').val('');
+                $('#evtRemarks').val('');
+
+                var stageId = parseInt($(this).data('stageid'), 10);
+                var isTargetNormalEvent = (stageId === 5 || stageId === 8 || stageId === 10 || stageId === 12);
+
+                if (isCompleted) {
+                    $('#eventActionFormContainer').hide();
+                    $('#eventActionFormPlaceholder').show();
+                } else if (isTargetNormalEvent) {
+                    $('#eventActionFormPlaceholder').hide();
+                    $('#eventActionFormContainer').show();
+                    $('#nextEventTitle').text(eventName);
+                    $('#fileUploadContainer').hide();
+                    $('#rightRemarksContainer').show();
+                    $('#rightNormalFormActions').show();
+                    $('#rightDocketListContainer').hide();
+                } else if ((isRule === true || isRule === "true") && hasNextStage) {
+                    var isPOD = eventName.toUpperCase().indexOf("POD") >= 0;
+                    var isDO = eventName.toUpperCase().indexOf("DO") >= 0;
+
+                    if (isPOD) {
+                        // Show the Event Action Form card on the right
+                        $('#eventActionFormPlaceholder').hide();
+                        $('#eventActionFormContainer').show();
+                        $('#nextEventTitle').text(eventName);
+
+                        // Show the docket list and hide standard fields/actions
+                        $('#fileUploadContainer').hide();
+                        $('#rightRemarksContainer').hide();
+                        $('#rightNormalFormActions').hide();
+                        $('#rightDocketListContainer').show();
+
+                        // Load dockets dynamically from the database
+                        $('#rightDocketListGrid').html('<div class="col-12 text-center p-4 text-muted"><i class="ri-loader-4-line spin align-middle me-2 fs-20"></i> Loading consignment details...</div>');
+
+                        var stopId = $(this).data('stopid');
+
+                        $('#rightDocketListGrid').load(DomainName + '/Fleet/GetTripDocketsPartial?TripNo=@trip.TripNo&PRNo=@trip.PRNo&StopId=' + (stopId || ''), function() {
+                            // Bind click handler to dynamic Upload buttons
+                            $('.btn-right-upload-pod').off('click').on('click', function () {
+                                var docket = $(this).data('docket');
+                                var title = 'Upload POD - Docket ' + docket;
+                                openCommonUploadModal(title, eventName, docket);
+                            });
+                        });
+                    } else if (isDO) {
+                        // DO Received uses the global modal directly
+                        $('#eventActionFormContainer').hide();
+                        $('#eventActionFormPlaceholder').show();
+                        openCommonUploadModal(eventName, eventName, '');
+                    } else {
+                        $('#eventActionFormContainer').hide();
+                        $('#eventActionFormPlaceholder').show();
+                    }
+                } else {
+                    $('#eventActionFormContainer').hide();
+                    $('#eventActionFormPlaceholder').show();
+                }
+            });
+        }
+
+        // Initially bind the timeline click handlers
+        bindTimelineClicks();
+
+        // Reusable function to refresh the checklist timeline dynamically
+        function refreshChecklist(callback) {
+            App.blockUI({ target: '#eventChecklist', boxed: true, message: 'Refreshing checklist...' });
+            $('#eventChecklist').load(DomainName + '/Fleet/GetTripChecklistPartial?PRNo=@trip.PRNo', function () {
+                App.unblockUI('#eventChecklist');
+                bindTimelineClicks();
+                if (callback) callback();
+            });
+        }
+
+        function validateRuleConstraints() {
+            var selectedItem = $('.event-step-item[data-stageid="' + selectedEventId + '"][data-stopid="' + selectedStopId + '"]');
+            if (selectedItem.length === 0) {
+                selectedItem = $('.event-step-item[data-stageid="' + selectedEventId + '"]');
+            }
+
+            if (selectedItem.length > 0) {
+                var prevSiblings = selectedItem.prevAll('.event-step-item');
+                for (var i = 0; i < prevSiblings.length; i++) {
+                    var sibling = $(prevSiblings[i]);
+                    var isCompleted = (sibling.data('completed') === true || sibling.data('completed') === 'true');
+                    if (isCompleted) {
+                        break;
+                    }
+                    var isMandatory = (sibling.data('mandatory') === true || sibling.data('mandatory') === 'true');
+                    if (isMandatory) {
+                        var stageName = sibling.data('event') || "previous stage";
+                        TosterNotification('warning', 'Please complete the mandatory stage "' + stageName + '" first.', 'Validation Warning');
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function openCommonUploadModal(title, eventName, docketNo) {
+            // Get HTML from partial view container
+            var formHtml = $("#commonUploadPartialContainer").html();
+            $("#glFormContent").html(formHtml);
+
+            // Clear previous form data and validation states from previous opens
+            var formUpload = $('#glFormContent #frmCommonUpload');
+            if (formUpload.length > 0) {
+                formUpload[0].reset();
+                var validator = formUpload.data('validator');
+                if (validator) {
+                    validator.resetForm();
+                }
+                formUpload.find('.form-group').removeClass('has-error');
+                formUpload.find('.help-block').remove();
+            }
+
+            var isPODMode = false;
+            var isDOMode = false;
+            if (eventName) {
+                var nameUpper = eventName.toUpperCase();
+                if (nameUpper.indexOf("POD") >= 0) {
+                    isPODMode = true;
+                } else if (nameUpper.indexOf("DO") >= 0) {
+                    isDOMode = true;
+                }
+            }
+
+            if (typeof setupUploadModalForm === 'function') {
+                setupUploadModalForm(isDOMode, isPODMode);
+            }
+
+            // Setup modal title
+            $('#glFormModalLabel').html('<i class="ri-upload-cloud-2-line align-middle me-1"></i> ' + title);
+
+            $("#glFormLoader").hide();
+            $("#glFormSaveBtn").prop("disabled", false);
+
+            // Open the common modal
+            var bsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('glFormModal'));
+            bsModal.show();
+
+            // Bind click event to common Save button
+            $('#glFormSaveBtn').off('click').on('click', function () {
+                if (!validateRuleConstraints()) {
+                    return false;
+                }
+
+                var formUpload = $('#glFormContent #frmCommonUpload');
+                if (!formUpload.valid()) {
+                    return false;
+                }
+
+                var remarksVal = $('#glFormContent #modalEvtRemarks').val();
+                var fileInput = $('#glFormContent #modalEvtFile')[0];
+                var fileBackInput = $('#glFormContent #modalEvtFileBack')[0];
+
+                var mappedActivityType = "OTHER";
+                if (eventName) {
+                    if (eventName.toUpperCase().indexOf("POD") >= 0) {
+                        mappedActivityType = "POD";
+                    } else if (eventName.toUpperCase().indexOf("DO") >= 0) {
+                        mappedActivityType = "DO";
+                    }
+                }
+
+                var piecesVal = $('#glFormContent #modalEvtPieces').val() || '';
+                var qtyVal = $('#glFormContent #modalEvtQty').val() || '';
+
+                var formData = new FormData();
+                if (fileInput.files && fileInput.files.length > 0) {
+                    formData.append("evtFile", fileInput.files[0]);
+                }
+                if (fileBackInput && fileBackInput.files && fileBackInput.files.length > 0) {
+                    formData.append("evtFileBack", fileBackInput.files[0]);
+                }
+                formData.append("TripNo", '@trip.TripNo');
+                formData.append("ActivityType", mappedActivityType);
+                formData.append("DocketNo", docketNo || '');
+                formData.append("Remarks", remarksVal);
+                formData.append("PRNo", '@trip.PRNo');
+                formData.append("Pieces", piecesVal);
+                formData.append("Qty", qtyVal);
+                formData.append("EventId", selectedEventId || '');
+                formData.append("StopId", selectedStopId || '');
+
+                App.blockUI({ target: '#glFormModal .modal-content', boxed: true, message: 'Saving event...' });
+
+                $.ajax({
+                    url: DomainName + '/Fleet/SubmitDoPodUpload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        App.unblockUI('#glFormModal .modal-content');
+                        if (res.Status) {
+                            var bsModalInstance = bootstrap.Modal.getInstance(document.getElementById('glFormModal'));
+                            if (bsModalInstance) bsModalInstance.hide();
+                            TosterNotification('success', 'Document uploaded and event recorded!', 'Success');
+                            
+                            // Dynamically refresh checklist and re-trigger selection
+                            var activeStageId = $('.event-step-item.bg-soft-primary').data('stageid');
+                            var activeStopId = $('.event-step-item.bg-soft-primary').data('stopid');
+                            refreshChecklist(function() {
+                                if (activeStageId) {
+                                    var activeStep = $('.event-step-item[data-stageid="' + activeStageId + '"][data-stopid="' + (activeStopId || '') + '"]');
+                                    if (activeStep.length === 0) {
+                                        activeStep = $('.event-step-item[data-stageid="' + activeStageId + '"]');
+                                    }
+                                    if (activeStep.length > 0) {
+                                        activeStep.addClass('bg-soft-primary border');
+                                    }
+                                }
+
+                                if (activeStageId == 11) {
+                                    $('#rightDocketListGrid').html('<div class="col-12 text-center p-4 text-muted"><i class="ri-loader-4-line spin align-middle me-2 fs-20"></i> Loading consignment details...</div>');
+                                    $('#rightDocketListGrid').load(DomainName + '/Fleet/GetTripDocketsPartial?TripNo=@trip.TripNo&PRNo=@trip.PRNo&StopId=' + (activeStopId || ''), function() {
+                                        $('.btn-right-upload-pod').off('click').on('click', function () {
+                                            var docket = $(this).data('docket');
+                                            var title = 'Upload POD - Docket ' + docket;
+                                            openCommonUploadModal(title, 'POD', docket);
+                                        });
+                                    });
+                                }
+                            });
+                        } else {
+                            TosterNotification('error', res.Message || 'Failed to save event', 'Error');
+                        }
+                    },
+                    error: function () {
+                        App.unblockUI('#glFormModal .modal-content');
+                        TosterNotification('error', 'Failed to save event', 'Error');
+                    }
+                });
+            });
+        }
+
+        $('#btnEventsClear').off('click').on('click', function () {
+            $('#evtFile').val('');
+            $('#evtRemarks').val('');
+
+            if (eventForm.data('validator')) {
+                eventForm.validate().resetForm();
+            }
+            eventForm.find('.has-error').removeClass('has-error');
+
+            $('.event-step-item').removeClass('bg-soft-primary border');
+            $('#eventActionFormContainer').hide();
+            $('#eventActionFormPlaceholder').show();
+        });
+
+        $('#btnAcknowledgeEvent').off('click').on('click', function () {
+            var evtName = $('#nextEventTitle').text();
+            if (!evtName || evtName === 'Select an event from the checklist') {
+                TosterNotification('warning', 'Please select an event first', '');
+                return;
+            }
+
+            if (!validateRuleConstraints()) {
+                return false;
+            }
+
+            if (!eventForm.valid()) {
+                return false;
+            }
+
+            var remarksVal = $('#evtRemarks').val();
+            saveEvent(evtName, remarksVal, selectedEventId, selectedStopId);
+        });
+
+        function saveEvent(evtName, remarks, eventId, stopId) {
+            App.blockUI({ target: 'body', boxed: true, message: 'Saving event...' });
+
+            var isShortEvent = (eventId === 5 || eventId === 8);
+            var targetUrl = isShortEvent ? (DomainName + '/Fleet/UpdateEventStatus') : (DomainName + '/Fleet/UpdateTripEventLastStatus');
+            var postData = {
+                prno: '@trip.PRNo',
+                @* VehicleNo: '@trip.VehicleNo', *@
+                VehicleNo: '@trip.VehicleId',
+                eventId: eventId,
+                TripNo: '@trip.TripNo',
+                remarks: remarks
+            };
+            if (!isShortEvent) {
+                postData.stopId = stopId;
+            }
+
+            $.ajax({
+                url: targetUrl,
+                type: 'POST',
+                dataType: 'json',
+                data: postData,
+                success: function (res) {
+                    App.unblockUI();
+                    var isSuccess = false;
+                    var errMsg = 'Failed to save event';
+
+                    if (isShortEvent) {
+                        isSuccess = (res === 'Saved Successfully' || res === 'Done');
+                        errMsg = (res && res.Message) || res || errMsg;
+                    } else {
+                        isSuccess = !!(res && res.Status);
+                        errMsg = (res && res.Message) || errMsg;
+                    }
+
+                    if (isSuccess) {
+                        TosterNotification('success', 'Event recorded!', 'Success');
+                        
+                        // Reset active forms/placeholders
+                        $('#eventActionFormContainer').hide();
+                        $('#eventActionFormPlaceholder').show();
+                        
+                        // Refresh checklist dynamically without page reload
+                        refreshChecklist();
+                    } else {
+                        TosterNotification('error', errMsg, 'Error');
+                    }
+                },
+                error: function () {
+                    App.unblockUI();
+                    TosterNotification('error', 'Failed to save event', 'Error');
+                }
+            });
+        }
+    }
+</script>

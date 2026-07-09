@@ -1,0 +1,84 @@
+﻿@{
+    ViewBag.Title = "Contract Done";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5 text-center">
+                <div class="mb-4">
+                    <div class="avatar-lg mx-auto">
+                        <div class="avatar-title bg-soft-success text-success display-3 rounded-circle" style="width: 100px; height: 100px; line-height: 100px; margin: 0 auto;">
+                            <i class="ri-checkbox-circle-fill"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="fw-bold mb-2">Success!</h3>
+                <p class="text-muted fs-15"> Contract Successfully updated and saved.</p>
+
+                <div class="bg-light p-3 rounded-3 mb-4 mt-4">
+                    <p class="text-uppercase fw-semibold text-muted mb-1 fs-12">Contract Details</p><br />
+                    <h4 class="mb-0 text-primary">@ViewBag.ContaractID</h4><br />
+                    <b>@ViewBag.ContarctName</b>
+                </div>
+
+                <div class="hstack gap-2 justify-content-center mt-3">
+                    <a href="@Url.Action("CustomerContract", "contract")" class="btn btn-primary d-flex align-items-center">
+                        <i class="ri-add-line me-1"></i> Add Contract
+                    </a>
+                    <a href="@Url.Action("UpdateContract", "contract", new { CustCode = ViewBag.CustCode, ContId = ViewBag.ContaractID, ContType = ViewBag.ConType , Mode = "Edit" })" class="btn btn-soft-info d-flex align-items-center">
+                        <i class="ri-edit-line me-1"></i> Edit This Contract
+                    </a>
+                    <a href="@Url.Action("UpdateContract", "contract", new { CustCode = ViewBag.CustCode, ContId = ViewBag.ContaractID, ContType = ViewBag.ConType , Mode = "View" })" class="btn btn-soft-info d-flex align-items-center">
+                        <i class="ri-eye-2-line me-1"></i> View This Contract
+                    </a>
+                    @*<a href="@Url.Action("Organization", "Master")" class="btn btn-soft-secondary d-flex align-items-center">
+                        <i class="ri-list-check me-1"></i> Back to List
+                    </a>*@
+                </div>
+            </div>
+            <div class="card-footer bg-soft-light border-0 py-3 text-center">
+                <p class="mb-0 text-muted fs-12">Note: You can always manage organization details from the Master list view.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .bg-soft-success {
+        background-color: rgba(69, 203, 133, 0.1) !important;
+        color: #45cb85 !important;
+    }
+
+    .bg-soft-danger {
+        background-color: rgba(240, 101, 72, 0.1) !important;
+        color: #f06548 !important;
+    }
+
+    .bg-soft-info {
+        background-color: rgba(41, 156, 219, 0.1) !important;
+        color: #299cdb !important;
+    }
+
+    .bg-soft-secondary {
+        background-color: rgba(53, 57, 69, 0.1) !important;
+        color: #353945 !important;
+    }
+
+    .bg-soft-light {
+        background-color: rgba(243, 246, 249, 0.1) !important;
+    }
+
+    .fs-12 {
+        font-size: 12px;
+    }
+
+    .fs-15 {
+        font-size: 15px;
+    }
+</style>
+
+

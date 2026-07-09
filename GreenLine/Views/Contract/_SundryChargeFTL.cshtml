@@ -1,0 +1,275 @@
+@model GreenLineDataService.ViewModel.ContarctFTLViewModel
+@using GreenLineDataService.Models
+@using GreenLine.Helpers
+@{
+
+    var objListCharge = new List<SelectListItem> {
+        new SelectListItem { Text = "Freight Charge - FTL", Value = "2",Selected=true }
+    };
+
+}
+
+<style type="text/css">
+    .TxtVertical {
+        vertical-align: middle !important;
+    }
+
+    #sample_FTL thead tr th, #sample_FTL tbody tr td, #sample_FTL tfoot tr td {
+        padding: 5px !important;
+        font-family: Verdana !important;
+        font-size: 12px !important;
+        border: 1px solid #CCC !important;
+        vertical-align: middle !important;
+    }
+
+    #sample_2 tbody tr td input {
+        padding: 5px !important;
+    }
+
+    #sample_FTL tbody tr td .select2-container .select2-choice {
+        padding: 5px !important;
+        height: 30px !important;
+    }
+
+    #form_SundryFTL .select2-container .select2-choice .select2-search-choice-close {
+        position: absolute !important;
+        top: 15% !important;
+        transform: translateY(-50%) !important;
+        right: 25px !important;
+    }
+</style>
+
+@using (Html.BeginForm("AddSundryFTL_New", "Contract", FormMethod.Post, new { id = "form_SundryFTL", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.FTLfreightCharge.ContractId)
+    @Html.HiddenFor(m => m.FTLfreightCharge.Custcode)
+    @Html.HiddenFor(m => m.FTLfreightCharge.EffectiveTo)
+    @Html.HiddenFor(m => m.FTLfreightCharge.chargetype)
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-truck-line align-middle me-1"></i> Freight Charge - FTL Selection Criteria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row  g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Charge Name</label>
+                                @Html.DropDownListFor(m => m.FTLfreightCharge.chargecode, new SelectList(objListCharge, "Value", "Text"), new { @class = "required select2 form-control", placeholder = "Select Charge Name", @disabled = "disabled" })
+                                @Html.HiddenFor(m => m.FTLfreightCharge.chargecode)
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Trans Mode</label>
+                                @Html.DropDownListFor(m => m.FTLfreightCharge.trans_type, new SelectList(ViewBag.objMasterList, "CodeId", "CodeDesc"), new { placeholder = "Select Trans Mode", @class = "form-control select2 required", @disabled = "disabled" })
+                                @Html.HiddenFor(m => m.FTLfreightCharge.trans_type)
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Matrix Type</label>
+                                @Html.DropDownListFor(m => m.FTLfreightCharge.Matrixtype, new SelectList(ViewBag.objMasterMatrixList, "CodeId", "CodeDesc"), new { placeholder = "Select Matrix Type", @class = "form-control select2 required", @disabled = "disabled" })
+                                @Html.HiddenFor(m => m.FTLfreightCharge.Matrixtype)
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Rate Type</label>
+                                @Html.DropDownListFor(m => m.FTLfreightCharge.ftl1_trip_ratetype, new SelectList(ViewBag.objRateList, "CodeId", "CodeDesc"), "", new { placeholder = "Select Rate Type", @class = "form-control select2 required" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Vehicle Type</label>
+                                @Html.DropDownListFor(m => m.FTLfreightCharge.ftltype, new SelectList(ViewBag.FtlTypList, "CodeId", "CodeDesc"), "", new { placeholder = "Select Vehicle Type", @class = "form-control select2 dp required dis" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 Attachment_FTL" style="display:none;">
+                            <div class="form-group">
+                                <label class="form-label required-field">Effective from</label>
+                                <div class="input-group date" data-date-format="dd M yyyy">
+                                    @Html.TextBoxFor(m => m.FTLfreightCharge.EffectiveFrom,
+                                        Convert.ToDateTime(DateTime.Now) < Convert.ToDateTime(Model.FTLfreightCharge.Contract_Stdate) ?
+                                        Convert.ToDateTime(Model.FTLfreightCharge.Contract_Stdate).ToString("dd MMM yyyy")
+                                        : Convert.ToDateTime(DateTime.Now).ToString("dd MMM yyyy"),
+                                    new { @class = "form-control date-picker " })
+                                    <span class="input-group-text bg-light border-start-0" style="cursor:pointer;">
+                                        <i class="ri-calendar-2-line"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 Attachment_FTL" style="display:none;">
+                            <div class="form-group">
+                                <label class="form-label required-field">Attachment(Image/PDF)</label>
+                                <div class="col-12 d-flex align-items-center gap-2">
+                                    <!-- Hidden value -->
+                                    <input type="hidden" value="@Model.FTLfreightCharge.Attachment" name="FTLfreightCharge.Attachment" id="Attachment">
+                                    <!-- File Upload -->
+                                    <input type="file" id="fileUpload" name="fileUpload" class="form-control" />
+                                    @if (!string.IsNullOrEmpty(Model.FTLfreightCharge.Attachment))
+                                    {
+                                        var fileName = System.IO.Path.GetFileName(Model.FTLfreightCharge.Attachment);
+                                        <a href="javascript:void(0);" onclick="DownloadAttachment('@Url.Content("~/Uploads/Contract/FTLCharges/" + fileName)', '@fileName')" class="@ViewBag.UI.Buttons.Excel.CssClass btn-label" title="Download Attachment">
+                                            <i class="ri-file-download-line label-icon align-middle fs-16 me-2"></i> Download
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    if (Model.FTLfreightChargeList.ToList().Count > 0)
+    {
+        <div class="row" id="divSundryFTL" style="display:none">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                <button type="button" id="btnCloneFTLRows" class="@ViewBag.UI.Buttons.ReportsRights.CssClass btn-label"><i class="ri-file-copy-2-line label-icon align-middle fs-16 me-2"></i>Clone</button>
+                            </div>
+                            <div class="offset-2 col-md-1 text-end">
+                                <label class="control-label">No of Rows </label>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    @Html.TextBox("FTLdRows", "1", new { placeholder = "No. Rows", @class = "input-small form-control required", style="height:34px;" })
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" id="btnFTLAddRows" class="@ViewBag.UI.Buttons.Add.CssClass btn-label"><i class="@ViewBag.UI.Buttons.Add.Icon label-icon align-middle fs-16 me-2"></i>@ViewBag.UI.Buttons.Add.Label</button>
+                            </div>
+
+                            <div class="col-md-4 text-end">
+                                 <input type="file" id="fileUploadExcelFTL" class="excel-upload-input" data-service-type="2" style="display:none;" accept=".xlsx, .xls" />
+                                 <button type="button" class="btn btn-success btn-sm btn-label btn-excel-upload" data-target="#fileUploadExcelFTL"><i class="@ViewBag.UI.Buttons.Excel.Icon label-icon align-middle fs-12"></i>Upload</button>
+                                 <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass btn-label btn-excel-download" data-service-type="2"><i class="@ViewBag.UI.Buttons.Excel.Icon label-icon align-middle fs-12"></i>Download Sample</button>
+                                 <button type="button" id="btnChangeFreightRateFTL" class="@ViewBag.UI.Buttons.Edit.CssClass btn-label"><i class="@ViewBag.UI.Buttons.Edit.Icon label-icon align-middle fs-12"></i>Change Rate</button>
+                             </div>
+                        </div>
+                        <div class="col-md-12 mt-3">
+                            <div class="table-responsive" style="overflow-x: auto; max-height: 50vh; overflow-y: auto;">
+                                <table id="sample_FTL" class="table table-striped table-bordered table-hover m-0">
+                                    <thead>
+                                        <tr class="success">
+                                            <th class="center TxtVertical" style="min-width:  30px;"><input type="checkbox" id="chkSelectAllFTL" style="transform: scale(1.2); cursor: pointer;" /></th>
+                                            <th class="center TxtVertical" style="min-width:  30px;">Id</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">From</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">To(<a href="@Url.Action("LaneMaster","Master")" target="_blank">Lane Master</a>)</th>
+                                            <th class="center TxtVertical" style="min-width:  90px;">Lane Code</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">Map Dist(km)</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">Contractual Dist(km)</th>
+                                            <th class="center TxtVertical" style="min-width: 115px;">Start Date</th>
+                                            <th class="center TxtVertical" style="min-width: 115px;">End Date</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">Estimated Volume</th>
+                                            <th class="center TxtVertical" style="min-width: 130px;">Product Group</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">UOM</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">Rate</th>
+                                            <th class="center TxtVertical" style="min-width:  50px;">Transit days</th>
+                                            <th class="center TxtVertical" style="min-width:  50px;">Billing State</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">From Qty</th>
+                                            <th class="center TxtVertical" style="min-width:  75px;">To Qty</th>
+                                            <th class="center TxtVertical" style="min-width: 100px;">Chargeable on</th>
+                                            <th class="center TxtVertical" style="min-width:  50px;">Minimum Guarantee</th>
+                                            <th class="center TxtVertical" style="min-width:  50px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tblSundryFTL">
+                                        @foreach (var item in Model.FTLfreightChargeList)
+                                        {
+                                            Html.RenderPartial("_PartialSundryFlat", item);
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            @*<br />
+                                <div class="form-group">
+                                    <div class="col-md-12 d-flex justify-content-center">
+                                        <button type="button" id="btnAddSundryFTL" class="@ViewBag.UI.Buttons.Add.CssClass  btn-label"><i class="@ViewBag.UI.Buttons.Add.Icon label-icon align-middle fs-16 me-2"></i>Add New Row</button>
+                                    </div>
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="divGoogleFTL" style="display:none;">
+            <div class="col-md-12">
+                <div class="card m-0">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fa fa-map-marker"></i> Map
+                        </h5>
+                    </div>
+                    <div class="card-body" id="googleMapFTL" style=" height: 400px;  overflow: hidden; margin:0px; padding:0px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<div class="form-actions">
+    <button type="button" onclick="goToTab(3)" id="btnSundryFTLPre" class="@ViewBag.UI.Buttons.Previous.CssClass"><i class="@ViewBag.UI.Buttons.Previous.Icon"></i>@ViewBag.UI.Buttons.Previous.Label</button>
+    <button type="button" id="btngetSundryFTL" class="@ViewBag.UI.Buttons.Edit.CssClass btn-label"><i class="ri-file-download-line label-icon align-middle fs-16 me-2"></i>Get Freight Charge - FTL List</button>
+    <button type="button" id="btnSundryFTLStay" data-mode="stay" style="display:none" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Save & Stay On Page</button>
+    <button type="button" id="btnSundryFTL" data-mode="next" style="display:none" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Save & Next</button>
+    <button type="button" id="btnSundryFTLNext" onclick="goToTab(6)" class="@ViewBag.UI.Buttons.Next.CssClass"><i class="@ViewBag.UI.Buttons.Next.Icon"></i>@ViewBag.UI.Buttons.Next.Label</button>
+</div>
+
+<!-- Modal for Change Freight Rate - FTL -->
+<div class="modal fade" id="modalChangeRateFTL" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="modalChangeRateFTLLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light p-3 border-bottom">
+                <h5 class="modal-title fw-bold text-primary" id="modalChangeRateFTLLabel" style="color: #405189 !important; font-size: 16px;">
+                    <span id="txt_headerLabel">Change Freight Rate - FTL</span>
+                </h5>
+                <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle border m-0" id="tblChangeRateFTLGrid">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th style="width:1rem;">@*<input type="checkbox" id="chkSelectAllModalFTL" style="transform: scale(1.2); cursor: pointer;" />*@</th>
+                                <th style="width:8rem;">From Lane</th>
+                                <th style="width:8rem;">To Lane</th>
+                                <th style="width:10rem;">Start Date</th>
+                                <th style="width:10rem;">End Date</th>
+                                @*<th style="width:8rem;">Product Group</th>*@
+                                <th style="width:8rem;">From Qty</th>
+                                <th style="width:8rem;">To Qty</th>
+                                <th style="width:7rem;">Old Rate</th>
+                                <th style="width:7rem;">New Rate</th>
+                                <th style="width:7rem;">Difference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamically populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass me-2" data-bs-dismiss="modal">
+                    <i class="@ViewBag.UI.Buttons.Cancel.Icon align-middle me-1"></i>@ViewBag.UI.Buttons.Cancel.Label
+                </button>
+                <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass" id="btnSaveFTLRateChanges">
+                    <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>@ViewBag.UI.Buttons.Submit.Label
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

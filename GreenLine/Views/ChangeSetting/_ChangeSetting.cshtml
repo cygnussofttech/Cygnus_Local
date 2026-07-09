@@ -1,0 +1,82 @@
+﻿@model  GreenLineDataService.Models.ChangeSettingsViewModel
+@using GreenLine.Classes
+@using GreenLineDataService.Models
+@{
+    ViewBag.Title = "Change Application Setting";
+}
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet box @ViewBag.TableBoxColor" style="margin-bottom: 0px;">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-cogs"></i>@ViewBag.Title
+                </div>
+            </div>
+            <div class="portlet-body">
+                @using (Html.BeginForm("SaveChangeSettings", "ChangeSetting", FormMethod.Post, new { @id = "ChangeSetting", @class = "form-horizontal", @readonly = "true" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-body">
+                        <div class="alert alert-danger display-hide">
+                            <button class="close" data-close="alert"></button>
+                            You have some form errors. Please check below.
+                        </div>
+                        <div class="alert alert-success display-hide">
+                            <button class="close" data-close="alert"></button>
+                            Your form validation is successful!
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">
+                                            Location
+                                        </label>
+                                        <div class="col-md-10">
+                                            @Html.DropDownListFor(model => model.changeSetting.LocCode, new SelectList(Model.ListLocation, "LocCode", "Location"), "", new { @class = "select2 required form-control" })
+                                            @Html.ValidationMessageFor(model => model.changeSetting.LocCode)
+                                            @Html.HiddenFor(model => model.submitType)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">
+                                            Fin Year
+                                        </label>
+                                        <div class="col-md-10">
+                                            @Html.DropDownListFor(model => model.changeSetting.FinYear, new SelectList(Model.ListYears, "FinYear", "FinYear"), "", new { @class = "select2 required form-control" })
+                                            @Html.ValidationMessageFor(model => model.changeSetting.FinYear)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-2">
+                                            Company
+                                        </label>
+                                        <div class="col-md-10">
+                                            @Html.DropDownListFor(model => model.changeSetting.CompanyCode, new SelectList(Model.ListCompany, "CODE", "NAME"), "", new { @class = "select2 required form-control" })
+                                            @Html.ValidationMessageFor(model => model.changeSetting.CompanyCode)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions fluid">
+                        <div class="col-md-offset-4 col-md-8">
+                            <button type="button" id="btnSubmit" data-loading-text="Processing..." class="btn btn-sm green controls"><i class="fa fa-check"></i>&nbsp;Submit </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

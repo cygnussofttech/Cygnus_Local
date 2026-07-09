@@ -1,0 +1,182 @@
+@model GreenLineDataService.Models.CYGNUS_pincode_master
+@using GreenLineDataService.Models;
+@{
+    bool Active = true;
+    if (Model.ActiveFlag != null && Model.ActiveFlag.ToUpper() == "N")
+    {
+        Active = false;
+    }
+
+    var pincodeVal = "";
+    if (Model.pincode != null && Model.pincode > 0)
+    {
+        pincodeVal = Model.pincode.ToString();
+    }
+
+    var kmVal = "";
+    if (Model.KM_From_Location != null && Model.KM_From_Location > 0)
+    {
+        kmVal = Model.KM_From_Location.ToString();
+    }
+}
+
+@using (Html.BeginForm("AddEditPincode", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-horizontal form-modern-ui", enctype = "multipart/form-data" }))
+{
+    <!-- Section 1: Geographic Information -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-map-pin-2-line align-middle me-1"></i> Geographic Information
+            @Html.HiddenFor(m => m.ID)
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Pincode</label>
+                    @if (Model.ID > 0)
+                    {
+                        @Html.TextBox("pincode", pincodeVal, new { placeholder = "Pincode", @maxlength = "6", @minlength = "6", @class = "form-control required", @disabled = "disabled" })
+                        @Html.HiddenFor(m => m.pincode)
+                    }
+                    else
+                    {
+                        @Html.TextBox("pincode", pincodeVal, new { placeholder = "Pincode", @maxlength = "6", @minlength = "6", @class = "form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                    }
+                    @Html.ValidationMessageFor(m => m.pincode)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Area Name</label>
+                    @Html.TextBoxFor(m => m.Area, new { placeholder = "Area Name", @class = "form-control required", @onKeyPress = "return ValidateAlpha(event);" })
+                    @Html.ValidationMessageFor(m => m.Area)
+                </div>
+            </div>            
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">City</label>
+                    @Html.DropDownListFor(m => m.cityname, new SelectList(ViewBag.CityList, "city_code", "Location", Model.cityname), "", new { @class = "select2 required", @placeholder = "Select City" })
+                    @Html.ValidationMessageFor(m => m.cityname)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">State</label>
+                    @Html.DropDownListFor(m => m.StateCode, new SelectList(ViewBag.StateList, "stcd", "stnm", Model.StateCode), "", new { @class = "select2 required", @placeholder = "Select State", @disabled = "disabled" })
+                    @Html.HiddenFor(m => m.StateCode, new { id = "HiddenStateCode" })
+                    @Html.ValidationMessageFor(m => m.StateCode)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Operational Details -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-settings-line align-middle me-1"></i> Operational Details
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">KM From Location</label>
+                    @Html.TextBox("KM_From_Location", kmVal, new { placeholder = "KM From Location", @class = "form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                    @Html.ValidationMessageFor(m => m.KM_From_Location)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Nearest Location</label>
+                    @Html.DropDownListFor(m => m.Handling_Location, new SelectList(ViewBag.LocationList, "LocCode", "LocName_LocCode", Model.Handling_Location), "", new { @class = "select2 required", @placeholder = "Select Location" })
+                    @Html.ValidationMessageFor(m => m.Handling_Location)
+                </div>
+            </div>
+
+            @if (Model.ID > 0)
+            {
+                <div class="col-md-12">
+                    <div class="d-flex gap-4 pt-2">
+                        <div class="form-check form-switch">
+                            @Html.CheckBox("activeflag", @Active, new { @class = "form-check-input", @id = "activeflag" })
+                            <label class="form-check-label ms-2" for="activeflag">Status</label>
+                        </div>
+                        @Html.Hidden("Is_ODA_Apply", "N")
+                    </div>
+                </div>
+            }
+            else
+            {
+                @Html.Hidden("activeflag", "true")
+                @Html.Hidden("Is_ODA_Apply", "N")
+            }
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        // Serialize the cities collection to JSON for local lookup
+        var allCities = @Html.Raw(Json.Encode(ViewBag.CityList));
+
+        // Re-initialize select2 safely on all modal dropdown elements
+        $('#StateCode, #cityname, #Handling_Location').each(function () {
+            var $el = $(this);
+            if ($el.data('select2')) {
+                $el.select2('destroy');
+            }
+            $el.select2({
+                placeholder: 'Select an Option',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#glFormModal')
+            });
+        });
+
+        // Trigger validation on change of select2 elements to clear errors instantly
+        $('#StateCode, #cityname, #Handling_Location').on('change', function () {
+            $(this).valid();
+        });
+
+        // Synchronize disabled state dropdown value to hidden input for form submission
+        $(document).off('change', '#StateCode').on('change', '#StateCode', function () {
+            $('input[name="StateCode"]').val($(this).val());
+        });
+
+        // 1. City selection automatically selects the correct State
+        $(document).off('change', '#cityname').on('change', '#cityname', function () {
+            var cityCode = $(this).val();
+            if (cityCode && allCities) {
+                var city = allCities.find(function (c) { return c.city_code == cityCode; });
+                if (city && city.state) {
+                    $('#StateCode').val(city.state).trigger('change');
+                }
+            }
+        });
+
+        // 2. Typing/Entering Pincode prefix dynamically loads/selects the correct State
+        $(document).off('input.stateLookup', '#pincode').on('input.stateLookup', '#pincode', function () {
+            var pinVal = $(this).val();
+            if (pinVal && pinVal.length >= 2) {
+                var prefix = pinVal.substring(0, 2);
+                $.ajax({
+                    url: DomainName + '/Master/Get_Country_State_City_Zone_on_Pincode',
+                    type: 'GET',
+                    dataType: "json",
+                    data: { Code: prefix, Type: 'S' },
+                    success: function (response) {
+                        if (response && response.length > 0) {
+                            var stateCode = response[0].StateCode;
+                            if (stateCode) {
+                                $('#StateCode').val(stateCode).trigger('change');
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>

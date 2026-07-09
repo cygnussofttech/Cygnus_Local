@@ -1,0 +1,461 @@
+﻿@model GreenLineDataService.ViewModel.VendorViewModel
+@using GreenLineDataService.Models
+<style>
+
+    .gst-scroll {
+        max-height: 350px; /* adjust as needed */
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .gst-table-scroll thead th {
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 1;
+    }
+
+    .gst-scroll .table {
+        margin-bottom: 1%;
+    }
+
+    .editorRow td {
+        padding: 4px !important;
+        vertical-align: middle;
+    }
+
+    .editorRow textarea {
+        height: 32px !important;
+        resize: none;
+    }
+
+    .editorRow input[type=file] {
+        font-size: 12px;
+    }
+
+  
+</style>
+@{
+    GreenLineDataService.Helper.Interface.IMasterService MS = new GreenLineDataService.Helper.MasterService();
+    var list = new List<string>()
+{
+            "02","04","07"
+        };
+
+    string BLACKLISTED = "", Active = "", GstEnable = "";
+    string activeDisplay = "display:none;";
+
+    if (Model.VendorDET.BLACKLISTED != null && Model.VendorDET.BLACKLISTED == "Y")
+    {
+        BLACKLISTED = "checked";
+        Model.VendorDET.BLACKLISTED = "Y";
+    }
+
+    if (Model.VendorHDR.Active != null && Model.VendorHDR.Active == "Y" || Model.EditFlag == "false")
+    {
+        Active = "checked";
+        Model.VendorHDR.Active = "Y";
+        if (Model.EditFlag=="true")
+        {
+        activeDisplay = "display:block;";
+        }
+
+    }
+    if (Model.VendorHDR.IsGstEnable != null && Model.VendorHDR.IsGstEnable == "Y" /*|| Model.EditFlag == "false"*/)
+    {
+        GstEnable = "checked";
+        Model.VendorHDR.IsGstEnable = "Y";
+    }
+    List<CYGNUS_location> ListLocations = new List<CYGNUS_location>();
+    var Text = "Submit"; var type = "Add";
+    if (Model.EditFlag == "true")
+    {
+        Text = "Update";
+        type = "Edit";
+        ListLocations = MS.GetLocationDetails();
+    }
+
+
+    List<CYGNUS_Master_General> ListVendorType = MS.GetGeneralMasterWithParam("VENDTY").ToList();
+    List<CYGNUS_Master_General> ListTaxpayer = MS.GetGeneralMasterWithParam("TXPYR").ToList();
+    List<CYGNUS_citymaster> cityList = MS.GetCityMaster().Where(c => c.activeflag == "Y").OrderBy(c => c.Location).ToList();
+    List<CYGNUS_Master_General> ListOwerShip = MS.GetGeneralMasterWithParam("CONRSHP").ToList();
+    List<CYGNUS_Master_General> ListMSMECAT = MS.GetGeneralMasterWithParam("MSMECAT").ToList();
+    List<CYGNUS_Master_General> ListRateType = MS.GetGeneralMasterWithParam("RATETYP").ToList();
+    List<CYGNUS_Master_General> ListFilingfreq = MS.GetGeneralMasterWithParam("TSDUR").ToList();
+
+
+
+}
+
+@using (Html.BeginForm("VendorMasterSubmit", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-user-line"></i> Vendor Master
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="form-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">GST API Enable</label>
+                                    <div class="form-check form-switch form-switch-success">
+                                        @Html.HiddenFor(m => m.VendorHDR.IsGstEnable)
+                                        <input type="checkbox" id="GstEnable" @GstEnable class="form-check-input cursor-pointer" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">GST No.</label>
+                                    @Html.TextBoxFor(model => model.VendorHDR.VendorGST, new { @class = "form-control", @placeholder = "GST REGISTRATION NO", maxlength = 15, minlength = 15 })
+                                    @Html.Hidden("GSTNoError")
+                                    @Html.Hidden("IsRegistered")
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Vendor Code</label>
+                                    @Html.TextBoxFor(model => model.VendorHDR.VENDORCODE, new { @class = "form-control", @placeholder = "System Generated", @readonly = true, @style = "background:gainsboro;" })
+                                    @Html.HiddenFor(model => model.EditFlag)
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Trade Name</label>
+                                    @Html.TextBoxFor(model => model.VendorHDR.VENDORNAME, new { @class = "required form-control", @placeholder = "Name" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Vendor Type</label>
+                                    @Html.DropDownListFor(model => model.VendorHDR.Vendor_Type, new SelectList(ListVendorType, "CodeId", "CodeDesc"), "", new { @class = "select2 required form-control", @placeholder = "Vendor Type" })
+                                </div>
+                            </div>
+
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Vendor City</label>
+                                    @Html.DropDownListFor(model => model.VendorDET.VENDORCITY, new SelectList(cityList, "Location", "Location", Model.VendorDET.VENDORCITY), "", new { @class = "select2 form-control", @placeholder = "Vendor City" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Vendor Locations</label>
+                                    @Html.TextBoxFor(m => m.VendorDET.VENDORBRCD, new { @class = "form-control required  ", @placeholder = "Vendor Locations", @multiple = "multiple" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Pincode</label>
+                                    @Html.TextBoxFor(model => model.VendorDET.VENDORPIN, new { @class = "form-control", @placeholder = "Pincode", @maxlength = 6 })
+
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Vendor Phone No.</label>
+                                    @Html.TextBoxFor(model => model.VendorDET.VENDORPHONE, new
+                                    {
+                                        @class = "form-control",
+                                        @placeholder = "Vendor Phone No.",
+                                        @type = "text",
+                                        @maxlength = "10",
+                                        @pattern = "[0-9]{10}",
+                                        @oninput = "this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
+                                    })
+                                    <div id="VENDORPHONEError" style="display:none;color:red"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    @Html.TextBoxFor(model => model.VendorDET.VENDOREMAIL, new { @class = "form-control email", @placeholder = "Email" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Tax Payer Type</label>
+                                    @Html.DropDownListFor(model => model.VendorHDR.Taxpayer, new SelectList(ListTaxpayer, "CodeId", "CodeDesc"), "", new { @class = "select2  form-control", @placeholder = "Tax payer Type" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Commission Percentage</label>
+                                    @Html.TextBoxFor(m => m.VendorHDR.CommissionPercentage, new { placeholder = "Commission Percentage", @class = "form-control", @min = "0", @type = "number", @max = 100 })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Due Days</label>
+                                    @Html.TextBoxFor(model => model.VendorHDR.DueDays, new { @class = "required  form-control", @placeholder = "Due days", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))", @type = "number", @min = "1" })
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Aadhaar Number :</label>
+                                    @Html.TextBoxFor(CR => CR.VendorHDR.AadhaarNumber, new { placeholder = "XXXX-XXXX-XXXX", @minlength = 12, @maxlength = 12, @class = "form-control", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Nature Of Business Activity </label>
+                                    @Html.TextBoxFor(model => model.VendorHDR.BusinessNature, new { @class = "form-control ", @placeholder = "Nature Of Business Activity" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Nature Of Principle Place Of business</label>
+                                    @Html.TextBoxFor(model => model.VendorHDR.NatureOfPPoB, new { @class = "form-control", @placeholder = "Nature Of Principle Place Of Business" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Legal Name Of Business</label>
+                                    @Html.TextBoxFor(model => model.VendorHDR.LegalName, new { @class = "required  form-control", @placeholder = "Legal Name Of Business" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Type Of Ownership  </label>
+                                    @Html.DropDownListFor(model => model.VendorHDR.Ownership, new SelectList(ListOwerShip, "CodeId", "CodeDesc", Model.VendorHDR.Ownership), "", new { @class = "form-control select2  required dropdown2", @placeholder = "Select Ownership" })
+                                </div>
+                            </div>
+
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Return Filing Frequency</label>
+                                    @Html.DropDownListFor(model => model.VendorHDR.Filing_Freq, new SelectList(ListFilingfreq, "CodeId", "CodeDesc"), "", new { @class = "select2 form-control", @placeholder = "Category" })
+
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label required-field">Address</label>
+                                    @Html.TextAreaFor(m => m.VendorHDR.Default_Addr, new { @class = "required  form-control", @placeholder = "Address" })
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Black Listed</label>
+                                    <div class="form-check form-switch form-switch-success">
+                                        @Html.HiddenFor(m => m.VendorDET.BLACKLISTED)
+                                        <input type="checkbox" id="BLACKLISTED" @BLACKLISTED class="form-check-input cursor-pointer" />
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">GST Apply?</label>
+                                    <div class="form-check form-switch form-switch-success">
+                                        @Html.CheckBoxFor(m => m.VendorHDR.IsGSTApplied, new { @class = "form-check-input cursor-pointer" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">Porter</label>
+                                    <div class="form-check form-switch form-switch-success">
+                                        @Html.CheckBoxFor(m => m.VendorHDR.Porter, new { @class = "form-check-input cursor-pointer" })
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label">E Invoice Applicable</label>
+                                    <div class="form-check form-switch form-switch-success">
+                                        @Html.CheckBoxFor(m => m.VendorHDR.EInvo_App, new { @class = "form-check-input cursor-pointer" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3" id="divActive" style="@activeDisplay">
+                                <div class="form-group">
+                                    <label class="form-label">Active</label>
+                                    <div class="form-check form-switch form-switch-success">
+                                        @Html.HiddenFor(m => m.VendorHDR.Active)
+                                        <input type="checkbox" class="form-check-input cursor-pointer chkactive" id="Active" @Active />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="card">
+
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-bank-line"></i> Other Information
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label required-field">PAN No.</label>
+                            @Html.TextBoxFor(model => model.VendorHDR.PAN_NO, new { @class = "required  form-control", @placeholder = "PAN No.", @maxlength = 10 })
+                            <div id="PANNoError" style="display:none;color:red"></div>
+
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Service Tax No.</label>
+                            @Html.TextBoxFor(model => model.VendorHDR.SERVTAXNO, new { @class = "form-control", @placeholder = "Service Tax No.", @maxlength = 15 })
+                        </div>
+
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label required-field">Name Of Bank</label>
+                            @Html.TextBoxFor(model => model.VendorHDR.BankId, new { @class = "required  form-control", @placeholder = "Name Of Bank" })
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Bank A/C No.</label>
+                            @Html.TextBoxFor(model => model.VendorHDR.BankAccountNo, new
+                            {
+                                @class = "form-control",
+                                @placeholder = "Bank A/C No.",
+
+
+                       })
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">IFSC Code</label>
+                            @Html.TextBoxFor(model => model.VendorHDR.BankIFSCCode, new { @class = "form-control", @placeholder = "IFSC Code", @maxlength = 12 })
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label required-field">Rate Type</label>
+                            @Html.DropDownListFor(model => model.VendorHDR.RateType, new SelectList(ListRateType, "CodeId", "CodeDesc"), "", new { @class = "select2 required  form-control", @placeholder = "Rate Type" })
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Remarks</label>
+                            @Html.TextAreaFor(model => model.VendorHDR.VENDORREMARKS, new { @class = "form-control", @placeholder = "Remarks" })
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
+
+        <div class="col-lg-6 col-md-6">
+            <div class="card mb-0">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-file-upload-line"></i> Documents Upload
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th class="text-center">File Upload(Image/PDF)</th>
+                                <th class="text-center">Remarks</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblUploadDocument">
+                            @if (Model.ListVendorDoc.Count > 0)
+                            {
+                                foreach (var item in Model.ListVendorDoc)
+                                {
+                                    Html.RenderPartial("_VendorDocumentDetails", item);
+                                }
+                            }
+                            else
+                            {
+                                Html.RenderPartial("_VendorDocumentDetails", Model.VendorDoc);
+                            }
+                        </tbody>
+                    </table>
+                    <div class="row d-flex justify-content-end align-items-end">
+                        <div class="col-md-12 d-flex justify-content-end" style="margin:0 15px 15px 0">
+                            <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass btn-label" id="btnAddRow">
+                                <i class="@ViewBag.UI.Buttons.Add.Icon label-icon"></i>Add Item
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-6">
+            <div class="card mb-0">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-map-pin-line"></i> State Wise GST Details
+                    </h5>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="gst-scroll">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr class="align-middle text-center">
+                                    <th>State Name</th>
+                                    <th>GST Registration No</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (CygnusVendorGSTDetails itm in Model.stateGSTList)
+                                {
+                                    Html.RenderPartial("_VendorGSTDetails", itm);
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="form-actions">
+    <a class="@ViewBag.UI.Buttons.Cancel.CssClass" href="@Url.Content("~/Master/VendorList")">
+        <i class="@ViewBag.UI.Buttons.Cancel.Icon align-middle"></i>@ViewBag.UI.Buttons.Cancel.Label
+    </a>
+    <button type="button" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave">
+        <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i>@ViewBag.UI.Buttons.Submit.Label
+    </button>
+</div>
+
+
+

@@ -1,0 +1,495 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@using GreenLineDataService.Models
+@{
+    ViewBag.Title = "Trip List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var eventMap = new Dictionary<int, string>();
+    if (Model.listEvents != null)
+    {
+        foreach (var ev in Model.listEvents) { eventMap[ev.Id] = ev.Event_Name; }
+    }
+
+    int totalTrips = Model.listCTM.Count;
+    int notStarted = Model.listCTM.Count(t => t.TType == "I");
+    int activeTrips = Model.listCTM.Count(t => t.TType != "I");
+}
+
+<style>
+    #noTripsMsg {
+        display: none;
+    }
+    
+    /* Stats pills styles */
+    .stat-pill {
+        background: var(--vz-card-bg, #fff);
+        border: 1px solid var(--vz-border-color, #e9ebec);
+        border-radius: 30px;
+        padding: 8px 18px 8px 10px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+    
+    .stat-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    
+    .stat-pill:active {
+        transform: translateY(0);
+    }
+
+    /* Active filter styles for stat pills */
+    .stat-pill.active-pill-all {
+        border-color: var(--vz-primary) !important;
+        background-color: rgba(var(--vz-primary-rgb, 10, 179, 156), 0.06) !important;
+    }
+    .stat-pill.active-pill-notstarted {
+        border-color: var(--vz-secondary, #3577f1) !important;
+        background-color: rgba(53, 119, 241, 0.06) !important; /* soft secondary */
+    }
+    .stat-pill.active-pill-active {
+        border-color: var(--vz-success, #0ab39c) !important;
+        background-color: rgba(40, 167, 69, 0.06) !important; /* soft success */
+    }
+
+    .stat-pill.active-filter {
+        font-weight: 600;
+    }
+    
+    /* Search box styling enhancement */
+    .search-box-modern {
+        position: relative;
+        min-width: 320px;
+    }
+    @@media (max-width: 575.98px) {
+        .search-box-modern {
+            width: 100%;
+        }
+    }
+    .search-box-modern .form-control {
+        padding-left: 42px;
+        padding-right: 36px;
+        border-radius: 30px;
+        border: 1px solid #ced4da;
+        background-color: var(--vz-card-bg, #fff);
+        transition: all 0.2s ease;
+        height: 40px;
+        font-size: 13px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .search-box-modern .form-control:focus {
+        border-color: var(--vz-primary);
+        box-shadow: 0 0 0 0.15rem rgba(var(--vz-primary-rgb, 10, 179, 156), 0.15);
+    }
+    .search-box-modern .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #878a99;
+        font-size: 16px;
+        pointer-events: none;
+    }
+    .search-box-modern .clear-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #878a99;
+        font-size: 16px;
+        cursor: pointer;
+        transition: color 0.15s ease;
+        display: none;
+    }
+    .search-box-modern .clear-icon:hover {
+        color: #f06548;
+    }
+
+    /* Trip Card Enhancements */
+    .trip-card {
+        border: 1px solid var(--vz-border-color, #e9ebec);
+        border-radius: 12px !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--vz-card-bg, #fff);
+        overflow: hidden;
+    }
+    
+    .trip-card.clickable-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+        border-color: rgba(var(--vz-primary-rgb, 10, 179, 156), 0.3);
+    }
+    
+    .trip-card-body {
+        padding: 20px;
+    }
+    
+    .trip-meta-section {
+        display: flex;
+        align-items: center;
+        background-color: rgba(243, 246, 249, 0.5);
+        border: 1px solid var(--vz-border-color, #e9ebec);
+        border-radius: 8px;
+        padding: 12px;
+    }
+    
+    .trip-meta-item {
+        flex: 1;
+    }
+    
+    .trip-id-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #878a99;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    
+    .trip-id-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--vz-dark, #212529);
+    }
+
+    /* Route horizontal styling */
+    .route-horizontal {
+        margin: 16px 0;
+    }
+    .route-indicator {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .route-indicator.source {
+        background-color: var(--vz-success, #0ab39c);
+        box-shadow: 0 0 0 3px rgba(10, 179, 156, 0.2);
+    }
+    .route-indicator.destination {
+        background-color: var(--vz-danger, #f06548);
+        box-shadow: 0 0 0 3px rgba(240, 101, 72, 0.2);
+    }
+    
+    /* Vehicle chip styling */
+    .vehicle-chip-modern {
+        background-color: var(--vz-light, #f3f6f9);
+        border: 1px dashed var(--vz-border-color, #e9ebec);
+        border-radius: 8px;
+        padding: 10px 14px;
+    }
+    
+    .vehicle-chip-modern .avatar-box {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background-color: rgba(var(--vz-primary-rgb, 10, 179, 156), 0.1);
+        color: var(--vz-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+    
+    .vehicle-chip-modern .vehicle-info {
+        margin-left: 12px;
+    }
+    
+    .vehicle-chip-modern .vehicle-no {
+        font-weight: 600;
+        color: var(--vz-body-color, #495057);
+        font-size: 13px;
+    }
+    
+    .vehicle-chip-modern .trailer-no {
+        font-size: 11px;
+        color: var(--vz-text-muted, #878a99);
+    }
+    
+    .owner-badge {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    
+    .owner-badge.own {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .owner-badge.market {
+        background-color: rgba(240, 173, 78, 0.1);
+        color: #f0ad4e;
+    }
+</style>
+
+<!-- Page Title -->
+<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+    <h4 class="mb-sm-0">@ViewBag.Title</h4>
+    <div class="page-title-right">
+        <ol class="breadcrumb m-0 shadow-none bg-transparent">
+            <li class="breadcrumb-item"><a href="javascript:void(0);">Fleet</a></li>
+            <li class="breadcrumb-item active">Trip List</li>
+        </ol>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center flex-wrap gap-3">
+            <!-- Stats -->
+            <div class="d-flex align-items-center gap-2 stat-pill border active-filter active-pill-all" data-filter="all">
+                <span class="avatar-xs bg-soft-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                    <i class="ri-truck-line text-primary"></i>
+                </span>
+                <span class="text-muted fs-13">Total</span>
+                <span class="fw-bold fs-14">@totalTrips</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 stat-pill border" data-filter="notstarted">
+                <span class="avatar-xs bg-soft-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                    <i class="ri-time-line text-secondary"></i>
+                </span>
+                <span class="text-muted fs-13">Not Started</span>
+                <span class="fw-bold fs-14">@notStarted</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 stat-pill border" data-filter="active">
+                <span class="avatar-xs bg-soft-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                    <i class="ri-checkbox-circle-line text-success"></i>
+                </span>
+                <span class="text-muted fs-13">Active</span>
+                <span class="fw-bold fs-14">@activeTrips</span>
+            </div>
+
+            <!-- Search (right-aligned) -->
+            <div class="ms-auto search-box-modern">
+                <i class="ri-search-line search-icon"></i>
+                <input type="text" id="tripSearch" class="form-control" placeholder="Search Trip No, Vehicle, City">
+                <i class="ri-close-line clear-icon" id="clearSearch"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trip Cards Grid -->
+<div class="row g-3" id="tripCardsContainer">
+    @foreach (var item in Model.listCTM)
+    {
+        string currentStatusLabel;
+        string currentStatusBadge;
+        string currentStatusIcon;
+
+        if (item.TType == "I")
+        {
+            currentStatusLabel = "Not Started";
+            currentStatusBadge = "bg-soft-secondary text-secondary";
+            currentStatusIcon = "ri-time-line";
+        }
+        else
+        {
+            currentStatusLabel = item.EventName;
+
+            if (item.Event_id == 5) { currentStatusBadge = "bg-soft-secondary text-secondary"; currentStatusIcon = "ri-time-line"; }
+            else if (item.Event_id == 6) { currentStatusBadge = "bg-soft-primary text-primary"; currentStatusIcon = "ri-file-text-line"; }
+            else { currentStatusBadge = "bg-soft-secondary text-secondary"; currentStatusIcon = "ri-refresh-line"; }
+        }
+
+        string searchData = string.Join(" ", item.TripNo, item.PRNo, item.VehicleNo, item.Start_City_name, item.End_City_name, currentStatusLabel).ToLower();
+
+        <div class="col-xxl-4 col-xl-4 col-lg-6 col-md-6 trip-card-col" data-search="@searchData" data-status="@item.TType">
+            <div class="card trip-card clickable-card" data-tripno="@item.TripNo" data-prno="@item.PRNo" data-vehicleno="@item.VehicleId" data-ttype="@item.TType" style="cursor: pointer;">
+                <div class="card-body trip-card-body mb-0">
+                    <!-- Status & Date Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge @currentStatusBadge d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-pill">
+                            <i class="@currentStatusIcon"></i>@currentStatusLabel
+                        </span>
+                        <small class="text-muted fw-medium d-inline-flex align-items-center gap-1">
+                            <i class="ri-calendar-event-line text-primary opacity-75"></i>@item.TripDate.ToString("dd MMM yyyy")
+                        </small>
+                    </div>
+
+                    <!-- Trip & PR Info Meta Box -->
+                    <div class="trip-meta-section d-flex align-items-center mb-3">
+                        <div class="trip-meta-item">
+                            <div class="trip-id-label">Trip No</div>
+                            <div class="trip-id-value text-primary">@item.TripNo</div>
+                        </div>
+                        <div class="border-end border-dashed mx-2" style="height: 28px; opacity: 0.5;"></div>
+                        <div class="trip-meta-item ps-2">
+                            <div class="trip-id-label">PR No</div>
+                            <div class="trip-id-value">@(string.IsNullOrEmpty(item.PRNo) ? "-" : item.PRNo)</div>
+                        </div>
+                    </div>
+
+                    <!-- Route & Action Block -->
+                    <!-- Route Horizontal Timeline -->
+                    @if (!string.IsNullOrEmpty(item.Start_City_name) || !string.IsNullOrEmpty(item.End_City_name))
+                    {
+                        <div class="route-horizontal d-flex align-items-center justify-content-between mb-3">
+                            <div class="route-node text-start" style="max-width: 42%;">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="route-indicator source"></span>
+                                    <span class="trip-id-label mb-0">Source</span>
+                                </div>
+                                <div class="fw-semibold text-dark text-truncate fs-13" title="@item.Start_City_name">
+                                    @(string.IsNullOrEmpty(item.Start_City_name) ? "-" : item.Start_City_name)
+                                </div>
+                            </div>
+                            
+                            <div class="route-connector flex-grow-1 mx-2 position-relative d-flex align-items-center justify-content-center">
+                                <div class="route-line w-100" style="border-top: 2px dashed rgba(var(--vz-primary-rgb, 10, 179, 156), 0.2); height: 1px;"></div>
+                                @if (!string.IsNullOrEmpty(item.Start_City_name) && !string.IsNullOrEmpty(item.End_City_name))
+                                {
+                                    <i class="ri-truck-line text-primary position-absolute bg-white px-1.5" style="font-size: 14px; top: 50%; transform: translateY(-50%);"></i>
+                                }
+                            </div>
+                            
+                            <div class="route-node text-end" style="max-width: 42%;">
+                                <div class="d-flex align-items-center justify-content-end gap-2 mb-1">
+                                    <span class="trip-id-label mb-0">Destination</span>
+                                    <span class="route-indicator destination"></span>
+                                </div>
+                                <div class="fw-semibold text-dark text-truncate fs-13" title="@item.End_City_name">
+                                    @if (string.IsNullOrEmpty(item.End_City_name))
+                                    {
+                                        <span class="text-muted fw-normal fs-12">Not Assigned</span>
+                                    }
+                                    else
+                                    {
+                                        @item.End_City_name
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="route-horizontal d-flex align-items-center justify-content-between mb-3 text-muted py-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="ri-map-pin-line text-muted fs-15"></i>
+                                <span class="fs-12 fw-normal">Route not assigned</span>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Vehicle Info & Owner Badge -->
+                    <div class="vehicle-chip-modern d-flex align-items-center justify-content-between p-2 rounded mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-box">
+                                <i class="ri-truck-line"></i>
+                            </div>
+                            <div class="vehicle-info">
+                                <span class="vehicle-no">@item.VehicleNo</span>@if (!string.IsNullOrEmpty(item.TrailerNo)) { <span class="trailer-no ms-2"><i class="ri-share-forward-line"></i> Trailer: @item.TrailerNo</span> }
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(item.Market_Own))
+                        {
+                            <span class="owner-badge @(item.Market_Own == "M" ? "market" : "own")">
+                                @(item.Market_Own == "M" ? "Market" : "Own")
+                            </span>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Empty state -->
+<div id="noTripsMsg" class="text-center py-5">
+    <i class="ri-truck-line text-muted opacity-50" style="font-size:3rem;"></i>
+    <p class="text-muted fw-medium">No trips match your search.</p>
+</div>
+
+@if (!Model.listCTM.Any())
+{
+    <div class="text-center py-5">
+        <i class="ri-truck-line text-muted opacity-50" style="font-size:3rem;"></i>
+        <p class="text-muted fw-medium">No active trips found.</p>
+    </div>
+}
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        return {
+            init: function (DomainName) {
+
+                // Card click to redirect to TripOperation
+                $(document).on("click", ".trip-card", function (e) {
+                    if ($(e.target).closest('a, button, input').length > 0) {
+                        return;
+                    }
+                    var tripNo = $(this).data('tripno');
+                    var prno = $(this).data('prno');
+                    var vehicleNo = $(this).data('vehicleno');
+
+                    App.blockUI({ boxed: true });
+                    window.location.href = DomainName + '/Fleet/TripOperation?TripNo=' + tripNo + '&PRNo=' + prno + '&VehicleNo=' + vehicleNo;
+                });
+
+                // Combined filter logic
+                var activeStatusFilter = 'all'; // 'all', 'notstarted', 'active'
+                
+                function applyFilters() {
+                    var q = $('#tripSearch').val().toLowerCase().trim();
+                    var $cards = $('.trip-card-col');
+                    var visible = 0;
+                    
+                    $cards.each(function () {
+                        var status = $(this).data('status');
+                        var searchVal = $(this).data('search');
+                        
+                        var matchesSearch = !q || searchVal.indexOf(q) >= 0;
+                        var matchesStatus = true;
+                        
+                        if (activeStatusFilter === 'notstarted') {
+                            matchesStatus = (status === 'I');
+                        } else if (activeStatusFilter === 'active') {
+                            matchesStatus = (status !== 'I');
+                        }
+                        
+                        var show = matchesSearch && matchesStatus;
+                        $(this).toggle(show);
+                        if (show) visible++;
+                    });
+                    
+                    $('#noTripsMsg').toggle(visible === 0);
+                }
+                
+                // Card search/filter
+                $('#tripSearch').on('input', function () {
+                    var hasVal = $(this).val().length > 0;
+                    $('#clearSearch').toggle(hasVal);
+                    applyFilters();
+                });
+                
+                // Clear search on click
+                $('#clearSearch').on('click', function () {
+                    $(this).hide();
+                    $('#tripSearch').val('');
+                    applyFilters();
+                });
+                
+                // Stat pills click handler
+                $(document).on('click', '.stat-pill', function () {
+                    var filter = $(this).data('filter');
+                    if (!filter) return;
+                    
+                    activeStatusFilter = filter;
+                    
+                    // Update active classes
+                    $('.stat-pill').removeClass('active-filter active-pill-all active-pill-notstarted active-pill-active');
+                    $(this).addClass('active-filter active-pill-' + filter);
+                    
+                    applyFilters();
+                });
+            }
+        }
+    }();
+</script>

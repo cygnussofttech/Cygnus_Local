@@ -1,0 +1,32 @@
+﻿@model GreenLineDataService.Models.Cygnus_Vendor_Document
+@using GreenLine.Helpers
+
+<tr class="editorRow">
+    @Html.Hidden("hdnblnk", Model.Id, new { @class = "iHidden" })
+
+    @using (Html.BeginCollectionItem("UploadDoc", Model.Id.ToString()))
+    {
+        @Html.HiddenFor(m => m.Id)
+        @Html.HiddenFor(m => m.ImagePath)
+        <td width="40%">
+            <input type="file" id="files_@Model.Id" name="files_@Model.Id" class="form-control" accept="image/*,application/pdf" @(!string.IsNullOrEmpty(Model.VendorId) ? "disabled" : "") />
+        </td>
+
+        <td width="50%">
+            @Html.TextAreaFor(m => m.Remark, new { @class = "form-control", rows = "1", @PlaceHolder = "Remarks" })
+        </td>
+
+        <td class="text-center">
+            <button type="button" class="@ViewBag.UI.Buttons.Delete.CssClass btnDeleteExistingDoc">
+                <i class="@ViewBag.UI.Buttons.Delete.Icon"></i>
+            </button>
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+
+                <button type="button" class="@ViewBag.UI.Buttons.View.CssClass btnViewDoc" data-imagepath="@Model.ImagePath">
+                    <i class="@ViewBag.UI.Buttons.View.Icon"></i>
+                </button>
+            }
+        </td>
+    }
+</tr>

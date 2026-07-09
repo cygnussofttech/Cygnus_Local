@@ -1,0 +1,243 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@{
+    var trip = Model.CTM;
+}
+
+<!-- Header -->
+<div class="mb-4">
+    <h5 class="fw-bold text-dark mb-0 fs-17">Trip Contact Details</h5>
+</div>
+
+<!-- Loader -->
+<div id="contactDetailsLoader" class="text-center py-5 my-4">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted mt-3 fs-14">Loading contact details...</p>
+</div>
+
+<!-- Single Contact Card Container -->
+<div id="contactDetailsCard" class="card border-0 shadow-sm overflow-hidden" style="display: none;">
+    <!-- Top banner gradient accent -->
+    <div style="height: 3px; background: linear-gradient(90deg, var(--vz-primary, #405189) 0%, var(--vz-success, #0ab39c) 100%);"></div>
+    
+    <div class="card-body p-4">
+        <!-- Header Row (Profile & Branch Address in one horizontal line) -->
+        <div class="row align-items-center g-3 pb-4 mb-4 border-bottom border-light">
+            <!-- Left: Customer Profile -->
+            <div class="col-lg-6 d-flex align-items-center gap-3">
+                <div class="avatar-md flex-shrink-0">
+                    <span id="contactAvatar" class="avatar-title rounded-circle text-white fw-bold fs-20 d-flex align-items-center justify-content-center" 
+                          style="width: 56px; height: 56px; background: linear-gradient(135deg, var(--vz-primary, #405189) 0%, var(--vz-success, #0ab39c) 100%);">
+                        C
+                    </span>
+                </div>
+                <div class="min-width-0">
+                    <h5 id="contactCustomerName" class="fs-16 fw-bold text-dark mb-1 text-truncate">Target Customer</h5>
+                    <p class="text-muted mb-0 fs-13 text-truncate">
+                        <i class="ri-building-line align-bottom me-1"></i><span id="contactBusinessName">Business Name</span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Right: Branch & Address -->
+            <div class="col-lg-6 border-start-lg border-light-subtle ps-lg-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="avatar-sm bg-light text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                        <i class="ri-map-pin-2-line fs-18"></i>
+                    </div>
+                    <div class="min-width-0">
+                        <h6 id="contactBranch" class="fs-14 fw-bold text-dark mb-0">Location Branch</h6>
+                        <p id="contactAddress" class="text-muted fs-12 mb-0 text-wrap" style="word-break: break-word;">Customer Address</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body Row (Tax Info & Supervisors below) -->
+        <div class="row g-4">
+            <!-- Left Column: Tax Info -->
+            <div class="col-lg-5 border-end-lg border-light-subtle">
+                <h6 class="fs-12 text-muted text-uppercase fw-semibold mb-3">Tax Information</h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded d-flex align-items-center gap-2.5">
+                            <div class="avatar-xs bg-soft-primary text-primary rounded d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                                <i class="ri-file-list-3-line fs-16"></i>
+                            </div>
+                            <div class="min-width-0 px-2">
+                                <small class="text-muted d-block fs-10 text-uppercase fw-bold mb-0.5">GSTIN</small>
+                                <span id="contactGSTIN" class="fs-12 fw-semibold text-dark d-block text-truncate">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded d-flex align-items-center gap-2.5">
+                            <div class="avatar-xs bg-soft-info text-info rounded d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                                <i class="ri-bank-card-line fs-16"></i>
+                            </div>
+                            <div class="min-width-0 px-2">
+                                <small class="text-muted d-block fs-10 text-uppercase fw-bold mb-0.5">PAN No</small>
+                                <span id="contactPAN" class="fs-12 fw-semibold text-dark d-block text-truncate">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Supervisors -->
+            <div class="col-lg-7">
+                <div class="ps-lg-3">
+                    <h6 class="fs-12 text-muted text-uppercase fw-semibold mb-3">Supervisors & Contacts</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                          <div class="p-3 border border-light-subtle rounded text-center bg-light-subtle">
+                                <div class="avatar-xs bg-soft-primary text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 32px; height: 32px;">
+                                    <i class="ri-user-star-line fs-16"></i>
+                                </div>
+                                <small class="text-muted d-block fs-11 mb-1">Primary Supervisor</small>
+                                <h6 id="contactPrimary" class="fs-13 fw-semibold text-dark text-truncate mb-0">-</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="p-3 border border-light-subtle rounded text-center bg-light-subtle">
+                                <div class="avatar-xs bg-soft-info text-info rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 32px; height: 32px;">
+                                    <i class="ri-user-3-line fs-16"></i>
+                                </div>
+                                <small class="text-muted d-block fs-11 mb-1">Secondary Supervisor</small>
+                                <h6 id="contactSecondary" class="fs-13 fw-semibold text-dark text-truncate mb-0">-</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="p-3 border border-light-subtle rounded text-center bg-light-subtle">
+                                <div class="avatar-xs bg-soft-warning text-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 32px; height: 32px;">
+                                    <i class="ri-shield-user-line fs-16"></i>
+                                </div>
+                                <small class="text-muted d-block fs-11 mb-1">Cluster Head</small>
+                                <h6 id="contactCluster" class="fs-13 fw-semibold text-dark text-truncate mb-0">-</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Empty State -->
+<div id="contactEmptyState" class="text-center py-5 my-4" style="display: none;">
+    <div class="avatar-lg mx-auto bg-soft-warning rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+        <i class="ri-contacts-book-2-line fs-1 text-warning"></i>
+    </div>
+    <h5 class="text-dark fw-bold">No Contact Details Found</h5>
+    <p class="text-muted mb-0">No contact details are linked to this trip's vehicle.</p>
+</div>
+
+<script type="text/javascript">
+    (function() {
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function getInitials(name) {
+            if (!name) return "?";
+            var parts = name.trim().split(/\s+/);
+            var initials = "";
+            if (parts.length > 0 && parts[0]) initials += parts[0][0];
+            if (parts.length > 1 && parts[parts.length - 1]) initials += parts[parts.length - 1][0];
+            return initials.substring(0, 2).toUpperCase();
+        }
+
+        function getRandomColor(str) {
+            var colors = [
+                'linear-gradient(135deg, #25a0e2 0%, #007bff 100%)',
+                'linear-gradient(135deg, #0ab39c 0%, #02a189 100%)',
+                'linear-gradient(135deg, #f7b84b 0%, #e29f27 100%)',
+                'linear-gradient(135deg, #f06548 0%, #d84b2c 100%)',
+                'linear-gradient(135deg, #3577f1 0%, #205ecd 100%)',
+                'linear-gradient(135deg, #6559cc 0%, #4c3fb6 100%)'
+            ];
+            var hash = 0;
+            for (var i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            var index = Math.abs(hash) % colors.length;
+            return colors[index];
+        }
+
+        window.initContactListTab = function() {
+            var loader = $('#contactDetailsLoader');
+            var card = $('#contactDetailsCard');
+            var emptyState = $('#contactEmptyState');
+
+            loader.show();
+            card.hide();
+            emptyState.hide();
+
+            var Parameters = {
+                "VehicleId": "@trip.VehicleId",
+            };
+
+            var strUrl = DomainName + "/Account/GetDataWithoutAlias";
+
+            $.ajax({
+                url: strUrl,
+                cache: false,
+                type: 'POST',
+                dataType: "json",
+                data: {
+                    Method: "USP_GetContactList",
+                    parameters: Parameters
+                },
+                success: function (res) {
+                    var list = res;
+                    if (res && typeof res === 'object' && !Array.isArray(res)) {
+                        var tableNames = Object.keys(res);
+                        for (var i = 0; i < tableNames.length; i++) {
+                            if (Array.isArray(res[tableNames[i]])) {
+                                list = res[tableNames[i]];
+                                break;
+                            }
+                        }
+                    }
+
+                    if (list && list.length > 0) {
+                        var item = list[0];
+                        
+                        var initials = getInitials(item.Target_Customer || item.BusinessName || "C");
+                        var avatarBg = getRandomColor(item.Target_Customer || "C");
+
+                        $('#contactAvatar').text(initials).css('background', avatarBg);
+                        $('#contactCustomerName').text(item.Target_Customer || 'N/A').attr('title', item.Target_Customer || '');
+                        $('#contactBusinessName').text(item.BusinessName || 'N/A').parent().attr('title', item.BusinessName || '');
+                        $('#contactGSTIN').text(item.GSTNO || 'N/A').attr('title', item.GSTNO || '');
+                        $('#contactPAN').text(item.pan_no || 'N/A').attr('title', item.pan_no || '');
+                        $('#contactBranch').text(item.Branch_Location || 'N/A');
+                        $('#contactAddress').text(item.CustAddress || 'No Address Available');
+                        
+                        $('#contactPrimary').text(item.Primary_Supervisor || '-').attr('title', item.Primary_Supervisor || '');
+                        $('#contactSecondary').text(item.Secondary_Supervisor || '-').attr('title', item.Secondary_Supervisor || '');
+                        $('#contactCluster').text(item.Cluster_Head || '-').attr('title', item.Cluster_Head || '');
+
+                        card.show();
+                    } else {
+                        emptyState.show();
+                    }
+                    loader.hide();
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", 'Failed to load contact details.', "Oops..!!");
+                    loader.hide();
+                    emptyState.show();
+                }
+            });
+        };
+    })();
+</script>

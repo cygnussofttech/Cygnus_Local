@@ -1,0 +1,45 @@
+@model GreenLine.Models.MenuViewModel
+@{
+    bool isTopLevel = ViewData["IsTopLevel"] == null || (bool)ViewData["IsTopLevel"];
+}
+
+@if (Model.Children != null && Model.Children.Any())
+{
+    var collapseId = "sidebar" + Model.MenuId;
+
+    <li class="nav-item">
+        <a class="nav-link @(isTopLevel ? "menu-link" : "")" href="#@collapseId" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="@collapseId">
+            @if (!string.IsNullOrEmpty(Model.Icon))
+            {
+                <i class="@Model.Icon"></i>
+            }
+            <span data-key="t-@Model.MenuId">@Model.DisplayName</span>
+        </a>
+        <div class="collapse menu-dropdown" id="@collapseId">
+            <ul class="nav nav-sm flex-column">
+                @foreach (var child in Model.Children)
+                {
+                    @Html.Partial("_MenuItem", child, new ViewDataDictionary { { "IsTopLevel", false } })
+                }
+            </ul>
+        </div>
+    </li>
+}
+else
+{
+    var navUrl = string.IsNullOrEmpty(Model.NavigationURL) ? "#" : Model.NavigationURL;
+    if (navUrl != "#" && !navUrl.StartsWith("http") && !navUrl.StartsWith("/"))
+    {
+        navUrl = "/" + navUrl;
+    }
+
+    <li class="nav-item">
+        <a href="@(navUrl == "#" ? "#" : Url.Content("~" + navUrl))" class="nav-link @(isTopLevel ? "menu-link" : "")">
+            @if (!string.IsNullOrEmpty(Model.Icon))
+            {
+                <i class="@Model.Icon"></i>
+            }
+            <span data-key="t-@Model.MenuId">@Model.DisplayName</span>
+        </a>
+    </li>
+}

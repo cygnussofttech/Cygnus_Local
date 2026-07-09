@@ -1,0 +1,735 @@
+@model GreenLineDataService.ViewModel.CYGNUS_Master_UsersViewModel
+@using GreenLineDataService.Models;
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var Text = "Submit"; var type = "Add";
+    if (Model.EditFlag != null && Model.EditFlag == true)
+    {
+        type = "Edit";
+    }
+    else
+    {
+        if (Model.WMU.DOJ_ORG == null || Model.WMU.DOJ_ORG == System.DateTime.MinValue)
+        {
+            Model.WMU.DOJ_ORG = System.DateTime.Now;
+        }
+    }
+    string IsActive = "";
+    if (Model.WMU.Status != null && Model.WMU.Status.ToUpper() == "100" || Model.EditFlag == false)
+    {
+        IsActive = "checked";
+        Model.WMU.Status = "Y";
+    }
+    string ShowTBBCharges = "";
+    if (Model.WMU.ShowTBBCharges != null && Model.WMU.ShowTBBCharges.ToUpper() == "Y" || Model.EditFlag == false)
+    {
+        ShowTBBCharges = "checked";
+        Model.WMU.ShowTBBCharges = "Y";
+    }
+    else
+    {
+        ShowTBBCharges = "";
+        Model.WMU.ShowTBBCharges = "N";
+    }
+}
+@{
+    GreenLineDataService.Helper.Interface.IMasterService MS = new GreenLineDataService.Helper.MasterService();
+    List<SelectListItem> genderList = new List<SelectListItem>(){
+        new SelectListItem { Text = "Male", Value = "M"},
+        new SelectListItem { Text = "Female", Value = "F"},
+    };
+
+    List<CYGNUS_Master_Users> ManagerList = new List<CYGNUS_Master_Users>();
+    List<CYGNUS_Master_General> DesignationList = new List<CYGNUS_Master_General>();
+    if (Model.EditFlag != null && Model.EditFlag == true)
+    {
+        DesignationList = MS.GetDesignationFromCategory(Model.WMU.Category).ToList();
+        //ManagerList = MS.GetManagerFromDesignationandLocation(Model.WMU.Category, Model.WMU.BranchCode).ToList();
+    }
+    //List<CYGNUS_Master_Users> userMasterList = MS.GetUserDetails().Where(c => c.Status == "100").OrderBy(c => c.EmpId).ToList();
+    //List<CYGNUS_location> locationList = MS.GetLocationDetails().Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList();
+    List<CYGNUS_Master_General> Department = MS.GetGeneralMasterWithParam("USERDEPRT").ToList();
+    List<CYGNUS_Master_General> UserTypeList = MS.GetGeneralMasterWithParam("USERTYP").ToList();
+    List<CYGNUS_Master_General> UserStatusList = MS.GetGeneralMasterWithParam("EMPST").ToList();
+    List<CYGNUS_Master_General> RolesList = MS.GetGeneralMasterWithParam("HIERARCHY").ToList();
+    List<CYGNUS_Master_General> ReadWriteList = MS.GetGeneralMasterWithParam("RW").ToList();
+    //List<CYGNUS_Master_General> Grade = MS.GetGeneralMasterWithParam("USERGRADE").ToList();
+
+    ViewBag.Title = @type + " User";
+    Model.WMU.Read_Witre = "W";
+}
+
+<!-- start page title -->
+<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+    <h4 class="mb-sm-0">@ViewBag.Title</h4>
+
+    <div class="page-title-right">
+        <ol class="breadcrumb m-0 shadow-none bg-transparent">
+            <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Content("~/Master/UserList")">User List</a></li>
+            <li class="breadcrumb-item active">@type</li>
+        </ol>
+    </div>
+</div>
+<!-- end page title -->
+@using (Html.BeginForm("AddEditUser", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="alert alert-danger display-hide">
+        <button class="close" data-close="alert"></button>
+        You have some form errors. Please check below.
+    </div>
+
+    <div class="alert alert-success display-hide">
+        <button class="close" data-close="alert"></button>
+        Your form validation is successful!
+    </div>
+    @*<div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="ri-user-line"></i> Login Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-body">
+                            @Html.HiddenFor(c => c.EditFlag)
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Internal ID</label>
+                                            @if (Model.EditFlag == true)
+                                            {
+                                                @Html.TextBoxFor(c => c.WMU.EmpId, new { @placeholder = "Internal ID", @class = "form-control text-uppercase required", @readonly = "true" })
+                                            }
+                                            else
+                                            {
+                                                @Html.TextBoxFor(c => c.WMU.EmpId, new { @placeholder = "Internal ID", @class = "form-control text-uppercase required" })
+                                            }
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">User ID</label>
+                                            @if (Model.EditFlag == true)
+                                            {
+                                                @Html.TextBoxFor(c => c.WMU.UserId, new { @placeholder = "User ID", @class = "form-control text-uppercase required", @readonly = "true" })
+                                            }
+                                            else
+                                            {
+                                                @Html.TextBoxFor(c => c.WMU.UserId, new { @placeholder = "User ID", @class = "form-control text-uppercase required", })
+                                            }
+                                    </div>
+                                </div>
+                                @if (!Model.EditFlag)
+                                {
+                                    <div class="col-lg-3 col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Password</label>
+                                                @Html.PasswordFor(c => c.WMU.UserPwd, new { @placeholder = "Password", @class = "form-control required", @minlength = 6, @autocomplete = "off" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">Confirm Password</label>
+                                                @Html.PasswordFor(c => c.WMU.confirmPassword, new { @placeholder = "Confirm Password", @class = "form-control required", @minlength = 6, @equalTo = "#WMU_UserPwd", @autocomplete = "off" })
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @Html.HiddenFor(c => c.WMU.UserPwd)
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+    @* Card 1: Basic Details *@
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-user-line"></i> Basic Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-body">
+                        @Html.HiddenFor(c => c.EditFlag)
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">User ID</label>
+                                    @if (Model.EditFlag == true)
+                                    {
+                                        @Html.TextBoxFor(c => c.WMU.UserId, new { @placeholder = "User ID", @class = "form-control text-uppercase required disabled-field", @disabled = "disabled" })
+                                        @Html.HiddenFor(c => c.WMU.UserId)
+                                    }
+                                    else
+                                    {
+                                        @Html.TextBoxFor(c => c.WMU.UserId, new { @placeholder = "User ID", @class = "form-control text-uppercase required" })
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Name</label>
+                                    @Html.TextBoxFor(c => c.WMU.Name, new { @placeholder = "Name", @class = "form-control required" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Gender</label>
+                                    @Html.DropDownListFor(model => model.WMU.gender, new SelectList(genderList, "Value", "Text", Model.WMU.gender), "", new { @class = "form-control select2 required", @placeholder = "Select Gender" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Mobile No</label>
+                                    @Html.TextBoxFor(model => model.WMU.mobileno, new { @class = "form-control required", @placeholder = "Mobile No", @maxlength = 10, @minlength = 10, @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">User Type</label>
+                                    @Html.DropDownListFor(model => model.WMU.emptype, new SelectList(UserTypeList, "CodeId", "CodeDesc", Model.WMU.emptype), "", new { @class = "form-control select2 required", @placeholder = "Select User Type" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">User Status</label>
+                                    @Html.DropDownListFor(model => model.WMU.User_Type, new SelectList(UserStatusList, "CodeId", "CodeDesc", Model.WMU.User_Type), "", new { @class = "form-control select2 required", @placeholder = "Select User Status" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Roles</label>
+                                    @Html.DropDownListFor(model => model.WMU.Category, new SelectList(RolesList, "CodeId", "CodeDesc"), "", new { @class = "form-control select2 ClsGetDesig ClsGetManager", @placeholder = "Select Roles" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Designation</label>
+                                    @Html.DropDownListFor(model => model.WMU.Designation, new SelectList(DesignationList, "CodeId", "CodeDesc"), "", new { @class = "form-control select2", @placeholder = "Select Designation" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Department</label>
+                                    @Html.DropDownListFor(model => model.WMU.Department, new SelectList(Department, "CodeId", "CodeDesc", Model.WMU.Department), "", new { @class = "form-control select2 required", @placeholder = "Select Department" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Location</label>
+                                    @Html.TextBoxFor(m => m.WMU.BranchCode, new { placeholder = "Select Location", @class = "form-control required ClsGetManager" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    @Html.TextBoxFor(model => model.WMU.EmailId, new { @class = "form-control required email", @placeholder = "Email" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Residential Address</label>
+                                    @Html.TextAreaFor(model => model.WMU.resi_addr, new { @class = "form-control", @placeholder = "Residential Address" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Date of Birth</label>
+                                    <div class="input-group date dob-picker" data-date-format="dd MMM yyyy">
+                                        @Html.TextBoxFor(m => m.WMU.DOB, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WMU.DOB).ToString("dd MMM yyyy")), new { @class = "form-control required", @placeholder = "dd MMM yyyy" })
+                                        <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Date of Joining</label>
+                                    <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+                                        @Html.TextBoxFor(m => m.WMU.DOJ_ORG, String.Format("{0:dd MMM yyyy }", Convert.ToDateTime(Model.WMU.DOJ_ORG).ToString("dd MMM yyyy")), new { @class = "form-control required", @placeholder = "dd MMM yyyy" })
+                                        <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Map Company</label>
+                                    @Html.TextBoxFor(m => m.MapCompanys, new { placeholder = "Select Locations", @class = "form-control required" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Default Company</label>
+                                    @Html.DropDownListFor(m => m.DefaultCompany, Enumerable.Empty<SelectListItem>(), "", new { @class = "form-control required", placeholder = "Select Company" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Locations(Multiple)</label>
+                                    @Html.TextBoxFor(m => m.WMU.MultiLocation, new { placeholder = "Select MultiLocation", @class = "form-control required" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="tblActive">
+                                <div class="form-group">
+                                    <label class="form-label">Status</label>
+                                    <div class="col-12 form-switch d-flex align-items-center mt-1">
+                                        @Html.HiddenFor(m => m.WMU.Status)
+                                        <input type="checkbox" class="form-check-input" id="Status" @IsActive />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" style="display:none;">
+                                <div class="form-group">
+                                    <label class="form-label">Read/Write</label>
+                                     @Html.DropDownListFor(model => model.WMU.Read_Witre, new SelectList(ReadWriteList, "CodeId", "CodeDesc", Model.WMU.emptype), "", new { @class = "form-control select2 required", @placeholder = "Select Read/Write" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Card 2: Bank Details *@
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-bank-line"></i> Bank Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-body">
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Name Of Bank</label>
+                                    @Html.TextBoxFor(model => model.WMU.Name_Of_bank, new { @class = "form-control", @placeholder = "Name Of Bank" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Bank A/C No.</label>
+                                    @Html.TextBoxFor(model => model.WMU.Bank_AC_Number, new { @class = "form-control", @placeholder = "Bank A/C No." })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">IFSC Code</label>
+                                    @Html.TextBoxFor(model => model.WMU.IFSC_Code, new { @class = "form-control", @placeholder = "IFSC Code" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Card 3: Identity Documents *@
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-0">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-id-card-line"></i> Identity Documents
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-body">
+                        <div class="row g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Voter ID</label>
+                                    @Html.TextBoxFor(model => model.WMU.VoterID, new { @class = "form-control", @placeholder = "Voter ID" })
+                                    @Html.HiddenFor(m => m.WMU.VoterIDContentType)
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">PAN Number</label>
+                                    @Html.TextBoxFor(model => model.WMU.PANNumber, new { @class = "form-control", @placeholder = "PAN Number" })
+                                    @Html.HiddenFor(m => m.WMU.PanContentType)
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Aadhar Number</label>
+                                    @Html.TextBoxFor(model => model.WMU.AadharNumber, new { @class = "form-control", @placeholder = "Aadhar Number" })
+                                    @Html.HiddenFor(m => m.WMU.AadharContentType)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a class="@ViewBag.UI.Buttons.Cancel.CssClass" href="@Url.Content("~/Master/UserList")">
+            <i class="@ViewBag.UI.Buttons.Cancel.Icon align-middle"></i>@ViewBag.UI.Buttons.Cancel.Label
+        </a>
+        <button type="button" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i>@ViewBag.UI.Buttons.Submit.Label
+        </button>
+    </div>
+}
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+             form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span', //default input error message container
+                errorClass: 'help-block', // default input error message class
+                // errorClass: 'validate-inline',
+                focusInvalid: false, // do not focus the last invalid input
+                ignore: "",
+                rules: {
+                    //account dateFuture
+                },
+                messages: {
+                    'WMU.confirmPassword': {
+                        equalto: "Please enter the same Password again.",
+                        minlength: jQuery.format("Please select at least one option")
+                    }
+                },
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible")) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                invalidHandler: function (event, validator) { //display error alert on form submit
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+                highlight: function (element) { // hightlight error inputs
+                    $(element)
+                        .closest('.form-group').addClass('has-error'); // set error class to the control group
+                },
+                unhighlight: function (element) { // revert the change done by hightlight
+                    $(element)
+                        .closest('.form-group').removeClass('has-error'); // set error class to the control group
+                },
+                success: function (label) {
+                    label
+                        .closest('.form-group').removeClass('has-error'); // set success class to the control group
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                }
+            });
+        }
+
+        var Events = function (DomainName) {
+            // Highlight required fields correctly with asterisk
+            $('.required').closest('.form-group').find('label.form-label').addClass('required-field');
+
+            // Fileinput Remove button handler
+            $(document).on('click', '[data-dismiss="fileinput"]', function (e) {
+                e.preventDefault();
+                var $fileinput = $(this).closest('.fileinput');
+                $fileinput.find('input[type="file"]').val('');
+                $fileinput.find('input[type="hidden"]').val('');
+                $fileinput.removeClass('fileinput-exists').addClass('fileinput-new');
+                $fileinput.find('.fileinput-preview').html('');
+                $fileinput.find('.imgExists').hide();
+                $fileinput.find('.imgDefault').show();
+            });
+
+            // Fileinput file selected handler - show Change/Remove when file is picked
+            $(document).on('change', '.fileinput input[type="file"]', function () {
+                var $fileinput = $(this).closest('.fileinput');
+                if (this.files && this.files.length > 0) {
+                    $fileinput.removeClass('fileinput-new').addClass('fileinput-exists');
+                    $fileinput.find('.imgExists').show();
+                    $fileinput.find('.imgDefault').hide();
+                }
+            });
+
+            $('#Computerised').change(function () {
+                $('#WL_Computerised').val($(this).is(':checked') ? 'Y' : 'N')
+            });
+
+            $('#ActiveFlag').change(function () {
+                $('#WL_ActiveFlag').val($(this).is(':checked') ? 'Y' : 'N')
+            });
+
+            $('#WMU_emptype').change(function () {
+
+                if ($('#WMU_emptype').val() == 3) {
+                    $("#WMU_ShiftCode").removeClass("required");
+                    $("#WMU_LeaveGroupId").removeClass("required");
+                    $("#WMU_ShiftCode").closest('.form-group').find('label.form-label').removeClass('required-field');
+                    $("#WMU_LeaveGroupId").closest('.form-group').find('label.form-label').removeClass('required-field');
+                }
+                else {
+                    $("#WMU_ShiftCode").addClass("required");
+                    $("#WMU_LeaveGroupId").addClass("required");
+                    $("#WMU_ShiftCode").closest('.form-group').find('label.form-label').addClass('required-field');
+                    $("#WMU_LeaveGroupId").closest('.form-group').find('label.form-label').addClass('required-field');
+                }
+            });
+
+            $('#btnSubmit').click(function () {
+                if ($('#form_sample').valid()) {
+                    App.blockUI({ boxed: true });
+                    document.forms["form_sample"].submit()
+                }
+                else {
+                    return false
+                }
+            });
+
+            //$("#WMU_EmpId ,  #WMU_UserId").keypress(function (e) {
+            //    if ($(".hdnempid").val() != "" && $(".hdnempid").val() != undefined) {
+            //        return false;
+            //    }
+            //    else {
+            //        if (e.which == 32) {
+            //            return false;
+            //        }
+            //    }
+            //});
+
+            //$("#WMU_EmpId").blur(function (e) {
+            //    if ($(".hdnempid").val() != "" && $(".hdnempid").val() != undefined) {
+            //        return false;
+            //    } else {
+            //        checkDuplicate(DomainName, $(this).val(), "E")
+            //    }
+            //});
+
+            $("#WMU_UserId").change(function (e) {
+                if ($(".hdnempid").val() != "" && $(".hdnempid").val() != undefined) {
+                    return false;
+                }
+                else {
+                    checkDuplicate(DomainName, $(this).val(), "U")
+                }
+            });
+            $('#WMU_mobileno').change(function () {
+                checkDuplicate(DomainName, $(this).val(), "M")
+            });
+
+
+            $('#Status').change(function () {
+                $('#WMU_Status').val($(this).is(':checked') ? 'Y' : 'N')
+            });
+
+            $('#ShowTBBCharges').change(function () {
+                $('#WMU_ShowTBBCharges').val($(this).is(':checked') ? 'Y' : 'N')
+            });
+
+            $('#IsFieldOfficer').change(function () {
+                $('#WMU_IsFieldOfficer').val($(this).is(':checked') ? 'Y' : 'N')
+            });
+
+            $(".ClsGetManager").change(function () {
+                if ($('#WMU_Category').val() != "" && $("#WMU_BranchCode").val() != "") {
+                    App.blockUI({ boxed: true });
+                    var StrURL = DomainName + "/Master/GetManagerFromDesignationandLocation?Category=" + $('#WMU_Category').val() + "&Location=" + $('#WMU_BranchCode').val();
+                    FillDropDownfromOther("WMU_ManagerId", StrURL, "");
+                    $("#WMU_ManagerId").closest('.form-group').find('label.form-label').addClass('required-field');
+
+                }
+            });
+
+            $(".ClsGetDesig").change(function () {
+                if ($('#WMU_Category').val() != "") {
+                    App.blockUI({ boxed: true });
+                    var StrURL = DomainName + "/Master/GetDesignationFromCategory?Category=" + $('#WMU_Category').val();
+                    FillDropDownfromOther("WMU_Designation", StrURL, "");
+                    $("#WMU_Designation").closest('.form-group').find('label.form-label').addClass('required-field');
+                }
+            });
+        }
+
+        var checkDuplicate = function (DomainName, Id, Flag) {
+            if (Id == null || Id == '') {
+                return false;
+            }
+            var strUrl = DomainName + '/Master/CheckDuplicateUser/' + Id + '?Flag=' + Flag ;
+
+            if (Flag == "M") {
+                strUrl = DomainName + '/Master/CheckDuplicateUser/' + Id + '?Flag=' + Flag + '&User=' + $('#WMU_UserId').val();
+
+            }
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: strUrl,
+                success: function (data) {
+                    if (data == 'False') {
+                        if (Flag == "U") {
+                            $('#WMU_UserId').val('');
+                            $('#WMU_UserId').focus();
+                            TosterNotification("error", 'User Id "' + Id + '" Already exist..', "Oops..!!");
+                        }
+                        else if (Flag == "M") {
+                            $('#WMU_mobileno').val('');
+                            $('#WMU_mobileno').focus();
+                            TosterNotification("error", 'MobileNo  "' + Id + '" Already exist..', "Oops..!!");
+                        }
+
+                        else {
+                            $('#WMU_EmpId').val('');
+                            $('#WMU_EmpId').focus();
+                            TosterNotification("error", 'Internal Id "' + Id + '" Already exist..', "Oops..!!");
+                        }
+                    }
+                    else {
+                        if (Flag == "E") {
+                            $('#WMU_UserId').val($('#WMU_EmpId').val());
+                            $('#WMU_UserId').focusin();
+                            $('#WMU_UserId').select();
+                        }
+                    }
+                    App.unblockUI();
+                    return data;
+                },
+                error: function (req, status, error) {
+                    $('#WMU_UserId').val('');
+                    $('#WMU_UserId').focus();
+                    $('#WMU_EmpId').val('');
+                    $('#WMU_EmpId').focus();
+                    App.unblockUI();
+                    TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                    return false;
+                }
+            });
+        }
+
+        return {
+            //main function to initiate the module
+            init: function (DomainName) {
+                if ("@type" == "Add") {
+                    $("#tblActive").hide();
+                }
+
+                $('#WMU_EmpId,  #WMU_UserId').on("cut copy paste", function (e) {
+                    TosterNotification("warning", "warning !! You are not allow to paste UserId.", "warning");
+                    e.preventDefault();
+                });
+                // Map Company - init with Default Company sync
+                $.ajax({
+                    url: DomainName + '/Master/GetCompanyListJson',
+                    dataType: 'json',
+                    data: { str: 'MapCompanys' },
+                    success: function (response) {
+                        $('#MapCompanys').select2({
+                            tags: true,
+                            data: response,
+                            placeholder: 'Search for a Company',
+                            multiple: true,
+                            allowClear: true
+                        });
+                        // Init Select2 on Default Company with placeholder
+                        $('#DefaultCompany').select2({ placeholder: 'Select Company', allowClear: true });
+                        // Populate Default Company from pre-selected Map Companies
+                        var selectedData = $('#MapCompanys').select2('data');
+                        var currentDefault = '@Html.Raw(Model.DefaultCompany)';
+                        $('#DefaultCompany').empty().append('<option value=""></option>');
+                        $.each(selectedData, function (i, item) {
+                            var sel = (item.id == currentDefault) ? ' selected' : '';
+                            $('#DefaultCompany').append('<option value="' + item.id + '"' + sel + '>' + item.text + '</option>');
+                        });
+                        $('#DefaultCompany').trigger('change');
+                    }
+                });
+                // Sync Default Company whenever Map Company selection changes
+                $('#MapCompanys').on('change', function () {
+                    var selectedData = $(this).select2('data');
+                    var currentDefault = $('#DefaultCompany').val();
+                    $('#DefaultCompany').empty().append('<option value=""></option>');
+                    $.each(selectedData, function (i, item) {
+                        $('#DefaultCompany').append('<option value="' + item.id + '">' + item.text + '</option>');
+                    });
+                    // Restore previous default if still in the list
+                    $('#DefaultCompany').val(currentDefault || '').trigger('change');
+                });
+
+                if ('@Model.WMU.UserId' == "") {
+                    $('#WMU_EmpId').focus();
+                }
+                else {
+                    $('#WMU_Name').focus();
+                }
+
+                if ('@Model.WMU.User_Image' != null && '@Model.WMU.User_Image' != "") {
+                    $(".User .fileinput .fileinput-new").parent('div').removeClass("fileinput-new").addClass("fileinput-exists");
+                }
+                else {
+                    $(".User .fileinput .fileinput-new").parent('div').removeClass("fileinput-exists").addClass("fileinput-new");
+                }
+
+                //----- VoterID,PAN,Aadhar-------------
+                if ('@Model.WMU.VoterID_Image' != null && '@Model.WMU.VoterID_Image' != "") {
+                    $(".VoterID").removeClass("fileinput-new").addClass("fileinput-exists");
+                }
+                else {
+                    $(".VoterID").removeClass("fileinput-exists").addClass("fileinput-new");
+                }
+
+                if ('@Model.WMU.PAN_Image' != null && '@Model.WMU.PAN_Image' != "") {
+                    $(".PAN").removeClass("fileinput-new").addClass("fileinput-exists");
+                }
+                else {
+                    $(".PAN").removeClass("fileinput-exists").addClass("fileinput-new");
+                }
+
+                if ('@Model.WMU.Aadhar_Image' != null && '@Model.WMU.Aadhar_Image' != "") {
+                    $(".Aadhar").removeClass("fileinput-new").addClass("fileinput-exists");
+                }
+                else {
+                    $(".Aadhar").removeClass("fileinput-exists").addClass("fileinput-new");
+                }
+                Formvalidate(DomainName);
+                handleDatePicker();
+                BackhandleDatePicker();
+                $('.dob-picker').datepicker({
+                    isRTL: App.isRTL(),
+                    format: "dd M yyyy",
+                    autoclose: true,
+                    pickerPosition: (App.isRTL() ? "bottom-right" : "bottom-left"),
+                    endDate: '-18y',
+                    todayBtn: false
+                });
+                Events(DomainName);
+                FutureDatePicker();
+                StrURL = DomainName + "/Master/GetDestinationLocationsWithHQTR";
+                JsonDDLSelectCode("WMU_BranchCode", StrURL);
+                GetType("WMU_MultiLocation", "MultiLocation", DomainName + "/Master/GetCustomerLocationListJson")
+                if ('@ViewBag.BaseEmpType' == '2' && '@ViewBag.BaseUserReadWrite' == 'W') {
+                    $("#ShowTBBCharges").prop("disabled", false);
+                }
+                else {
+                    $("#ShowTBBCharges").prop("disabled", true);
+                }
+            }
+        }
+    }();
+</script>
+

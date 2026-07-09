@@ -1,0 +1,26 @@
+@model List<GreenLineDataService.ViewModel.RateUpdateModelForFTLPTL>
+@using GreenLineDataService.Models
+@{
+    GreenLineDataService.Helper.Interface.IContractService _contractService = new GreenLineDataService.Helper.ContractService();
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    string custcode = ViewBag.Custcode ?? "";
+    List<CYGNUS_LaneMaster> GetStartLaneDetails = _contractService.GetCustomerLaneId(custcode);
+    List<CYGNUS_LaneMaster> GetEndLaneDetails = _masterService.GetLaneDetails();
+
+    ViewBag.StartLaneList = GetStartLaneDetails != null
+        ? GetStartLaneDetails.Select(x => new SelectListItem { Value = x.Lane_ID.ToString(), Text = x.Lane_Name }).ToList()
+        : new List<SelectListItem>();
+
+    ViewBag.EndLaneList = GetEndLaneDetails != null
+        ? GetEndLaneDetails.Select(x => new SelectListItem { Value = x.Lane_ID.ToString(), Text = x.Lane_Name }).ToList()
+        : new List<SelectListItem>();
+}
+
+@if (Model != null && Model.Count > 0)
+{
+    foreach (var item in Model)
+    {
+        Html.RenderPartial("_UpdateFreightChargeRow", item);
+    }
+}

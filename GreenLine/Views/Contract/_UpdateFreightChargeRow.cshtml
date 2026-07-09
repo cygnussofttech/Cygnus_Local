@@ -1,0 +1,70 @@
+@model GreenLineDataService.ViewModel.RateUpdateModelForFTLPTL
+@using GreenLineDataService.Models
+@using GreenLine.Classes
+@using GreenLine.Helpers
+@{
+    var startLaneList = (List<SelectListItem>)ViewBag.StartLaneList;
+    var endLaneList = (List<SelectListItem>)ViewBag.EndLaneList;
+
+    string formattedEffectiveFrom = Model.EffectiveFrom.Year < 1900 ? DateTime.Now.ToString("dd MMM yyyy") : Model.EffectiveFrom.ToString("dd MMM yyyy");
+    string formattedEffectiveTo = Model.EffectiveTo.HasValue && Model.EffectiveTo.Value.Year >= 1900 ? Model.EffectiveTo.Value.ToString("dd MMM yyyy") : "";
+}
+
+<tr data-srno="@Model.srno"
+    data-orig-from="@formattedEffectiveFrom"
+    data-orig-to="@formattedEffectiveTo"
+    data-orig-fromlane="@Model.FromLane"
+    data-orig-tolane="@Model.ToLane"
+    data-orig-product="@Model.ProductGroup"
+    data-orig-fromqty="@Model.FromQty"
+    data-orig-toqty="@Model.ToQty"
+    class="@(Model.IsEffective == 0 ? "effective-to-highlight" : "")">
+
+    @using (Html.BeginCollectionItem("RateUpdates", Model.srno.ToString()))
+    {
+        if (Model.IsEffective == 1)
+        {
+            <td class="text-center">
+                <input type="checkbox" class="modal-row-checkbox" style="transform: scale(1.2); cursor: pointer;" />
+            </td>
+        }
+        else
+        {
+            <td class="text-center"><input type="checkbox"  disabled/></td>
+        }
+        <td class="from-lane-td">
+            @Html.HiddenFor(m => m.srno)
+            @Html.DropDownListFor(m => m.FromLane, new SelectList(startLaneList, "Value", "Text", Model.FromLane), "Select From Lane", new { @class = "form-control modal-from-lane select2-modal", @disabled = "disabled" })
+        </td>
+        <td class="to-lane-td">
+            @Html.DropDownListFor(m => m.ToLane, new SelectList(endLaneList, "Value", "Text", Model.ToLane), "Select To Lane", new { @class = "form-control modal-to-lane select2-modal", @disabled = "disabled" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.EffectiveFrom, new { @class = "form-control modal-effective-from date-picker-modal", Value = formattedEffectiveFrom, @disabled = "disabled", @readonly = "readonly" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.EffectiveTo, new { @class = "form-control modal-effective-to date-picker-modal", Value = formattedEffectiveTo, @disabled = "disabled", @readonly = "readonly" })
+            @Html.HiddenFor(m => m.EffectiveTo, formattedEffectiveTo)
+        </td>
+        @*<td>
+                @Html.TextBoxFor(m => m.ProductGroup, new { @class = "form-control modal-product-group", @disabled = "disabled", id = "Modal_ProductGroup_" + Model.srno })
+            </td>*@
+        <td>
+            @Html.TextBoxFor(m => m.FromQty, new { @class = "form-control modal-from-qty", @disabled = "disabled", type = "number" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.ToQty, new { @class = "form-control modal-to-qty", @disabled = "disabled", type = "number" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.old_rate, new { @class = "form-control modal-old-rate", placeholder = "Old Rate", @disabled = "disabled", type = "number" })
+            @Html.HiddenFor(m => m.old_rate, new { @class = "modal-old-rate-hidden" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.rate, new { @class = "form-control modal-new-rate required", placeholder = "New Rate", @disabled = "disabled", type = "number" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.rate_differnce, new { @class = "form-control modal-rate-diffrence", placeholder = "Rate Difference", @disabled = "disabled", type = "number", step = "0.01", min = "0" })
+            @Html.HiddenFor(m => m.rate_differnce, new { @class = "modal-rate-diffrence-hidden" })
+        </td>
+    }
+</tr>

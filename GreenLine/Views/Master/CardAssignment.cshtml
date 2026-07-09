@@ -1,0 +1,399 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_Master_Card_Assignment>
+@using GreenLineDataService.Models;
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Card Assignment Master";
+}
+
+<style>
+    /* Custom Slider Toggle Pattern - Matches Card Master */
+    .badge-soft-info {
+        color: #0d6efd !important;
+        background-color: rgba(13, 110, 253, 0.1) !important;
+        font-weight: 600;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 38px;
+        height: 20px;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        background-color: #dee2e6;
+        transition: .3s;
+        border-radius: 20px;
+        top: 0; left: 0; right: 0; bottom: 0;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .switch input { display: none; }
+    .switch input:checked + .slider {
+        background-color: #3577f1;
+    }
+    .switch input:checked + .slider:before {
+        transform: translateX(18px);
+    }
+    
+    .card-assignment-page .card { border-radius: 0.25rem !important; }
+    .card-assignment-page .card-title { font-size: 15px; font-weight: 600; color: var(--vz-body-color); }
+
+    /* Fix Datepicker Z-Index for Modals */
+    .datepicker.datepicker-dropdown {
+        z-index: 9999 !important;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Card Assignment Master</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Card Assignment</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="card-assignment-page">
+    <div class="card shadow-sm border-0 rounded-0">
+        <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+            <h4 class="card-title mb-0 flex-grow-1">Assignment List</h4>
+            <div class="flex-shrink-0 d-flex gap-2">
+                <a class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light controls" id="btnDownloadStateMasterReport">
+                    <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                </a>
+                <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass" id="addEdit">
+                    <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="CardAssignmentTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Card No</th>
+                            <th class="text-center">Assign Type</th>
+                            <th class="text-center">Assign To</th>
+                            <th class="text-center">From Date</th>
+                            <th class="text-center">To Date</th>
+                            @*<th class="text-center no-cc">Status</th>*@
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="text-center">@item.CardNo</td>
+                                    <td class="text-center">
+                                        @{
+                                            var typeText = item.AssignType == "EMP" ? "Employee" :
+                                                           item.AssignType == "VEH" ? "Vehicle" :
+                                                           item.AssignType == "DRV" ? "Driver" : item.AssignType;
+                                        }
+                                        @typeText
+                                    </td>
+                                    <td class="text-center">@item.AssignToName</td>
+                                    <td class="text-center">@(item.FromDate.ToString("dd MMM yyyy"))</td>
+                                    <td class="text-center">@(item.ToDate.HasValue ? item.ToDate.Value.ToString("dd MMM yyyy") : "")</td>
+                                    @*<td class="text-center">
+                                        <label class="switch">
+                                            <input type="checkbox" class="btnToggleStatus" @(item.IsActive ? "checked" : "") data-id="@item.Id" data-name="@item.AssignPersonId">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </td>*@
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <button class="@ViewBag.UI.Buttons.Edit.CssClass btn-sm btnMasterEdit" data-id="@item.Id" title="Edit"><i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = (function () {
+        
+        var GetObjectDet = function (id) {
+            GLModal.showForm({
+                title: id > 0 ? "Edit Card Assignment" : "Add Card Assignment",
+                icon: 'ri-links-line',
+                url: DomainName + '/Master/_AddEditCardAssignment/' + id,
+                onLoaded: function () {
+                    if ($.validator && $.validator.unobtrusive) {
+                        $.validator.unobtrusive.parse("#card_assignment_form");
+                    } else if ($.fn.validate) {
+                        $("#card_assignment_form").validate({
+                            errorElement: 'span',
+                            errorClass: 'field-validation-error',
+                            highlight: function (element) { $(element).closest('.form-group').addClass('has-error'); },
+                            unhighlight: function (element) { $(element).closest('.form-group').removeClass('has-error'); },
+                            errorPlacement: function (error, element) {
+                                if (element.parent('.input-group').length) {
+                                    error.insertAfter(element.parent());
+                                } else if (element.hasClass('select2-hidden-accessible')) {
+                                    error.insertAfter(element.next('.select2-container'));
+                                } else {
+                                    error.insertAfter(element);
+                                }
+                            }
+                        });
+                    }
+
+                    $(".select2").select2({
+                        placeholder: "Select an option",
+                        allowClear: true,
+                        dropdownParent: $('#glFormModal')
+                    });
+
+                    if ($.fn.datepicker) {
+                        $('.datepicker').datepicker({
+                            format: 'dd M yyyy',
+                            autoclose: true,
+                            todayHighlight: true,
+                            todayBtn: 'linked',
+                            container: '#glFormModal',
+                            orientation: "bottom"
+                        });
+                    }
+
+                    // Register custom validation method if not already registered
+                    if ($.validator && !$.validator.methods.greaterThanOrEqualDate) {
+                        $.validator.addMethod("greaterThanOrEqualDate", function (value, element, params) {
+                            var fromDateVal = $(params).val();
+                            if (!value || !fromDateVal) return true;
+
+                            var fromDate = new Date(fromDateVal);
+                            var tillDate = new Date(value);
+                            if (!isNaN(fromDate.getTime()) && !isNaN(tillDate.getTime())) {
+                                return tillDate >= fromDate;
+                            }
+                            return true;
+                        }, "To date must be greater than from date.");
+                    }
+
+                    // Add greaterThanOrEqualDate rule dynamically to ToDate field
+                    if ($("#Assignment_ToDate").length) {
+                        $("#Assignment_ToDate").rules("add", {
+                            greaterThanOrEqualDate: "#Assignment_FromDate",
+                            messages: {
+                                greaterThanOrEqualDate: "To date must be greater than from date."
+                            }
+                        });
+                    }
+
+                    // Function to dynamically update ToDate limits based on FromDate selection
+                    var updateToDateLimit = function (selectedDate) {
+                        var fromDate = selectedDate || $('#Assignment_FromDate').datepicker('getDate');
+                        var today = new Date();
+                        today.setHours(0, 0, 0, 0);
+
+                        if (fromDate) {
+                            var minDate = (fromDate < today) ? today : fromDate;
+                            $('#Assignment_ToDate').datepicker('setStartDate', minDate);
+
+                            var toDate = $('#Assignment_ToDate').datepicker('getDate');
+                            if (toDate && toDate < minDate) {
+                                $('#Assignment_ToDate').val('');
+                                $('#Assignment_ToDate').datepicker('update');
+                            }
+                        } else {
+                            $('#Assignment_ToDate').datepicker('setStartDate', null);
+                        }
+                    };
+
+                    // Bind change/changeDate events on FromDate
+                    $('#Assignment_FromDate').on('changeDate change', function (e) {
+                        var selectedDate = (e.type === 'changeDate') ? e.date : $('#Assignment_FromDate').datepicker('getDate');
+                        updateToDateLimit(selectedDate);
+                        var form = $('#card_assignment_form');
+                        if (form.data('validator')) {
+                            form.validate().element('#Assignment_ToDate');
+                        }
+                    });
+
+                    // Bind change/changeDate events on ToDate
+                    $('#Assignment_ToDate').on('changeDate change', function () {
+                        var form = $('#card_assignment_form');
+                        if (form.data('validator')) {
+                            form.validate().element('#Assignment_ToDate');
+                        }
+                    });
+
+                    // Set initial limits on load
+                    updateToDateLimit();
+                },
+                onSave: function () {
+                    var form = $("#card_assignment_form");
+                    if (form.length && typeof form.valid === "function" && !form.valid()) {
+                        return false;
+                    }
+
+                    var dfd = $.Deferred();
+
+                    $.ajax({
+                        url: DomainName + '/Master/AddEditCardAssignment',
+                        data: form.serialize(),
+                        type: 'POST',
+                        success: function (data) {
+                            if (data.success) {
+                                TosterNotification("success", data.message, "Success");
+                                dfd.resolve();
+                                location.reload();
+                            } else {
+                                TosterNotification("error", data.message, "Error");
+                                dfd.reject();
+                            }
+                        },
+                        error: function (xhr, status, err) {
+                            TosterNotification("error", err || "An error occurred while saving.", "Error");
+                            dfd.reject();
+                        }
+                    });
+
+                    return dfd.promise();
+                }
+            });
+        };
+
+        var initEvents = function () {
+            $("#addEdit").on('click', function () {
+                GetObjectDet("0");
+            });
+
+            $(document).on('click', '.btnMasterEdit', function (e) {
+                var id = $(this).data('id');
+                GetObjectDet(id);
+            });
+
+            $(document).on("click", ".btnToggleStatus", function (e) {
+                var checkbox = $(this);
+                var id = checkbox.data("id");
+                var name = checkbox.data("name");
+                var isChecked = checkbox.is(':checked');
+                var action = isChecked ? "Activate" : "Inactivate";
+
+                checkbox.prop('checked', !isChecked);
+
+                showConfirm({
+                    title: action + " Assignment",
+                    message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> assignment for: <strong>' + name + '</strong>?',
+                    type: isChecked ? "success" : "info",
+                    onConfirm: function () {
+                        App.blockUI({ boxed: true });
+                        $.post(DomainName + '/Master/ToggleActiveCardAssignment', { id: id }, function (res) {
+                            App.unblockUI();
+                            if (res) {
+                                GLModal.showSuccess("Status updated successfully!");
+                                location.reload();
+                            } else {
+                                GLModal.showError("Failed to update status.");
+                            }
+                        });
+                    }
+                });
+            });
+
+            $(document).on('click', '#btnDownloadStateMasterReport', function (e) {
+                e.preventDefault();
+                DownloadMasterReport(DomainName, "CardAssignmentMaster", "Card Assignment List");
+            });
+
+            $("#masterFilterBox").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("#cardAssignmentTable tbody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+
+            $(document).on('change', '#Assignment_AssignType', function () {
+                    var type = $(this).val();
+                if (type) {
+                    var strUrl = '@Url.Action("GetAssigneeByType", "Master")' + '?type=' + type;
+                    FillDropDownfromOther('Assignment_AssignPersonId', strUrl, 'Assignee');
+                } else {
+                    $('#Assignment_AssignPersonId').empty().append('<option value="">Select Assignee</option>').trigger('change');
+                }
+            });
+
+            $(document).on('change', '#Assignment_CardType', function () {
+                var cardType = $(this).val();
+                var cardNoId = $('#Assignment_CardNoId').val() || 0;
+                var assignPersonId = $('#Assignment_AssignPersonId').val();
+                var assignType = $('#Assignment_AssignType').val();
+                var assignmentId = $('#Assignment_Id').val() || 0;
+
+                // 1. Populate Card Number dropdown based on Card Type selection
+                if (cardType) {
+                    var strUrl = '@Url.Action("GetCardsByType", "Master")' + '?type=' + cardType;
+                    FillDropDownfromOther('Assignment_CardNoId', strUrl, 'Card');
+                } else {
+                    $('#Assignment_CardNoId').empty().append('<option value="">Select Card</option>').trigger('change');
+                }
+
+                // 2. Perform dynamic duplicate check validation
+                if (cardType && assignPersonId && assignType) {
+                    $.ajax({
+                        url: DomainName + '/Master/CheckDuplicateCardAssignment',
+                        type: 'GET',
+                        data: { 
+                            AssignType: assignType, 
+                            AssignPersonId: assignPersonId, 
+                            CardType: cardType, 
+                            CardNoId: cardNoId, 
+                            Id: assignmentId 
+                        },
+                        success: function (data) {
+                            if (data.isDuplicate) {
+                                TosterNotification("warning", data.message, "Warning");
+                                $('#Assignment_CardType').val('').trigger('change');
+                            }
+                        }
+                    });
+                }
+            });
+        };
+
+        return {
+            init: function () {
+                // Initialize DataTable
+                if (typeof GlDataTable !== "undefined") {
+                    GlDataTable.init('CardAssignmentTable', {
+                        statusFilter: 4,    
+                        columnDefs: [{ targets: 'no-cc', orderable: false, searchable: false, targets: [4,5] }],
+                        order: [[0, 'asc']]
+                    });
+                }
+                initEvents();
+            }
+        };
+    })();
+</script>

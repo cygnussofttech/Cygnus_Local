@@ -1,0 +1,260 @@
+@model GreenLineDataService.Models.Cygnus_VehicleDriver_Mapping
+@using GreenLineDataService.Models
+@{
+    ViewBag.Title = "Vehicle Driver Mapping";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("VehicleDriverMappingSubmit", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <h4 class="mb-sm-0">Vehicle Driver Mapping</h4>
+
+        <div class="page-title-right">
+            <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Content("~/Master/VehicleDriverMappingList")">Vehicle Driver Mapping List</a></li>
+                <li class="breadcrumb-item active">@(Model.Id == 0 ? "Add" : "Edit")</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card mb-0">
+        <div class="card-header align-items-center d-flex section-header-bg">
+            <h5 class="card-title mb-0 flex-grow-1"><i class="ri-user-settings-line align-middle me-1"></i> Vehicle Driver Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label required-label">VehicleNo</label>
+                        @Html.DropDownListFor(model => model.VehicleId, new SelectList(ViewBag.VehicleList, "ID", "VehicleNo", Model.VehicleId), "", new { @class = "select2 required", @placeholder = "Select VehicleNo" })
+                        @Html.HiddenFor(model => model.Id)
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label @(Model.First_Driver != 0 ? "" : "required-label")">
+                            First Driver
+                            @if (Model.First_Driver != 0) {
+                                <span class="badge bg-warning-subtle text-warning ms-1" style="font-size:10px;font-weight:500;">
+                                    <i class="ri-lock-line me-1"></i>Assigned
+                                </span>
+                            }
+                        </label>
+                        @if (Model.First_Driver != 0)
+                        {
+                            @Html.DropDownListFor(model => model.First_Driver, new SelectList(ViewBag.Driverlist, "Driver_Id", "Driver_Name", Model.First_Driver), "", new { @class = "select2", @disabled = "disabled", @placeholder = "Select First Driver", title = "Detach the current driver before assigning a new one" })
+                        }
+                        else
+                        {
+                            @Html.DropDownListFor(model => model.First_Driver, new SelectList(ViewBag.Driverlist, "Driver_Id", "Driver_Name", Model.First_Driver), "", new { @class = "select2 required", @placeholder = "Select First Driver" })
+                        }
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Second Driver
+                            @if (Model.Second_Driver != 0) {
+                                <span class="badge bg-warning-subtle text-warning ms-1" style="font-size:10px;font-weight:500;">
+                                    <i class="ri-lock-line me-1"></i>Assigned
+                                </span>
+                            }
+                        </label>
+                        @if (Model.Second_Driver != 0)
+                        {
+                            @Html.DropDownListFor(model => model.Second_Driver, new SelectList(ViewBag.Driverlist, "Driver_Id", "Driver_Name", Model.Second_Driver), "", new { @class = "select2", @disabled = "disabled", @placeholder = "Select Second Driver", title = "Detach the current driver before assigning a new one" })
+                        }
+                        else
+                        {
+                            @Html.DropDownListFor(model => model.Second_Driver, new SelectList(ViewBag.Driverlist, "Driver_Id", "Driver_Name", Model.Second_Driver), "", new { @class = "select2", @placeholder = "Select Second Driver" })
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass" onclick="location.href='@Url.Content("~/Master/VehicleDriverMappingList")'">
+            <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i> @ViewBag.UI.Buttons.Cancel.Label
+        </button>
+        <button type="button" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon"></i> @ViewBag.UI.Buttons.Submit.Label
+        </button>
+    </div>
+}
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: "",
+
+                rules: {
+                    // Custom rules if needed
+                },
+                messages: {
+                    // Custom messages if needed
+                },
+                invalidHandler: function (event, validator) {
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-offscreen") || element.hasClass("select2-hidden-accessible") || element.hasClass("select2")) {
+                        var container = element.next(".select2-container");
+                        if (container.length > 0) {
+                            error.insertAfter(container);
+                        } else {
+                            error.insertAfter(element);
+                        }
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                    form.submit();
+                }
+            });
+
+            $(document).on('change', '.select2', function () {
+                $(this).valid();
+            });
+        }
+
+        var Events = function (DomainName) {
+            var Currentid = "";
+            $('#First_Driver, #Second_Driver').on('change', function () {
+                if ($(this).val() != "") {
+                    var firstDriver = $('#First_Driver').val();
+                    var secondDriver = $('#Second_Driver').val();
+                    App.blockUI({ boxed: true });
+                    var StrURL1 = DomainName + '/Account/GetData';
+                    Currentid = $(this).attr('id');
+                    var Driver = $("#" + Currentid + " option:selected").text();
+                    var Currentvehicle = $("#VehicleId option:selected").text();
+                   
+                    var parameters = {};
+                    parameters['Driver'] = $(this).val();
+                    parameters['vehicleId'] = $("#VehicleId").val();
+                    $.ajax({
+                        url: StrURL1,
+                        cache: false,
+                        type: 'POST',
+                        data: {
+                            Method: 'ChekDriverAllready_Map',
+                            parameters: parameters
+                        },
+                        success: function (Data) {
+                            var parsedData = JSON.parse(Data);
+                            if (parsedData.length > 0) {
+                                var VehicleNo = parsedData[0].VehicleNo;
+                                if (parsedData[0].VehicleNo != "" && parsedData[0].IsAttached == 1) {
+                                    GLModal.showPopup({
+                                        title: 'Vehicle Attach Restriction',
+                                        message: `<strong>Driver :</strong> ${Driver} - In Transit With <strong>Vehicle :</strong> ${VehicleNo} So You Can't Attach this Driver.`,
+                                        type: 'error',
+                                        buttonText: 'OK',
+                                        onClose: function () {
+                                            $("#" + Currentid).val(null).trigger('change');
+                                        }
+                                    });
+                                } else if (parsedData[0].VehicleNo != "" && parsedData[0].IsAttached == 0) {
+                                    GLModal.showConfirm({
+                                        title: 'Vehicle Attach Warning',
+                                        message: `<strong>Driver:</strong> ${Driver}<br>Already Attached With <strong>Vehicle : </strong> ${VehicleNo}<br>Do you want to attach this vehicle (${Currentvehicle}) with this (${Driver}) Driver?`,
+                                        type: 'warning',
+                                        confirmText: 'Continue',
+                                        cancelText: 'Cancel',
+                                        onConfirm: function () {
+                                            // Keep selection
+                                        },
+                                        onCancel: function () {
+                                            $("#" + Currentid).val(null).trigger('change');
+                                        }
+                                    });
+                                }
+                                App.unblockUI();
+                            }
+                        },
+                        error: function (req, status, error) {
+                            TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                            App.unblockUI();
+                        }
+                    });
+                    App.unblockUI();
+                    if (firstDriver !== '' && secondDriver !== '' && firstDriver === secondDriver) {
+                        TosterNotification("warning", 'First Driver and Second Driver cannot be the same!..!!');
+                        setTimeout(() => {
+                            if ($(this).attr('id') === 'First_Driver') {
+                                $('#First_Driver').val(null).trigger('change');
+                            } else {
+                                $('#Second_Driver').val(null).trigger('change');
+                            }
+                        }, 100);
+                    }
+                }
+            }); 
+            
+            $("#btnSubmit").on("click", function () {
+                if ($('#form_sample').valid()) {
+                    App.blockUI({ boxed: true });
+                    // Re-enable disabled dropdowns so their values are included in the POST.
+                    // Disabled fields are excluded from form submission by the browser.
+                    $('#First_Driver, #Second_Driver').prop('disabled', false);
+                    document.forms["form_sample"].submit();
+                }
+                else {
+                    return false;
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                Events(DomainName);
+
+                // ── Disable select2 dropdowns that already have an assigned driver ──
+                // select2 is initialized globally in baseFunction.js before this runs,
+                // so we update the disabled state here to sync the visual widget.
+                ['First_Driver', 'Second_Driver'].forEach(function (id) {
+                    var $sel = $('#' + id);
+                    if ($sel.val() && $sel.val() !== '0' && $sel.val() !== '') {
+                        $sel.prop('disabled', true).trigger('change');
+
+                        // Style the select2 container to show a 'not-allowed' cursor
+                        var $container = $sel.next('.select2-container');
+                        if ($container.length) {
+                            $container.css({ opacity: '0.75', cursor: 'not-allowed', pointerEvents: 'none' });
+                        }
+                    }
+                });
+            }
+        };
+    }();
+</script>

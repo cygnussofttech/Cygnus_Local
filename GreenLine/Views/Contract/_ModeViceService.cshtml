@@ -1,0 +1,226 @@
+@model GreenLineDataService.Models.CYGNUS_custcontract_servicecharges
+@using GreenLineDataService.Models;
+@{
+
+    var serviceType = Model.service_type;
+
+    bool showPTL = false; // 1
+    bool showFTL = false; // 2
+
+    if (!string.IsNullOrEmpty(serviceType))
+    {
+        if (serviceType == "1")
+        {
+            showPTL = true;
+        }
+
+        if (serviceType == "2")
+        {
+            showFTL = true;
+        }
+    }
+
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    var VolMeasureList = new List<SelectListItem> {
+    new SelectListItem { Text = "INCHES", Value = "INCHES" },
+    new SelectListItem { Text = "CM", Value = "CM" },
+};
+    var ServiceTaxPayList = new List<SelectListItem> {
+    new SelectListItem { Text = "Consignor", Value = "CO" },
+    new SelectListItem { Text = "Consignee", Value = "CE" },
+    new SelectListItem { Text = "Billing Party", Value = "P" },
+    new SelectListItem { Text = "Transporter", Value = "T" },
+};
+    var RateTypeList = new List<SelectListItem> {
+    new SelectListItem { Text = "Flat(in Rs)", Value = "F" },
+    new SelectListItem { Text = "Per KG", Value = "W" },
+    new SelectListItem { Text = "% of Basic Freight", Value = "%" },
+};
+
+    Model.staxpaidbyenabled = string.IsNullOrEmpty(Model.stax_paidby_enabled) ? false : true;
+
+    if (Model.max_fuelsurchrg == 0m)
+    {
+        Model.max_fuelsurchrg = 9999;
+    }
+    if (Model.max_fuelsurchrg_ftl == 0m)
+    {
+        Model.max_fuelsurchrg_ftl = 9999;
+    }
+}
+
+@using (Html.BeginForm("AddModeViceService", "Contract", FormMethod.Post, new { id = "form_sampleModeVice", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.contractid)
+    @Html.HiddenFor(m => m.custcode)
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-road-map-line align-middle me-1"></i> Mode Wise Selection
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="form-group">
+                                <label class="form-label required-field">Transit Mode</label>
+                                @Html.DropDownListFor(m => m.trans_type, new SelectList(ViewBag.trans_type, "CodeId", "CodeDesc", Model.trans_type), new { @class = "required select2 form-control", placeholder = "Select Transit Mode", @disabled = "disabled" })
+                                @Html.HiddenFor(m => m.trans_type)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*Volumetric Conversion*@
+            <div class="col-md-12 row">
+                <div class="col-md-6">
+                    @*GST Payer*@
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="ri-settings-3-line align-middle me-1"></i> GST Payer
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Active</label>
+                                        <div class="form-check">
+                                            @Html.CheckBoxFor(m => m.staxpaidbyenabled, new { @class = "form-check-input" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required-field">GST Paid By</label>
+                                    @Html.DropDownListFor(m => m.gstpaidby, new SelectList(ServiceTaxPayList, "Value", "Text"), "", new { @class = "required select2 form-control", placeholder = "Select GST Paid By" })
+                                    @Html.ValidationMessageFor(model => model.gstpaidby)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="ri-settings-3-line align-middle me-1"></i> Volumetric Conversion
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Ratio</label>
+                                        @Html.TextBoxFor(m => m.cft_ratio, new { placeholder = "Enter Ratio", @class = "form-control required", @min = 1, @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Volumetric Measure</label>
+                                        @Html.DropDownListFor(m => m.cft_measure, new SelectList(VolMeasureList, "Value", "Text"), "", new { @class = "required select2 drpvol form-control", placeholder = "Select Volumetric Measure" })
+                                        @Html.ValidationMessageFor(model => model.cft_measure)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*Fuel Surcharge / PTL*@
+            <div claas="div_ptl" style="display:@(showPTL ? "block" : "none")">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="ri-settings-3-line align-middle me-1"></i> Fuel Surcharge / PTL
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Min Charge</label>
+                                        @Html.TextBoxFor(m => m.min_fuelsurchrg, new { placeholder = "Min Charge", @class = "form-control required ", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Max Charge</label>
+                                        @Html.TextBoxFor(m => m.max_fuelsurchrg, new { placeholder = "Minutes", @class = "form-control required ", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @value = "9999", })
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label required-field"> Charge Rate</label>
+                                        @Html.TextBoxFor(m => m.fuelsurchrg, new { placeholder = "Enter Charge Rate", @class = "form-control required", value = "9999", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Rate Type</label>
+                                        @Html.DropDownListFor(m => m.fuelsurchrgbas, new SelectList(RateTypeList, "Value", "Text"), "", new { @class = "select2 form-control required", placeholder = "Select Rate Type" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*Fuel Surcharge / FTL*@
+            <div claas="div_ftl" style="display:@(showFTL ? "block" : "none")">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="ri-settings-3-line align-middle me-1"></i> Fuel Surcharge / FTL
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Min Charge</label>
+                                        @Html.TextBoxFor(m => m.min_fuelsurchrg_ftl, new { placeholder = "Min Charge", @class = "form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Max Charge</label>
+                                        @Html.TextBoxFor(m => m.max_fuelsurchrg_ftl, new { placeholder = "Minutes", @class = "form-control required ", value = "9999", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label required-field"> Charge Rate</label>
+                                        @Html.TextBoxFor(m => m.fuelsurchrg_ftl, new { placeholder = "Enter Charge Rate", @class = "form-control required", value = "9999", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Rate Type</label>
+                                        @Html.DropDownListFor(m => m.fuelsurchrgbas_ftl, new SelectList(RateTypeList, "Value", "Text"), "", new { @class = "select2 form-control required", placeholder = "Select Rate Type" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="form-actions">
+    <button type="button" onclick="goToTab(3)" class="@ViewBag.UI.Buttons.Previous.CssClass"><i class="@ViewBag.UI.Buttons.Previous.Icon"></i>@ViewBag.UI.Buttons.Previous.Label</button>
+    <button type="button" id="btnSubmitModeViceservice" class="@ViewBag.UI.Buttons.Next.CssClass"><i class="@ViewBag.UI.Buttons.Next.Icon"></i>@ViewBag.UI.Buttons.Next.Label</button>
+    @*<button type="button" id="btnSubmitModeViceservice" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i> Save & Continue</button>
+        <button type="button" id="btnsaveContinue" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Save & Keep On Same Page</button>*@
+</div>
+

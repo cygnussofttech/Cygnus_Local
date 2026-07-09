@@ -1,0 +1,1314 @@
+@model GreenLineDataService.Models.CYGNUS_Organization_Master
+@using GreenLineDataService.Models;
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Organization";
+}
+
+@{
+    var buttonText = (Model.OrgDet.COMPANY_CODE == "0" ? "Add" : "Edit");
+
+    var bankList = Model.OrgBnkDetList ?? new List<Organization_Bank_Details>();
+
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    List<CYGNUS_Master_General> BillType = _masterService.GetGeneralMaster().Where(c => c.CodeType == "BILLTYP" && c.StatusCode == "Y").ToList();
+    List<CYGNUX_Master_Countries> CountryList = _masterService.GetCountryMaster().ToList();
+    List<CYGNUS_State> StateList = _masterService.GetStateMaster().ToList();
+    List<CYGNUS_citymaster> CityList = _masterService.GetCityMaster().ToList();
+    List<CYGNUS_pincode_master> ListPincode = _masterService.GetPincodeMaster().Where(c => c.ActiveFlag == "Y").GroupBy(c => c.pincode).Select(g => g.First()).OrderBy(c => c.pincode).ToList();
+}
+
+<style>
+    /*image logo*/
+    #imgContainer {
+        transition: all 1s ease;
+    }
+
+    .ui-page-header {
+        margin: 1rem 0 !important;
+        padding: 5px 0px !important;
+    }
+
+    span.field-validation-error, span.error, label.error, form .help-block, .has-error .help-block, span.help-block[id$="-error"] {
+        color: #f06548 !important;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    input.error, select.error, .has-error .select2-selection {
+        border-color: #b94a48 !important;
+    }
+
+    /* Modern Tab Container */
+    .custom-tabs-container {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 8px;
+        border: 1px solid rgba(223, 227, 235, 0.6);
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        margin-bottom: 10px;
+    }
+
+    /* Modern Pills Styles */
+    .custom-modern-pills {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 6px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        border: none !important;
+        scrollbar-width: none; /* Hide scrollbar for Firefox */
+    }
+
+        .custom-modern-pills::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome/Safari */
+        }
+
+        .custom-modern-pills .nav-item {
+            flex: 0 0 auto;
+        }
+
+        .custom-modern-pills .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            border-radius: 8px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+            .custom-modern-pills .nav-link i {
+                font-size: 16px;
+                transition: transform 0.25s ease;
+            }
+
+            /* Hover styles */
+            .custom-modern-pills .nav-link:hover {
+                color: #4f46e5;
+                background-color: #f8fafc;
+            }
+
+                .custom-modern-pills .nav-link:hover i {
+                    transform: translateY(-1px);
+                }
+
+            /* Active state */
+            .custom-modern-pills .nav-link.active {
+                color: #ffffff !important;
+                background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
+                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
+            }
+
+                .custom-modern-pills .nav-link.active i {
+                    color: #ffffff !important;
+                }
+
+    @@media (max-width: 768px) {
+        .custom-modern-pills .nav-item {
+            flex: 1 1 0 !important;
+        }
+
+        .custom-modern-pills .nav-link {
+            padding: 10px 0 !important;
+            gap: 0 !important;
+            justify-content: center !important;
+        }
+
+            .custom-modern-pills .nav-link span {
+                display: none !important;
+            }
+
+            .custom-modern-pills .nav-link i {
+                font-size: 18px !important;
+            }
+    }
+
+    /* Make select2 readonly visually but still submit */
+    .select2-readonly + .select2-container {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-0">
+                @buttonText @ViewBag.Title
+            </h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item">Master</li>
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Organization", "Master")">Organization</a>
+                    </li>
+                    <li class="breadcrumb-item active">@buttonText</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+<!-- Tab Navigation -->
+<div class="custom-tabs-container">
+    <ul class="nav nav-tabs custom-modern-pills" role="tablist" id="customTabs">
+        <li class="nav-item">
+            <a class="nav-link active" href="#tab_0" role="tab">
+                <i class="ri-information-line"></i> <span>Information</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#tab_1" role="tab">
+                <i class="ri-bank-line"></i> <span>Bank Details</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#tab_2" role="tab">
+                <i class="ri-receipt-line"></i> <span> E-Invoice</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+@using (Html.BeginForm("AddEditOrganization", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+
+    @Html.HiddenFor(m => m.OrgDet.COMPANY_CODE)
+    @Html.Hidden("OrgDet.City_Code", Model.OrgDet.City_Code, new { id = "hfCityCode" })
+    @Html.Hidden("OrgDet.State_Code", Model.OrgDet.State_Code, new { id = "hfStateCode" })
+    @Html.Hidden("OrgDet.Country_Code", Model.OrgDet.Country_Code, new { id = "hfCountryCode" })
+
+    <div class="tab-content text-muted">
+        <!-- GST Details -->
+        <div class="tab-pane active" id="tab_0">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0 flex-grow-1">
+                                <i class="ri-file-info-line align-middle me-1"></i> GST Details
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">GST Number</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.GST_Number, new { placeholder = "Enter GST Number", @maxlength = "15", @class = "required form-control", oninput = "validateGSTPattern(this)", onchange = "validateGSTPattern(this)", onpaste = "setTimeout(() => validateGSTPattern(this), 0)", onblur = "ValidateField(this.id, 'gst')" })
+                                        <small class="text-muted d-block mt-1">
+                                            Format: 22AAAAA0000A1Z5
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">PAN No</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.PANNo, new { placeholder = "Enter Pan No", @maxlength = "10", @class = "required form-control", @readonly = true })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Organization Name</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.COMPANY_NAME, new { placeholder = "Enter Organization Name", @class = "required form-control", @readonly = true })
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Biling Type</label>
+                                        @Html.DropDownListFor(m => m.OrgDet.Biling_Type, new SelectList(BillType, "CodeId", "CodeDesc", Model.OrgDet.Biling_Type), "", new { @class = "select2 form-control required", @placeholder = "Select Billing Type" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">PinCode</label>
+                                        @Html.DropDownListFor(m => m.OrgDet.PinCode, new SelectList(ListPincode, "pincode", "pincode", Model.OrgDet.PinCode), "", new { @class = "required select2 form-control", @placeholder = "Select PinCode" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">City Name</label>
+                                        @Html.DropDownListFor(m => m.OrgDet.City_Code, new SelectList(CityList, "city_code", "Location", Model.OrgDet.City_Code), "", new { @class = "required select2 form-control", @placeholder = "Select City", @disabled = "disabled" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">State Name</label>
+                                        @Html.DropDownListFor(m => m.OrgDet.State_Code, new SelectList(StateList, "stcd", "stnm", Model.OrgDet.State_Code), "", new { @class = "required select2 form-control", @placeholder = "Select State", @disabled = "disabled" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Country Name</label>
+                                        @Html.DropDownListFor(m => m.OrgDet.Country_Code, new SelectList(CountryList, "Id", "CountryName", Model.OrgDet.Country_Code), "", new { @class = "required select2 form-control", @placeholder = "Select Country", @disabled = "disabled" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Branch Code</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.BRCD, new { placeholder = "Enter Branch Code", @class = "required form-control", @readonly = true })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">SAP Code</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.Sap_Code, new { placeholder = "Enter SAP Code", @class = "required form-control", onKeyPress = "return ValidateAlpha(event);" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--Basic  Information -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card mb-0">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0 flex-grow-1">
+                                <i class="ri-information-line align-middle me-1"></i> Basic Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Address</label>
+                                        @Html.TextAreaFor(m => m.OrgDet.ADDRESS, new { placeholder = "Enter Address", @class = "form-control", style = "height: 38px; min-height: 38px; resize: vertical;" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Address 1</label>
+                                        @Html.TextAreaFor(m => m.OrgDet.Address1, new { placeholder = "Enter Address 1", @class = "form-control", style = "height: 38px; min-height: 38px; resize: vertical;" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Address 2</label>
+                                        @Html.TextAreaFor(m => m.OrgDet.Address2, new { placeholder = "Enter Address 2", @class = "form-control", style = "height: 38px; min-height: 38px; resize: vertical;" })
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Location</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.Location, new { placeholder = "Enter Location", @class = "form-control", onKeyPress = "return ValidateAlpha(event);" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Mobile No</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.CONTACTNO, new { placeholder = "Enter Mobile No", @class = "form-control", @maxlength = "10", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", onblur = "ValidateField(this.id, 'mobile')" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Email</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.Email, new { placeholder = "Enter Email", @class = "form-control", onblur = "ValidateField(this.id, 'email')" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">CIN Number</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.CINNumber, new { placeholder = "Enter CIN Number", @class = "form-control" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Employee Code</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.Employee_Code, new { placeholder = "Enter Employee Code", @class = "form-control" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Invoice Bottom Address</label>
+                                        @Html.TextAreaFor(m => m.OrgDet.Invoice_Bottom_Address, new { placeholder = "Enter Invoice Bottom Address", @class = "form-control", style = "height: 38px; min-height: 38px; resize: vertical;" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Trip Series</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.Trip_Series, new { placeholder = "Enter Trip Series", @class = "form-control" })
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Organization Person Name</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.CONTACT_PERSON, new { placeholder = "Enter Organization Person Name", @class = "form-control", onKeyPress = "return ValidateAlpha(event);" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Register Office Address</label>
+                                        @Html.TextAreaFor(m => m.OrgDet.Register_Office_Address, new { placeholder = "Enter Register Office Address", @class = "form-control", style = "height: 38px; min-height: 38px; resize: vertical;" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Terms And Condition</label>
+                                        @Html.TextAreaFor(m => m.OrgDet.TermsAndCondition, new { placeholder = "Enter Terms And Condition", @class = "form-control", style = "height: 38px; min-height: 38px; resize: vertical;" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">LR Terms And Condition</label>
+                                        @Html.TextAreaFor(m => m.OrgDet.LR_Terms_And_Condition, new { placeholder = "Enter LR Terms And Condition", @class = "form-control", style = "height: 38px; min-height: 38px; resize: vertical;" })
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Credit Debit Terms And Condition</label>
+                                        @Html.TextAreaFor(m => m.OrgDet.Credit_Debit_Terms_And_Condition, new { placeholder = "Enter Credit Debit Terms And Condition", @class = "form-control", style = "height: 38px; min-height: 38px; resize: vertical;" })
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Status</label>
+                                        <div class="form-check form-switch mt-1">
+                                            <input type="checkbox" class="form-check-input" id="chkActive" @(Model.OrgDet.IsActive ? "checked" : "")>
+                                        </div>
+                                        @Html.HiddenFor(m => m.OrgDet.IsActive, new { id = "hfIsActive" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Company Logo</label>
+                                        <!-- Hidden value -->
+                                        <input type="hidden" value="@Model.OrgDet.CompanyLogoUrl" name="OrgDet.CompanyLogoUrl" id="CompanyLogoUrl">
+                                        <!-- File Upload -->
+                                        <input type="file" id="fileUpload" name="fileUpload" class="form-control" accept="image/*" />
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(Model.OrgDet.CompanyLogoUrl))
+                                {
+                                    var logoPath = Model.OrgDet.CompanyLogoUrl.StartsWith("~") || Model.OrgDet.CompanyLogoUrl.StartsWith("http") 
+                                       ? Model.OrgDet.CompanyLogoUrl 
+                                       : "~/assets/img/logos/" + Model.OrgDet.CompanyLogoUrl;
+                                    <div class="col-lg-3 col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">&nbsp;</label>
+                                            <div>
+                                                <a href="@Url.Content(logoPath)" target="_blank" class="btn btn-sm btn-outline-success">
+                                                    <i class="ri-image-line align-bottom me-1"></i> View Photo
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="@Url.Action("Organization", "Master")" class="@ViewBag.UI.Buttons.Cancel.CssClass"><i class="@ViewBag.UI.Buttons.Cancel.Icon"> </i>&nbsp;@ViewBag.UI.Buttons.Cancel.Label</a>
+                <button type="button" class="@ViewBag.UI.Buttons.Next.CssClass btn-next" id="btn_Tab_0_Next" data-next="#tab_1">
+                    <i class="@ViewBag.UI.Buttons.Next.Icon"></i> <lable id="btn_Tab_0_Next_txt">@ViewBag.UI.Buttons.Next.Label</lable>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bank Details -->
+        <div class="tab-pane" id="tab_1">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card mb-0">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0 flex-grow-1">
+                                <i class="ri-bank-fill align-middle me-1"></i> Bank Details
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Beneficiary Name</label>
+                                        @Html.TextBoxFor(m => m.OrgBnkDet.Beneficiary_Name, new { placeholder = "Enter Beneficiary Name", @class = "required form-control", onKeyPress = "return ValidateAlpha(event);" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Bank Name</label>
+                                        @Html.TextBoxFor(m => m.OrgBnkDet.Bank_Name, new { placeholder = "Enter Bank", @class = "required form-control", onKeyPress = "return ValidateAlpha(event);" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Account No</label>
+                                        @Html.TextBoxFor(m => m.OrgBnkDet.Bank_Account_No, new { placeholder = "Enter Account No", @class = "required form-control", onKeyPress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">IFSC Code</label>
+                                        @Html.TextBoxFor(m => m.OrgBnkDet.IFSC_Code, new { placeholder = "Enter IFSC Code (Ex.ABCD0123456)", @maxlength = "11", @class = "required form-control", oninput = "validateIFSCPattern(this)", onblur = "ValidateField(this.id, 'ifsc')" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Branch</label>
+                                        @Html.TextBoxFor(m => m.OrgBnkDet.Branch_Name, new { placeholder = "Enter Branch Name", @class = "form-control", onKeyPress = "return ValidateAlpha(event);" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">MICR Code</label>
+                                        @Html.TextBoxFor(m => m.OrgBnkDet.MICR_Code, new { placeholder = "Enter MICR Code", @class = "form-control" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">RTGS/NEFT Code</label>
+                                        @Html.TextBoxFor(m => m.OrgBnkDet.RTGS_NEFT_Code, new { placeholder = "Enter RTGS/NEFT Code", @class = "form-control" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Bank Address</label>
+                                        @Html.TextBoxFor(m => m.OrgBnkDet.Bank_Address, new { placeholder = "Enter Bank Address", @class = "form-control" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions text-end">
+                            <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass" id="btn_CancelBankDetails">
+                                <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i> <lable id="btn_CancelBankDetails_txt">@ViewBag.UI.Buttons.Cancel.Label</lable>
+                            </button>
+                            <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass" id="btn_AddBankDetails">
+                                <i class="@ViewBag.UI.Buttons.Add.Icon"></i> <lable id="btn_AddBankDetails_txt">@ViewBag.UI.Buttons.Add.Label</lable>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="card mb-0">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0 flex-grow-1">
+                                <i class="ri-bank-fill align-middle me-1"></i> Bank List
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Replaced jsGrid with a standard table and GlDataTable usage (same pattern as StateMaster.cshtml) -->
+                            <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="tblBank">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-center">Beneficiary Name</th>
+                                        <th class="text-center">Bank Name</th>
+                                        <th class="text-center">Account No</th>
+                                        <th class="text-center">IFSC Code</th>
+                                        <th class="text-center">Branch</th>
+                                        <th class="text-center">MICR</th>
+                                        <th class="text-center">RTGS/NEFT</th>
+                                        <th class="text-center">Address</th>
+                                        <th class="text-center no-cc">Status</th>
+                                        <th class="text-center no-cc">Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                            <input type="hidden" id="hdnBankData" name="BankJsonData" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="@ViewBag.UI.Buttons.Previous.CssClass btn-label waves-effect waves-light me-2 btn-previous" id="btn_Tab_1_Previous" data-next="#tab_0">
+                    <i class="@ViewBag.UI.Buttons.Previous.Icon label-icon align-middle fs-16 me-2"></i> <lable id="btn_Tab_1_Previous_txt">@ViewBag.UI.Buttons.Previous.Label</lable>
+                </button>
+                <button type="button" class="@ViewBag.UI.Buttons.Next.CssClass btn-label waves-effect waves-light me-2 btn-next" id="btn_Tab_1_Next" data-next="#tab_2">
+                    <i class="@ViewBag.UI.Buttons.Next.Icon label-icon align-middle fs-16 me-2"></i> <lable id="btn_Tab_1_Next_txt">@ViewBag.UI.Buttons.Next.Label</lable>
+                </button>
+            </div>
+        </div>
+
+        <!-- E-Invoice Details -->
+        <div class="tab-pane" id="tab_2">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card m-0">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0 flex-grow-1">
+                                <i class="ri-receipt-line align-middle me-1"></i> E-Invoice Details
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">E-Invoice User Name</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.EInvoice_User_Name, new { placeholder = "Enter E-Invoice User Name", @class = "form-control", onKeyPress = "return ValidateAlpha(event);" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">E-Invoice Password</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.EInvoice_Password, new { placeholder = "Enter E-Invoice Password", @class = "form-control", onKeyPress = "return ValidateAlpha(event);" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">E-Invoice ASP Id</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.EInvoice_ASP_Id, new { placeholder = "Enter E-Invoice ASP Id", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">E-Invoice Client Id</label>
+                                        @Html.TextBoxFor(m => m.OrgDet.EInvoice_Client_Id, new { placeholder = "Enter E-Invoice Client Id", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="@ViewBag.UI.Buttons.Previous.CssClass btn-previous" id="btn_Tab_2_Previous" data-next="#tab_1">
+                    <i class="@ViewBag.UI.Buttons.Previous.Icon"></i> <lable id="btn_Tab_2_Previous_txt">@ViewBag.UI.Buttons.Previous.Label</lable>
+                </button>
+                <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass" id="btn_SaveOrgDetails">
+                    <i class="@ViewBag.UI.Buttons.Submit.Icon"></i> <lable id="btn_SaveOrgDetails_txt">@ViewBag.UI.Buttons.Submit.Label</lable>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    var bankData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(bankList));
+
+    var bindLocationByPincodeApi = function (code, type, callback) {
+
+        var url = DomainName + "/Master/Get_Country_State_City_Zone_on_Pincode?Code=" + code + "&Type=" + type;
+
+        $.ajax({
+            url: url,
+            cache: false,
+            type: "GET",
+            success: function (response) {
+                if (response && response.length > 0) {
+                    var item = response[0];
+
+                    if (type === 'P') {
+                        if (item.CountryId) {
+                            $("#OrgDet_Country_Code").val(item.CountryId);
+                            $("#OrgDet_Country_Code").select2("data", { id: item.CountryId, text: item.CountryName || "India" });
+                            $("#hfCountryCode").val(item.CountryId);
+                        }
+                        if (item.StateCode) {
+                            $("#OrgDet_State_Code").val(item.StateCode);
+                            $("#OrgDet_State_Code").select2("data", { id: item.StateCode, text: item.stnm || item.StateName || "" });
+                            $("#hfStateCode").val(item.StateCode);
+                        }
+                        if (item.CityCode) {
+                            $("#OrgDet_City_Code").val(item.CityCode);
+                            $("#OrgDet_City_Code").select2("data", { id: item.CityCode, text: item.CityName || "" });
+                            $("#hfCityCode").val(item.CityCode);
+                        }
+                    }
+
+                    if (callback) callback(true);
+                } else {
+                    if (callback) callback(false);
+                }
+            },
+            error: function () {
+                if (callback) callback(false);
+            }
+        });
+    };
+
+    // ✅ Normalize IsActive
+    bankData.forEach(function (item) {
+        item.IsActive = (item.IsActive === true || item.IsActive === "True" || item.IsActive == 1) ? 1 : 0;
+    });
+
+    var editIndex = -1;
+
+    var Formvalidate = function (DomainName) {
+
+        var form1 = $('#form_sample');
+        form1.validate({
+            doNotHideMessage: true,
+            errorElement: 'span',
+            errorClass: 'help-block',
+            focusInvalid: false,
+            ignore: ":hidden:not(.select2-hidden-accessible)",
+            rules: {},
+            messages: {},
+            errorPlacement: function (error, element) {
+                if (element.parent(".input-group").length > 0) {
+                    error.insertAfter(element.parent(".input-group"));
+                } else if (element.hasClass("select2-hidden-accessible") || element.next(".select2-container").length > 0) {
+                    error.insertAfter(element.next(".select2-container"));
+                } else {
+                    error.insertAfter(element);
+                }
+            },
+            highlight: function (element) {
+                $(element).closest('.form-group').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error');
+            },
+            success: function (label) {
+                label.closest('.form-group').removeClass('has-error');
+            }
+        });
+    }
+
+    function FillDropDownfromOtherTest(DDLName, StrURL, DllType, callback) {
+        var $ddl = $("#" + DDLName);
+
+        $ddl.empty();
+
+        // ✅ IMPORTANT empty option
+        $ddl.html('<option value=""></option>');
+
+        $.get(StrURL, function (data) {
+
+            $ddl.append('<option value="">Select ' + (DllType || 'Option') + '</option>');
+
+            for (var i = 0; i < data.length; i++) {
+                var val = data[i].Value !== undefined ? data[i].Value : data[i].value;
+                var txt = data[i].Text !== undefined ? data[i].Text : data[i].text;
+                $ddl.append('<option value="' + val + '">' + txt + '</option>');
+            }
+
+            // ✅ destroy old select2
+            if ($ddl.hasClass("select2-hidden-accessible")) {
+                $ddl.select2('destroy');
+            }
+
+            // ✅ init select2
+            $ddl.select2({
+                placeholder: 'Select ' + (DllType || 'Option'),
+                allowClear: true,
+                width: '100%'
+            });
+
+            // ✅ reset value so placeholder shows
+            $ddl.select2("val", "");
+
+            if (callback) callback(data);
+
+        }, "json");
+    }
+
+    function validateGSTPattern(input) {
+
+        let value = input.value.toUpperCase();
+        let result = '';
+
+        for (let i = 0; i < value.length; i++) {
+
+            let ch = value[i];
+            // 1-2 Numeric
+            if (i <= 1) {
+                if (/[0-9]/.test(ch)) {
+                    result += ch;
+                }
+            }
+            // 3-7 Alphabet
+            else if (i >= 2 && i <= 6) {
+                if (/[A-Z]/.test(ch)) {
+                    result += ch;
+                }
+            }
+            // 8-11 Numeric
+            else if (i >= 7 && i <= 10) {
+                if (/[0-9]/.test(ch)) {
+                    result += ch;
+                }
+            }
+            // 12 Alphabet
+            else if (i == 11) {
+                if (/[A-Z]/.test(ch)) {
+                    result += ch;
+                }
+            }
+            // 13 Numeric
+            else if (i == 12) {
+                if (/[0-9]/.test(ch)) {
+                    result += ch;
+                }
+            }
+            // 14 Alphabet
+            else if (i == 13) {
+                if (ch === 'Z') {
+                    result += ch;
+                }
+            }
+            // 15 AlphaNumeric
+            else if (i == 14) {
+                if (/[A-Z0-9]/.test(ch)) {
+                    result += ch;
+                }
+            }
+        }
+        input.value = result;
+
+        // ✅ GST Complete
+        if (result.length === 15) {
+            // avoid multiple calls for the SAME GST number
+            if (input.dataset.lastfetchedgst !== result) {
+
+                input.dataset.lastfetchedgst = result;
+
+                // GST Validation
+                if (ValidateField(input.id, 'gst')) {
+
+                    // CALL FUNCTION
+                    GetGSTDetails(input.id);
+                }
+            }
+        }
+    }
+
+    function validateIFSCPattern(input) {
+        let value = input.value.toUpperCase();
+        let result = '';
+
+        for (let i = 0; i < value.length; i++) {
+            let ch = value[i];
+
+            // First 4 characters: A-Z
+            if (i <= 3) {
+                if (/[A-Z]/.test(ch)) {
+                    result += ch;
+                }
+            }
+            // 5th character: must be '0'
+            else if (i === 4) {
+                if (ch === '0') {
+                    result += ch;
+                }
+            }
+            // Last 6 characters (index 5 to 10): A-Z0-9
+            else if (i >= 5 && i <= 10) {
+                if (/[A-Z0-9]/.test(ch)) {
+                    result += ch;
+                }
+            }
+        }
+        input.value = result;
+
+        // ✅ IFSC Complete
+        if (result.length === 11) {
+            ValidateField(input.id, 'ifsc');
+        }
+    }
+
+    var clearGSTFields = function (id1) {
+        var gstInput = $("#" + id1);
+        gstInput.val("");
+        if (gstInput[0]) gstInput[0].dataset.lastfetchedgst = "";
+
+        $("#OrgDet_PANNo").val("");
+        $("#OrgDet_BRCD").val("");
+        $("#OrgDet_COMPANY_NAME").val("");
+        $("#OrgDet_ADDRESS").val("");
+        $("#OrgDet_PinCode").val("").trigger("change");
+        $("#OrgDet_Country_Code").val("").trigger("change");
+        $("#OrgDet_State_Code").val("").trigger("change");
+        $("#OrgDet_City_Code").val("").trigger("change");
+        $("#OrgDet_Biling_Type").val("").trigger("change");
+    }
+
+    var GetGSTDetails = function (id1) {
+        var GSTNO = $("#" + id1).val();
+
+        if (GSTNO != "" && GSTNO != null) {
+            App.blockUI({ boxed: true });
+
+            var StrURL1 = DomainName + '/Master/GetGSTDetails?GSTNO=' + GSTNO;
+
+            $.ajax({
+                url: StrURL1,
+                cache: false,
+                type: 'POST',
+                success: function (response) {
+                    if (response.Status) {
+                        var Data = response.Data[0];
+
+                        $("#OrgDet_PANNo").val(Data.PanNo);
+                        $("#OrgDet_COMPANY_NAME").val(Data.legalName || Data.TradeName);
+                        $("#OrgDet_ADDRESS").val(Data.CSGEAddress);
+
+                        if (Data.PinCode != null && Data.PinCode != '') {
+                            $("#OrgDet_PinCode").val(Data.PinCode).trigger("change");
+                        } else {
+                            $("#OrgDet_PinCode").val("").trigger("change");
+                        }
+
+                        App.unblockUI();
+                    }
+                    else {
+                        clearGSTFields(id1);
+
+                        TosterNotification(
+                            "error",
+                            response.Message,
+                            "Error"
+                        );
+                        App.unblockUI();
+                    }
+                },
+                error: function (req, status, error) {
+                    clearGSTFields(id1);
+
+                    TosterNotification(
+                        "error",
+                        "Something went wrong",
+                        "Error"
+                    );
+                    App.unblockUI();
+                }
+            });
+        }
+    }
+
+    function getShortName(companyName) {
+        if (!companyName || companyName.trim() === "")
+            return "";
+
+        let words = companyName.trim().split(/\s+/);
+
+        let shortName = "";
+
+        words.forEach(function (word) {
+            shortName += word.charAt(0).toUpperCase();
+        });
+
+        return shortName;
+    }
+
+    var FormComponents = function () {
+        function loadFormForEdit(item) {
+            $("#OrgBnkDet_Beneficiary_Name").val(item.Beneficiary_Name);
+            $("#OrgBnkDet_Bank_Name").val(item.Bank_Name);
+            $("#OrgBnkDet_Bank_Account_No").val(item.Bank_Account_No);
+            $("#OrgBnkDet_Branch_Name").val(item.Branch_Name);
+            $("#OrgBnkDet_IFSC_Code").val(item.IFSC_Code);
+            $("#OrgBnkDet_MICR_Code").val(item.MICR_Code);
+            $("#OrgBnkDet_RTGS_NEFT_Code").val(item.RTGS_NEFT_Code);
+            $("#OrgBnkDet_Bank_Address").val(item.Bank_Address);
+
+            // Store index
+                editIndex = bankData.findIndex(function (x) { return x.Bank_Account_No.trim() === item.Bank_Account_No.trim() && x.Bank_Name === item.Bank_Name; });
+
+            // Change button text
+            $("#btn_AddBankDetails_txt").text("Update");
+        }
+
+        function validateTab(tabId) {
+            var isValid = true;
+
+            $("#" + tabId + " .required").each(function () {
+                var $this = $(this);
+
+                if (!$this.is("input, select, textarea")) return;
+
+                var value = $this.val();
+
+                if (value === null || value === "" || (typeof value === "string" && value.trim() === "")) {
+
+                    isValid = false;
+
+                    //$this.addClass("is-invalid");
+
+                    $this.closest(".form-group").find(".help-block").remove();
+
+                    if ($this.hasClass("select2-hidden-accessible")) {
+                        $this.next(".select2-container").after('<div class="help-block">This field is required</div>');
+                    } else {
+                        $this.after('<div class="help-block">This field is required</div>');
+                    }
+                }
+                else {
+                    //$this.removeClass("is-invalid");
+                    $this.closest(".form-group").find(".help-block").remove();
+                }
+            });
+
+            return isValid;
+        }
+
+        function refreshBankTable() {
+            GlDataTable.refresh("tblBank", {
+                data: bankData,
+                statusFilter: 8,
+                columns: [
+                    { data: "Beneficiary_Name" },
+                    { data: "Bank_Name" },
+                    { data: "Bank_Account_No" },
+                    { data: "IFSC_Code" },
+                    { data: "Branch_Name" },
+                    { data: "MICR_Code" },
+                    { data: "RTGS_NEFT_Code" },
+                    { data: "Bank_Address" },
+                    { data: "IsActive" },
+                    { data: "Bank_Account_No" } // use account no as key for action column
+                ],
+                columnDefs: [
+                    {
+                        targets: [8],
+                        render: function (data, type, full, meta) {
+                            var isActive = data == 1 ? "checked" : "";
+                            return '<label class="switch"><input type="checkbox" ' + isActive + ' class="btnToggleStatus" data-index="' + meta.row + '" data-name="' + full.Bank_Name + '"><span class="slider round"></span></label>';
+                        }
+                    },
+                    {
+                        targets: [9],
+                        render: function (data, type, full) {
+                            var index = bankData.findIndex(function (x) { return x.Bank_Account_No === data; });
+                            return '<button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass me-1 btnBankEdit" title="Edit" data-index="' + index + '">' +
+                                    '<i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>' +
+                                    '<button type="button" class="@ViewBag.UI.Buttons.Delete.CssClass btnBankDelete" title="Delete" data-index="' + index + '">' +
+                                    '<i class="@ViewBag.UI.Buttons.Delete.Icon"></i></button>';
+                        }
+                    },
+                    { orderable: false, targets: [8, 9] }
+                ],
+                createdRow: function (row, data) {
+                    $(row).find('td').addClass('text-center');
+                }
+            });
+        }
+
+        return {
+            init: function (DomainName) {
+
+                Formvalidate(DomainName);
+
+                // Add indicator class to all required field labels
+                $('.required').closest('.form-group').find('label.form-label').addClass('required-field');
+
+                // Sync status toggle to hidden field
+                $(document).off("change", "#chkActive").on("change", "#chkActive", function () {
+                    $("#hfIsActive").val($(this).is(":checked"));
+                });
+
+                $("#OrgDet_Biling_Type").change(function () {
+                    var billtype = $("#OrgDet_Biling_Type option:selected").text();
+                    var orgName = getShortName($("#OrgDet_COMPANY_NAME").val());
+                    var brcd = orgName + ' - ' + billtype
+                    $("#OrgDet_BRCD").val(brcd);
+                });
+
+                $("#fileUpload").change(function () {
+                    var file = this.files[0];
+                    if (file) {
+                        validateImageFile(file, this);
+                    }
+                });
+
+                $("#customTabs li a").click(function (e) {
+                    e.preventDefault();
+
+                    var clickedTab = $(this).attr("href");
+                    var clickedPaneId = clickedTab.replace("#", "");
+
+                    var currentTabLink = $("#customTabs .nav-link.active");
+                    var currentTab = currentTabLink.attr("href");
+                    var activePaneId = currentTab.replace("#", "");
+
+                    var currentIndex = parseInt(activePaneId.replace("tab_", ""));
+                    var clickedIndex = parseInt(clickedPaneId.replace("tab_", ""));
+
+                    // Only validate if navigating forward
+                    if (clickedIndex > currentIndex) {
+                        for (var i = currentIndex; i < clickedIndex; i++) {
+                            if (i === 0) {
+                                if (!validateTab("tab_0")) {
+                                    TosterNotification("error", "Please fill all required fields", "Error");
+                                    return;
+                                }
+                            } else if (i === 1) {
+                                if (bankData.length === 0) {
+                                    TosterNotification("error", "Please add at least one bank detail", "Error");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+
+                    // ✅ REMOVE ALL VALIDATION ERROR LABELS
+                    $(".form-control, select").removeClass("help-block");
+                    $(".help-block").remove();
+
+                    // Tab switch logic
+                    $("#customTabs .nav-link").removeClass("active");
+                    $(this).addClass("active");
+
+                    $(".tab-pane").removeClass("active").hide();
+                    $(clickedTab).fadeIn(200).addClass("active");
+                });
+
+                $(document).off("click", ".btn-next").on("click", ".btn-next", function () {
+                    var currentTab = $(this).closest(".tab-pane").attr("id");
+                    var nextTab = $(this).data("next");
+
+                    if (currentTab === "tab_0") {
+                        if (!validateTab("tab_0")) {
+                            TosterNotification("error", "Please fill all required fields", "Error");
+                            return;
+                        }
+                    } else if (currentTab === "tab_1") {
+                        if (bankData.length === 0) {
+                            TosterNotification("error", "Please add at least one bank detail", "Error");
+                            return;
+                        }
+                    }
+
+                    // Switch tab
+                    $('#customTabs li').removeClass("active");
+                    $('#customTabs .nav-link').removeClass("active");
+                    $('#customTabs li a[href="' + nextTab + '"]').addClass("active").parent().addClass("active");
+
+                    $(".tab-pane").removeClass("active").hide();
+                    $(nextTab).fadeIn(200).addClass("active");
+
+                    // ✅ REMOVE ALL VALIDATION ERROR LABELS
+                    $(".form-control, select").removeClass("help-block");
+                    $(".help-block").remove();
+                });
+
+                $(document).off("click", ".btn-previous").on("click", ".btn-previous", function () {
+                    var nextTab = $(this).data("next");
+
+                    // Switch tab without validating
+                    $('#customTabs li').removeClass("active");
+                    $('#customTabs .nav-link').removeClass("active");
+                    $('#customTabs li a[href="' + nextTab + '"]').addClass("active").parent().addClass("active");
+
+                    $(".tab-pane").removeClass("active").hide();
+                    $(nextTab).fadeIn(200).addClass("active");
+
+                    // ✅ REMOVE ALL VALIDATION ERROR LABELS
+                    $(".form-control, select").removeClass("help-block");
+                    $(".help-block").remove();
+                });
+
+                $(document).on("input change", ".form-control, select", function () {
+                    var $this = $(this);
+
+                    if ($this.val() && $this.val().toString().trim() !== "") {
+                        $this.closest(".form-group").find(".help-block").remove();
+                    }
+                });
+
+                $(document).on("change", ".select2", function () {
+                    var $this = $(this);
+
+                    if ($this.val()) {
+                        $this.closest(".form-group").find(".help-block").remove();
+                    }
+                });
+
+                // Pincode Change → Auto-bind Country, State, City
+                $(document).off("change", "#OrgDet_PinCode").on("change", "#OrgDet_PinCode", function () {
+                    var pincode = $(this).val();
+                    if (pincode && pincode.trim().length === 6) {
+                        bindLocationByPincodeApi(pincode, 'P');
+                    } else {
+                        $("#OrgDet_Country_Code").val("").trigger("change");
+                        $("#OrgDet_State_Code").val("").trigger("change");
+                        $("#OrgDet_City_Code").val("").trigger("change");
+                        $("#hfCountryCode").val("");
+                        $("#hfStateCode").val("");
+                        $("#hfCityCode").val("");
+                    }
+                });
+
+                $(document).off("click", "#btn_CancelBankDetails").on("click", "#btn_CancelBankDetails", function () {
+
+                    // Clear all input fields inside tab_1
+                    $("#tab_1 input.form-control").val("");
+
+                    // Remove validation errors
+                    $("#tab_1 .form-control").removeClass("help-block");
+                    $("#tab_1 .help-block").remove();
+
+                    editIndex = -1;
+                    $("#btn_AddBankDetails_txt").text("Add");
+
+                });
+
+                $(document).off("click", "#btn_AddBankDetails").on("click", "#btn_AddBankDetails", function () {
+                    if (!validateTab("tab_1")) {
+                        TosterNotification("error", "Please fill all required fields", "Error");
+                        return;
+                    }
+
+                    var item = {
+                        SrNo: editIndex === -1 ? 0 : (bankData[editIndex].SrNo || 0),
+                        Beneficiary_Name: $("#OrgBnkDet_Beneficiary_Name").val(),
+                        Bank_Name: $("#OrgBnkDet_Bank_Name").val(),
+                        Bank_Account_No: $("#OrgBnkDet_Bank_Account_No").val(),
+                        Branch_Name: $("#OrgBnkDet_Branch_Name").val(),
+                        IFSC_Code: $("#OrgBnkDet_IFSC_Code").val(),
+                        MICR_Code: $("#OrgBnkDet_MICR_Code").val(),
+                        RTGS_NEFT_Code: $("#OrgBnkDet_RTGS_NEFT_Code").val(),
+                        Bank_Address: $("#OrgBnkDet_Bank_Address").val(),
+                        IsActive: editIndex === -1 ? 1 : bankData[editIndex].IsActive
+                    };
+
+                    // ✅ Duplicate check
+                    var exists = bankData.some((x, i) => x.Bank_Account_No.trim() === item.Bank_Account_No && i !== editIndex);
+                    if (exists) {
+                        TosterNotification("error", "Account No already exists", "Error");
+                        return;
+                    }
+
+                    if (editIndex === -1) {
+                        bankData.push(item);
+                    }
+                    else {
+                        bankData[editIndex] = item;
+                        editIndex = -1;
+                        $("#btn_AddBankDetails_txt").text("Add");
+                    }
+
+                    // ✅ Refresh DataTable
+                    refreshBankTable();
+
+                    // ✅ Clear inputs
+                    $("#tab_1 input.form-control").val("");
+                });
+
+                // Initialize Bank table using GlDataTable (same approach as StateMaster)
+                refreshBankTable();
+
+                // Edit button - delegated
+                $(document).off("click", ".btnBankEdit").on("click", ".btnBankEdit", function (e) {
+                    e.preventDefault();
+                    var idx = parseInt($(this).data("index"));
+                    if (idx >= 0 && idx < bankData.length) {
+                        loadFormForEdit(bankData[idx]);
+                    }
+                });
+
+                // Delete button - delegated
+                $(document).off("click", ".btnBankDelete").on("click", ".btnBankDelete", function (e) {
+                    e.preventDefault();
+                    var idx = parseInt($(this).data("index"));
+                    if (idx >= 0 && idx < bankData.length) {
+                        var item = bankData[idx];
+                        showConfirm({
+                            title: "Delete Bank",
+                            message: 'Are you sure you delete this bank <strong style="color:#405189">"' + item.Bank_Name + '"</strong>?',
+                            type: "delete",
+                            confirmText: "Yes",
+                            cancelText: "No",
+                            onConfirm: function () {
+                                bankData.splice(idx, 1);
+                                GLModal.showSuccess("Bank deleted locally!");
+                                refreshBankTable();
+                            }
+                        });
+                    }
+                });
+
+                // Toggle active - delegated
+                $(document).off("click", ".btnToggleStatus").on("click", ".btnToggleStatus", function (e) {
+                    e.preventDefault();
+                    var checkbox = $(this);
+                    var index = parseInt(checkbox.data("index"));
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+
+                    // Revert until confirmed
+                    checkbox.prop('checked', !isChecked);
+
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    showConfirm({
+                        title: action + " Bank",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for bank <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            if (index >= 0 && index < bankData.length) {
+                                bankData[index].IsActive = bankData[index].IsActive == 1 ? 0 : 1;
+                                GLModal.showSuccess("Status updated locally!");
+                                refreshBankTable();
+                            }
+                        }
+                    });
+                });
+
+                $(document).off("click", "#btn_SaveOrgDetails").on("click", "#btn_SaveOrgDetails", function () {
+                    if (!validateTab("tab_0")) {
+                        TosterNotification("error", "Please fill all required fields", "Error");
+                        return;
+                    }
+
+                    if (bankData.length === 0) {
+                        TosterNotification("error", "Please add at least one bank detail", "Error");
+                        return;
+                    }
+                    $("#hdnBankData").val(JSON.stringify(bankData));
+
+                    //if (!$("#form_sample").valid()) {
+                    //    TosterNotification("error", "Please fill all required fields", "Error");
+                    //    return;
+                    //}
+
+                    $("#form_sample").submit();
+                });
+            }
+        }
+    }();
+</script>

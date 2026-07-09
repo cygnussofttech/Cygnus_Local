@@ -1,0 +1,164 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@{
+    var domainName = Url.Content("~/").TrimEnd('/');
+    var dockets = Model.listDockets ?? new List<GreenLineDataService.ViewModel.CYGNUS_TripDocket>();
+}
+
+<style>
+    .docket-card-simple {
+        background: var(--vz-card-bg, #fff);
+        border: 1px solid var(--vz-border-color, #e9ebec);
+        border-radius: 8px !important;
+        transition: all 0.2s ease;
+    }
+    .docket-card-simple:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border-color: var(--vz-link-color, #405189);
+    }
+    .docket-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--vz-link-color, #405189);
+    }
+    .docket-stat-box {
+        background: var(--vz-light, #f3f6f9);
+        border-radius: 6px;
+        padding: 6px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .docket-stat-box i {
+        font-size: 14px;
+        opacity: 0.85;
+    }
+</style>
+
+@if (ViewBag.StrError != null)
+{
+    <div class="col-12">
+        <div class="alert alert-danger py-2 px-3 mb-3 fs-13">
+            <i class="ri-error-warning-line align-middle me-1"></i> @ViewBag.StrError
+        </div>
+    </div>
+}
+
+@if (dockets.Any())
+{
+    foreach (var docket in dockets)
+    {
+        var docketNo = !string.IsNullOrEmpty(docket.LR_No) ? docket.LR_No : (!string.IsNullOrEmpty(docket.CustLRNo) ? docket.CustLRNo : "");
+        if (string.IsNullOrEmpty(docketNo)) { continue; }
+
+        var custLRNo = docket.CustLRNo ?? "";
+        var invoiceNo = docket.invoice_no ?? "";
+        var consigneeName = docket.Consignee_Name ?? "";
+        var consigneeAddress = docket.Consignee_Address ?? "";
+        var consigneeCity = docket.Consignee_City ?? "";
+        var consigneePincode = docket.Consignee_Pincode ?? "";
+        var grossWeight = docket.gross_weight ?? 0m;
+        var piecesCount = docket.pieces_count != null ? Convert.ToInt32(docket.pieces_count.Value) : 0;
+        
+        var lrUpload = docket.LRUpload ?? "";
+        var podPath = docket.PODPath ?? "";
+        var podLink = docket.PODLink ?? "";
+
+        bool isUploaded = !string.IsNullOrEmpty(lrUpload) || !string.IsNullOrEmpty(podPath);
+        var filePath = !string.IsNullOrEmpty(lrUpload) ? lrUpload : podPath;
+
+        var fullAddress = consigneeAddress;
+        if (!string.IsNullOrEmpty(consigneeCity))
+        {
+            fullAddress += (string.IsNullOrEmpty(fullAddress) ? "" : ", ") + consigneeCity;
+        }
+        if (!string.IsNullOrEmpty(consigneePincode))
+        {
+            fullAddress += (string.IsNullOrEmpty(fullAddress) ? "" : " - ") + consigneePincode;
+        }
+
+        <div class="col-md-6 mb-3">
+            <div class="card docket-card-simple docket-detail-card mb-0 h-100 p-3">
+                
+                <!-- Top Row: Docket Badge & Invoice/Cust LR Number -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="docket-title">@docketNo</span>
+                        @if (!string.IsNullOrEmpty(invoiceNo))
+                        {
+                            <span class="badge bg-soft-secondary text-secondary px-2 py-1 fs-11">Inv: @invoiceNo</span>
+                        }
+                        else if (!string.IsNullOrEmpty(custLRNo))
+                        {
+                            <span class="badge bg-soft-secondary text-secondary px-2 py-1 fs-11">Cust LR: @custLRNo</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Middle Row: Consignee name & address -->
+                <div class="mb-3 flex-grow-1">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="ri-map-pin-2-line text-muted mt-1 fs-14"></i>
+                        <div>
+                            <h6 class="fw-semibold text-dark fs-13 mb-1">@consigneeName</h6>
+                            <p class="text-muted fs-11 mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;" title="@fullAddress">@fullAddress</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Stats & Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <!-- Stats Group -->
+                    <div class="d-flex gap-2">
+                        <div class="docket-stat-box">
+                            <i class="ri-scales-3-line text-primary"></i>
+                            <div>
+                                <span class="text-muted d-block" style="font-size: 8px; font-weight: 600; text-uppercase: true;">Weight</span>
+                                <span class="fw-semibold text-dark fs-11">@grossWeight.ToString("F2") MT</span>
+                            </div>
+                        </div>
+                        <div class="docket-stat-box">
+                            <i class="ri-stack-line text-success"></i>
+                            <div>
+                                <span class="text-muted d-block" style="font-size: 8px; font-weight: 600; text-uppercase: true;">Pieces</span>
+                                <span class="fw-semibold text-dark fs-11">@piecesCount Pcs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="d-flex gap-2 align-items-center">
+                        @if (isUploaded)
+                        {
+                            <span class="badge bg-soft-success text-success px-2 py-1 fs-11"><i class="ri-checkbox-circle-fill align-middle me-1"></i>Uploaded</span>
+                            if (!string.IsNullOrEmpty(filePath))
+                            {
+                                var fileUrl = Url.Content("~" + filePath);
+                                <a href="@fileUrl" target="_blank" class="btn btn-sm btn-soft-secondary btn-icon d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" title="View Document">
+                                    <i class="ri-eye-line fs-14"></i>
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            if (docket.IsUploadAllowed == 1)
+                            {
+                                <button type="button" class="btn btn-sm btn-soft-primary px-3 py-1 btn-right-upload-pod d-flex align-items-center gap-1" data-docket="@docketNo" data-stopid="@docket.StopId" data-stageid="11">
+                                    <i class="ri-upload-cloud-2-line fs-13"></i> Upload
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="col-12 text-center py-5 text-muted">
+        <i class="ri-file-list-3-line fs-1 opacity-50 d-block mb-2"></i>
+        <div class="fw-medium">No LR entries yet.</div>
+        <div class="fs-12">Click <strong>Add LR Entry</strong> to create the first consignment.</div>
+    </div>
+}

@@ -1,0 +1,109 @@
+@model GreenLineDataService.ViewModel.CYGNUS_ConsigneeViewModel
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Consignee Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Consignee Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Consignee</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Consignees</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass" id="btnDownloadMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass" id="addConsignee">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="ConsigneeList">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Consignee Code</th>
+                                <th class="text-center">Consignee Name</th>
+                                <th class="text-center">GST Number</th>
+                                <th class="text-center">Lane</th>
+                                <th class="text-center">Unloading Location</th>
+                                <th class="text-center no-cc">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.listCCM != null && Model.listCCM.Count > 0)
+                            {
+                                foreach (var item in Model.listCCM)
+                                {
+                                    <tr>
+                                        <td class="text-center fw-medium">@item.Consignee_Code</td>
+                                        <td class="text-center">@item.Consignee_Name</td>
+                                        <td class="text-center">@item.Consignee_GST</td>
+                                        <td class="text-center">@item.Consignee_Lane_Name</td>
+                                        <td class="text-center">@item.Consignee_Location</td>
+                                        <td class="text-center">
+                                            <button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass btnEditConsignee" data-id="@item.Consignee_Code">
+                                                <i class="@ViewBag.UI.Buttons.Edit.Icon"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        return {
+            init: function (DomainName) {
+                // Add Consignee - navigate to full page
+                $("#addConsignee").click(function () {
+                    window.location.href = DomainName + '/Master/ConsigneeMaster';
+                });
+
+                // Edit Consignee - navigate to full page with code
+                $(document).on('click', ".btnEditConsignee", function () {
+                    var id = $(this).data('id');
+                    window.location.href = DomainName + '/Master/ConsigneeMaster?Consignee_code=' + id;
+                });
+
+                // Export Excel
+                $(document).on('click', '#btnDownloadMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "ConsigneeMaster", "Consignee Master List");
+                });
+
+                GlDataTable.init('ConsigneeList', {
+                    columnDefs: [
+                        { orderable: false, targets: [5] }
+                    ]
+                });
+            }
+        }
+    }();
+</script>

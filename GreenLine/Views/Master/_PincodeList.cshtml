@@ -1,0 +1,49 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_pincode_master>
+@using GreenLineDataService.Models
+
+<table class="table table-hover table-striped align-middle table-nowrap mb-0" id="PincodeList">
+    <thead class="table-light">
+        <tr>
+            <th class="text-center">Pincode</th>
+            <th class="text-center">Area</th>
+            <th class="text-center">State</th>
+            <th class="text-center">Status</th>
+            <th class="text-center no-cc">Action</th>
+        </tr>
+    </thead>
+    <tbody class="list">
+        @if (Model != null)
+        {
+            foreach (var item in Model.ToList().OrderBy(c => c.pincode))
+            {
+                var isActive = item.ActiveFlag != null && item.ActiveFlag.ToUpper() == "Y";
+                string TrId = "TR" + item.pincode.ToString();
+
+                <tr id="@TrId">
+                    <td class="text-center">
+                        @item.pincode
+                    </td>
+                    <td class="text-center">
+                        @item.Area
+                    </td>
+                    <td class="text-center">
+                        @item.StateName
+                    </td>
+                    <td class="text-center">
+                        <label class="switch">
+                            <input type="checkbox" class="btnToggleStatus" @(isActive ? "checked" : "") data-id="@item.ID" data-name="@item.pincode">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass btnMasterEdit" title="Edit" data-id="@item.ID">
+                                <i class="@ViewBag.UI.Buttons.Edit.Icon align-middle"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

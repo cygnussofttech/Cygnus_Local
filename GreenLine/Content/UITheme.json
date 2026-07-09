@@ -1,0 +1,177 @@
+{
+  "PageHeader": {
+    "BackgroundColor": "#ffffff",
+    "TextColor": "#405189",
+    "FontWeight": "400",
+    "Padding": "8px 12px",
+    "FontSize": "1rem",
+    "FocusGlowColor": "rgba(64,81,137,.15)"
+  },
+  "Buttons": {
+    "Add": {
+      "CssClass": "btn btn-sm ui-btn-add",
+      "Icon": "ri-add-line",
+      "Label": "Add",
+      "Tooltip": "Add New",
+      "BackgroundColor": "#0ab39c",
+      "TextColor": "#ffffff",
+      "BorderColor": "#0ab39c"
+    },
+    "Edit": {
+      "CssClass": "btn btn-sm ui-btn-edit",
+      "Icon": "ri-pencil-line",
+      "Label": "Edit",
+      "Tooltip": "Edit",
+      "BackgroundColor": "#6980c9",
+      "TextColor": "#ffffff",
+      "BorderColor": "#6980c9"
+    },
+    "Delete": {
+      "CssClass": "btn btn-sm ui-btn-delete",
+      "Icon": "ri-delete-bin-line",
+      "Label": "Delete",
+      "Tooltip": "Delete",
+      "BackgroundColor": "#f06548",
+      "TextColor": "#ffffff",
+      "BorderColor": "#f06548"
+    },
+    "Excel": {
+      "CssClass": "btn btn-sm ui-btn-excel",
+      "Icon": "ri-file-excel-2-line",
+      "Label": "Download Excel",
+      "Tooltip": "Download Excel",
+      "BackgroundColor": "#299cdb",
+      "TextColor": "#ffffff",
+      "BorderColor": "#299cdb"
+    },
+    "Back": {
+      "CssClass": "btn btn-sm ui-btn-back",
+      "Icon": "ri-arrow-left-line",
+      "Label": "Back To List",
+      "BackgroundColor": "var(--vz-danger)",
+      "TextColor": "#fff",
+      "BorderColor": "var(--vz-danger)"
+    },
+    "Cancel": {
+      "CssClass": "btn btn-sm btn-label ui-btn-cancel",
+      "Icon": "ri-close-line label-icon align-middle fs-16 me-2",
+      "Label": "Cancel",
+      "BackgroundColor": "var(--vz-danger)",
+      "TextColor": "#ffffff",
+      "BorderColor": "var(--vz-danger)"
+    },
+    "Submit": {
+      "CssClass": "btn btn-sm btn-label ui-btn-submit",
+      "Icon": "ri-save-line label-icon align-middle fs-16 me-2",
+      "Label": "Save",
+      "BackgroundColor": "var(--vz-primary)",
+      "TextColor": "#fff",
+      "BorderColor": "var(--vz-primary)"
+    },
+    "MenuRights": {
+      "CssClass": "btn btn-sm ui-btn-menu",
+      "Icon": "ri-user-settings-line",
+      "Label": "Menu Rights",
+      "BackgroundColor": "#299cdb",
+      "TextColor": "#ffffff",
+      "BorderColor": "#299cdb"
+    },
+    "ReportsRights": {
+      "CssClass": "btn btn-sm ui-btn-reports",
+      "Icon": "ri-file-chart-line",
+      "Label": "Reports Rights",
+      "BackgroundColor": "#f7b84b",
+      "TextColor": "#ffffff",
+      "BorderColor": "#f7b84b"
+    },
+    "ResetPassword": {
+      "CssClass": "btn btn-sm ui-btn-reset",
+      "Icon": "ri-lock-password-line",
+      "Label": "Reset Password",
+      "BackgroundColor": "#878a99",
+      "TextColor": "#ffffff",
+      "BorderColor": "#878a99"
+    },
+    "UnblockUser": {
+      "CssClass": "btn btn-sm ui-btn-unblock",
+      "Icon": "ri-user-unfollow-line",
+      "Label": "Unblock User",
+      "BackgroundColor": "#0ab39c",
+      "TextColor": "#ffffff",
+      "BorderColor": "#0ab39c"
+    },
+    "View": {
+      "CssClass": "btn btn-sm ui-btn-view",
+      "Icon": "ri-eye-line",
+      "Label": "View",
+      "BackgroundColor": "#878a99",
+      "TextColor": "#ffffff",
+      "BorderColor": "#878a99"
+    },
+    "Previous": {
+      "CssClass": "btn btn-sm btn-label ui-btn-prev",
+      "Icon": "ri-skip-left-fill label-icon align-middle fs-16 me-2",
+      "Label": "Previous",
+      "BackgroundColor": "#878a99",
+      "TextColor": "#ffffff",
+      "BorderColor": "#878a99"
+    },
+    "Next": {
+      "CssClass": "btn btn-sm btn-label btn-label-right ui-btn-next",
+      "Icon": "ri-skip-right-fill label-icon align-middle fs-16 me-2",
+      "Label": "Next",
+      "BackgroundColor": "#3577f1",
+      "TextColor": "#ffffff",
+      "BorderColor": "#3577f1"
+    },
+    "Approve": {
+      "CssClass": "btn btn-sm ui-btn-approve waves-effect waves-light",
+      "Icon": "ri-checkbox-circle-line",
+      "Label": "Approve",
+      "BackgroundColor": "#e8f5e9",
+      "TextColor": "#2e7d32",
+      "BorderColor": "#e8f5e9"
+    },
+    "Reject": {
+      "CssClass": "btn btn-sm ui-btn-reject waves-effect waves-light",
+      "Icon": "ri-close-circle-line",
+      "Label": "Reject",
+      "BackgroundColor": "#ffebee",
+      "TextColor": "#c62828",
+      "BorderColor": "#ffebee"
+    },
+    "Clear": {
+      "CssClass": "btn btn-sm btn-label ui-btn-clear",
+      "Icon": "ri-refresh-line label-icon align-middle fs-16 me-2",
+      "Label": "Clear",
+      "Tooltip": "Clear",
+      "BackgroundColor": "#299cdb",
+      "TextColor": "#ffffff",
+      "BorderColor": "#299cdb"
+    }
+  },
+  "Table": {
+    "HeaderBg": "#405189",
+    "HeaderColor": "#ffffff",
+    "BorderColor": "#dee2e6"
+  },
+  "Switch": {
+    "ActiveColor": "#0ab39c",
+    "InactiveColor": "#adb5bd",
+    "Size": "md"
+  },
+  "Badge": {
+    "Active": {
+      "CssClass": "badge ui-badge-active",
+      "Label": "Active",
+      "BackgroundColor": "#0ab39c",
+      "TextColor": "#ffffff"
+    },
+    "Inactive": {
+      "CssClass": "badge ui-badge-inactive",
+      "Label": "Inactive",
+      "BackgroundColor": "#f06548",
+      "TextColor": "#ffffff"
+    }
+  }
+}

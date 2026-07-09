@@ -1,0 +1,197 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@{
+    var trip = Model.CTM;
+}
+
+<style>
+    .timeline-container {
+        position: relative;
+        padding-left: 40px;
+    }
+    .timeline-container::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 20px;
+        bottom: 20px;
+        width: 2px;
+        background: #e2e8f0;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 0px;
+        padding: 0 0 10px 0px !important;
+        width:100% !important;
+    }
+    .timeline-dot {
+        position: absolute;
+        left: -33px;
+        top: 18px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        border: 3px solid #adb5bd;
+        z-index: 2;
+        box-shadow: 0 0 0 3px rgba(173, 181, 189, 0.15);
+        transition: all 0.2s ease;
+    }
+    .timeline-dot.dot-success { border-color: #0ab39c; box-shadow: 0 0 0 3px rgba(10, 179, 156, 0.15); }
+    .timeline-dot.dot-info { border-color: #299cdb; box-shadow: 0 0 0 3px rgba(41, 156, 219, 0.15); }
+    .timeline-dot.dot-primary { border-color: #405189; box-shadow: 0 0 0 3px rgba(64, 81, 137, 0.15); }
+    .timeline-dot.dot-warning { border-color: #f7b84b; box-shadow: 0 0 0 3px rgba(247, 184, 75, 0.15); }
+    .timeline-dot.dot-danger { border-color: #f06548; box-shadow: 0 0 0 3px rgba(240, 101, 72, 0.15); }
+    .timeline-dot.dot-secondary { border-color: #878a99; box-shadow: 0 0 0 3px rgba(135, 138, 153, 0.15); }
+
+    .timeline-card {
+        border: 1px solid #e2e8f0 !important;
+        border-left: 4px solid #adb5bd !important;
+        border-radius: 12px !important;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(56, 65, 74, 0.05);
+        transition: all 0.2s ease;
+    }
+    .timeline-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(56, 65, 74, 0.08) !important;
+    }
+    .timeline-card.border-left-success { border-left-color: #0ab39c !important; }
+    .timeline-card.border-left-info { border-left-color: #299cdb !important; }
+    .timeline-card.border-left-primary { border-left-color: #405189 !important; }
+    .timeline-card.border-left-warning { border-left-color: #f7b84b !important; }
+    .timeline-card.border-left-danger { border-left-color: #f06548 !important; }
+    .timeline-card.border-left-secondary { border-left-color: #878a99 !important; }
+
+    .timeline-pending .timeline-dot {
+        background: #f8f9fa !important;
+        border: 2px dashed #adb5bd !important;
+        box-shadow: none !important;
+    }
+
+    /* Custom badge colors to match the timeline status */
+    .badge-soft-success { background-color: rgba(10, 179, 156, 0.1) !important; color: #0ab39c !important; }
+    .badge-soft-info { background-color: rgba(41, 156, 219, 0.1) !important; color: #299cdb !important; }
+    .badge-soft-primary { background-color: rgba(64, 81, 137, 0.1) !important; color: #405189 !important; }
+    .badge-soft-warning { background-color: rgba(247, 184, 75, 0.1) !important; color: #f7b84b !important; }
+    .badge-soft-danger { background-color: rgba(240, 101, 72, 0.1) !important; color: #f06548 !important; }
+    .badge-soft-secondary { background-color: rgba(135, 138, 153, 0.1) !important; color: #878a99 !important; }
+
+    .timeline-scroll-container {
+        max-height: 650px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+    /* Modern thin scrollbar */
+    .timeline-scroll-container::-webkit-scrollbar {
+        width: 5px;
+    }
+    .timeline-scroll-container::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.03);
+        border-radius: 4px;
+    }
+    .timeline-scroll-container::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+    }
+    .timeline-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+    }
+    @@media (max-width: 767px) {
+        .remarks-short, .notes-short {
+            display: -webkit-box !important;
+            -webkit-line-clamp: 3 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+        }
+    }
+</style>
+
+<!-- Header -->
+<div class="mb-4">
+    <h5 class="fw-bold text-dark mb-0 fs-17">Trip Timeline</h5>
+</div>
+
+<!-- Timeline -->
+<div class="timeline-scroll-container">
+    <div class="timeline-container" id="tripTimeline">
+        <!-- Static placeholder entries — will be replaced by AJAX data -->
+        <div class="timeline-item timeline-pending">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content timeline-card p-3">
+                <div class="text-muted fs-12 fst-italic">Awaiting next event...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initTimelineTab() {
+        // Load dynamic timeline from DB
+        $.ajax({
+            url: DomainName + '/Account/GetDataWithoutAlias',
+            type: 'POST', dataType: 'json',
+            data: { Method: 'USP_GetTripTimeline', parameters: { PRNo: '@trip.PRNo'} },
+            success: function (data) {
+                if (!data || !data.length) return;
+                var colors = ['success', 'info', 'primary', 'warning', 'danger', 'secondary'];
+                $("#timeLineCount").text(data.length);
+                var html = '';
+                $.each(data, function (i, ev) {
+                    var color = colors[i % colors.length];
+                    
+                    var remarks = (ev.Remarks || '').trim();
+                    var remarksHtml = '';
+                    var headerClass = 'd-flex justify-content-between align-items-start';
+                    var bodyHtml = '';
+
+                    if (remarks) {
+                        headerClass += ' mb-2 pb-2 border-bottom border-light';
+                        if (remarks.length > 120) {
+                            var shortRemarks = remarks.substring(0, 120);
+                            remarksHtml = '<span class="remarks-text remarks-short">' + shortRemarks + '...</span>'
+                                + '<span class="remarks-text remarks-full" style="display:none;">' + remarks + '</span>'
+                                + '<a href="javascript:void(0);" class="text-primary fw-semibold fs-11 ms-1 read-more-btn" onclick="$(this).hide().siblings(\'.remarks-full\').show().siblings(\'.remarks-short\').hide().siblings(\'.view-less-btn\').show();">Read more</a>'
+                                + '<a href="javascript:void(0);" class="text-primary fw-semibold fs-11 ms-1 view-less-btn" style="display:none;" onclick="$(this).hide().siblings(\'.remarks-short\').show().siblings(\'.remarks-full\').hide().siblings(\'.read-more-btn\').show();">View less</a>';
+                        } else {
+                            remarksHtml = '<span class="remarks-text">' + remarks + '</span>';
+                        }
+                        bodyHtml = '<div class="fs-12 text-dark text-break mt-1">' + remarksHtml + '</div>';
+                    }
+
+                    html += '<div class="timeline-item">'
+                        + '<div class="timeline-dot dot-' + color + '"></div>'
+                        + '<div class="timeline-content timeline-card p-3 border-left-' + color + '">'
+                        + '<div class="' + headerClass + '">'
+                        + '<span class="fw-bold text-dark fs-14">' + (ev.ActivityName || '') + '</span>'
+                        + '<div class="text-end" style="min-width: 140px;">'
+                        + '<span class="fs-12 text-muted d-block">' + TripformatDate(ev.EntryDate) + '</span>'
+                        + '<span class="fs-11 text-muted d-block">' + (ev.EntryBy || '') + '</span>'
+                        + '</div>'
+                        + '</div>'
+                        + bodyHtml
+                        + '</div></div>';
+                });
+                html += '<div class="timeline-item timeline-pending"><div class="timeline-dot"></div>'
+                    + '<div class="timeline-content timeline-card p-3"><div class="text-muted fs-12 fst-italic">Awaiting next event...</div></div></div>';
+                $('#tripTimeline').html(html);
+            }
+        });
+    }
+
+    function TripformatDate(dateString) {
+        if (!dateString) return '';
+
+        const date = new Date(dateString);
+
+        return date.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+    }
+
+</script>

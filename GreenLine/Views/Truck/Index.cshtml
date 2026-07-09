@@ -1,0 +1,107 @@
+@model List<GreenLineDataService.Models.PG_Truck>
+@{
+    ViewBag.Title = "Truck List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Truck Master</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Fleet</a></li>
+                    <li class="breadcrumb-item active">Truck List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="ri-error-warning-line me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">
+                    <i class="ri-truck-line me-1 text-primary"></i> Trucks from PostgreSQL
+                </h4>
+                <div class="flex-shrink-0">
+                    <span class="badge bg-soft-primary text-primary fs-12">
+                        <i class="ri-database-2-line me-1"></i> PostgreSQL
+                    </span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="tblTrucks">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">ID</th>
+                            <th class="text-center">Vendor ID</th>
+                            <th class="text-center">License Plate</th>
+                            <th class="text-center">External Truck ID</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+
+        var loadData = function (DomainName, TableName) {
+            App.blockUI({ boxed: true });
+
+            $.ajax({
+                url: DomainName + "/Truck/GetTruckListJson",
+                type: 'POST',
+                dataType: "json",
+                success: function (response) {
+                    GlDataTable.refresh(TableName, {
+                        data: response.data,
+                        columns: [
+                            { data: "Id" },
+                            { data: "VendorId" },
+                            { data: "LicensePlate" },
+                            { data: "ExternalTruckId" }
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [0, 1],
+                                render: function (data) {
+                                    return data ? '<span class="text-muted fs-11">' + data + '</span>' : '-';
+                                }
+                            }
+                        ],
+                        createdRow: function (row) {
+                            $(row).find('td').addClass('text-center text-uppercase');
+                        }
+                    });
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function () {
+                    TosterNotification("error", "Failed to load truck data from PostgreSQL", "Error");
+                    App.unblockUI();
+                }
+            });
+        }
+
+        return {
+            init: function (DomainName) {
+                loadData(DomainName, "tblTrucks");
+            }
+        }
+    }();
+</script>

@@ -1,0 +1,55 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_citymaster>
+@using GreenLineDataService.Models
+@{
+    //CygnuXTMSDataService.MasterService MS = new CygnuXTMSDataService.MasterService();
+    GreenLineDataService.Helper.Interface.IMasterService MS = new GreenLineDataService.Helper.MasterService();
+
+    List<CYGNUS_Master_General> zoneList = MS.GetGeneralMasterWithParam("ZONE").ToList();
+}
+
+<div class="table-responsive">
+    <table class="table table-hover table-striped align-middle table-nowrap" id="CityList">
+        <thead class="table-light">
+            <tr>
+                <th class="text-center">City Code</th>
+                <th class="text-center">City Name</th>
+                <th class="text-center">Zone</th>
+                <th class="text-center no-cc">Status</th>
+                <th class="text-center no-cc">Action</th>
+            </tr>
+        </thead>
+        <tbody class="list">
+            @if (Model != null)
+            {
+                foreach (var item in Model.ToList().OrderBy(c => c.Location))
+                {
+                    var isActive = item.activeflag != null && item.activeflag.ToUpper() == "Y";
+
+                    string TrId = "TR" + item.city_code.ToString();
+                    var objZone = zoneList.FirstOrDefault(c => c.CodeId == item.Region);
+                    <tr id="@TrId">
+                        <td class="text-center">@item.city_code</td>
+                        <td class="text-center">@item.Location</td>
+                        <td class="text-center"><span>@(objZone != null ? objZone.CodeDesc : "-")</span></td>
+                        <td class="text-center">
+                            <label class="switch">
+                                <input class="btnToggleStatus" 
+                                       type="checkbox" @(isActive ? "checked" : "") 
+                                       data-id="@item.city_code"
+                                       data-name="@item.Location">
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass btnMasterEdit" title="Edit" data-id="@item.city_code">
+                                    <i class="@ViewBag.UI.Buttons.Edit.Icon align-middle"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

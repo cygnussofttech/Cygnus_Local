@@ -1,0 +1,173 @@
+@model GreenLineDataService.Models.CYGNUS_custcontract_hdr
+
+@{
+    @*bool isDisabled = Model.IsFinalSubmitDone;*@
+    bool isDisabled = false;
+}
+
+@using (Html.BeginForm("AddContractbasicInfo", "Contract", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-0">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-information-2-line align-middle"></i> Contract Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @Html.HiddenFor(m => m.Contract_Stdate)
+                    @Html.HiddenFor(m => m.Contract_Type)
+                    @Html.HiddenFor(m => m.IsFinalSubmitDone)
+                    @Html.Hidden("ContractId", Model.ContractId)
+
+                    @*@if (isDisabled)
+                        {
+                            @Html.HiddenFor(m => m.conType)
+                            @Html.HiddenFor(m => m.Bill_Org)
+                            @Html.HiddenFor(m => m.PoWoNumber)
+                            @Html.HiddenFor(m => m.Vendor_Code)
+                            @Html.HiddenFor(m => m.contract_sign_loccode)
+                            @Html.HiddenFor(m => m.Cust_represent)
+                            @Html.HiddenFor(m => m.Comp_Empname)
+                            @Html.HiddenFor(m => m.Primary_Branch)
+                            @Html.HiddenFor(m => m.Remarks)
+                        }*@
+
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Contract Type</label>
+                                <div class="gap-3 d-flex">
+                                    <div class="form-check">
+                                        @*@Html.RadioButtonFor(m => m.conType, "Agmnt", isDisabled ? (object)new { @class = "form-check-input", disabled = "disabled" } : (object)new { @class = "form-check-input" })*@
+                                        @Html.RadioButtonFor(m => m.conType, "Agmnt", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Agreement</label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        @*@Html.RadioButtonFor(m => m.conType, "WO", isDisabled ? (object)new { @class = "form-check-input", disabled = "disabled" } : (object)new { @class = "form-check-input" })*@
+                                        @Html.RadioButtonFor(m => m.conType, "WO", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Work Order</label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        @*@Html.RadioButtonFor(m => m.conType, "PO", isDisabled ? (object)new { @class = "form-check-input", disabled = "disabled" } : (object)new { @class = "form-check-input" })*@
+                                        @Html.RadioButtonFor(m => m.conType, "PO", new { @class = "form-check-input" })
+                                        <label class="form-check-label">PO</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Billing Orgnaization</label>
+                                @*@Html.DropDownListFor(m => m.Bill_Org, new SelectList(ViewBag.OrgList, "COMPANY_CODE", "COMPANY_NAME"), "", isDisabled ? (object)new
+                                    {
+                                        @class = "select2 form-control required",
+                                        placeholder = "Select Billing Organization",
+                                        disabled = "disabled"
+                                    } : (object)new
+                                    {
+                                        @class = "select2 form-control required",
+                                        placeholder = "Select Billing Organization"
+                                    })*@
+                                @Html.DropDownListFor(m => m.Bill_Org, new SelectList(ViewBag.OrgList, "COMPANY_CODE", "COMPANY_NAME"), "", new
+                                {
+                                    @class = "select2 form-control required",
+                                    placeholder = "Select Billing Organization"
+                                })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">PO / WO Number</label>
+                                @*@Html.TextBoxFor(m => m.PoWoNumber, isDisabled ? (object)new { @class = "form-control required", placeholder = "Enter PO/WO Number", disabled = "disabled" } : (object)new { @class = "form-control required", placeholder = "Enter PO/WO Number" })*@
+                                @Html.TextBoxFor(m => m.PoWoNumber, new { @class = "form-control required", placeholder = "Enter PO/WO Number" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Vendor Code</label>
+                                @*@Html.TextBoxFor(m => m.Vendor_Code, isDisabled ? (object)new { @class = "form-control", placeholder = "Enter Vendor Code", disabled = "disabled" } : (object)new { @class = "form-control", placeholder = "Enter Vendor Code" })*@
+                                @Html.TextBoxFor(m => m.Vendor_Code, new { @class = "form-control", placeholder = "Enter Vendor Code" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Contract Date</label>
+                                <div class="input-group date" data-date-format="dd M yyyy">
+                                    @Html.TextBox("Contract_Stdate",
+                                        Model.Contract_Stdate != null
+                                            ? Convert.ToDateTime(Model.Contract_Stdate).ToString("dd MMM yyyy")
+                                            : DateTime.Now.ToString("dd MMM yyyy"),
+                                        new { @class = "form-control date-picker required", disabled = "true", @placeholder = "Select Start Date" })
+
+                                    <span class="input-group-text bg-light border-start-0" style="cursor:pointer;">
+                                        <i class="ri-calendar-2-line"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Valid Until</label>
+                                <div class="input-group date" data-date-format="dd M yyyy">
+                                    @Html.TextBox("Contract_Eddate",
+                                        Model.Contract_Eddate != null
+                                            ? Convert.ToDateTime(Model.Contract_Eddate).ToString("dd MMM yyyy")
+                                            : DateTime.Now.ToString("dd MMM yyyy"),
+                                        new { @class = "form-control valid-date-picker required", @placeholder = "Select End Date" })
+                                    <span class="input-group-text bg-light border-start-0" style="cursor:pointer;">
+                                        <i class="ri-calendar-2-line"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Contract Signing Location</label>
+                                @*@Html.DropDownListFor(m => m.contract_sign_loccode, new SelectList(ViewBag.ListLocations, "LocCode", "LocName_LocCode"), "", isDisabled ? (object)new { @class = "form-control select2", placeholder = "Select Signing Location", disabled = "disabled" } : (object)new { @class = "form-control select2", placeholder = "Select Signing Location" })*@
+                                @Html.DropDownListFor(m => m.contract_sign_loccode, new SelectList(ViewBag.ListLocations, "LocCode", "LocName_LocCode"), "", new { @class = "form-control select2", placeholder = "Select Signing Location" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Signatory Customer</label>
+                                @*@Html.TextBoxFor(m => m.Cust_represent, isDisabled ? (object)new { @class = "form-control", placeholder = "Customer Representative", disabled = "disabled" } : (object)new { @class = "form-control", placeholder = "Customer Representative" })*@
+                                @Html.TextBoxFor(m => m.Cust_represent, new { @class = "form-control", placeholder = "Customer Representative" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Signatory Company</label>
+                                @*@Html.TextBoxFor(m => m.Comp_Empname, isDisabled ? (object)new { @class = "form-control", placeholder = "Company Employee Name", disabled = "disabled" } : (object)new { @class = "form-control", placeholder = "Company Employee Name" })*@
+                                @Html.TextBoxFor(m => m.Comp_Empname, new { @class = "form-control", placeholder = "Company Employee Name" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Loading Branch</label>
+                                @*@Html.DropDownListFor(m => m.Primary_Branch, new SelectList(ViewBag.ListLocations, "LocCode", "LocName_LocCode"), "", isDisabled ? (object)new { @class = "required select2 form-control", placeholder = "Select Primary Branch", disabled = "disabled" } : (object)new { @class = "required select2 form-control", placeholder = "Select Primary Branch" })*@
+                                @Html.DropDownListFor(m => m.Primary_Branch, new SelectList(ViewBag.ListLocations, "LocCode", "LocName_LocCode"), "", new { @class = "required select2 form-control", placeholder = "Select Primary Branch" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Remarks</label>
+                                @*@Html.TextAreaFor(m => m.Remarks, isDisabled ? (object)new { @class = "form-control", placeholder = "Enter Remarks", disabled = "disabled" } : (object)new { @class = "form-control", placeholder = "Enter Remarks" })*@
+                                @Html.TextAreaFor(m => m.Remarks, new { @class = "form-control", placeholder = "Enter Remarks" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="form-actions">
+    <a href="@Url.Action("CustomerContract", "Contract")" class="@ViewBag.UI.Buttons.Cancel.CssClass"><i class="@ViewBag.UI.Buttons.Cancel.Icon"> </i>@ViewBag.UI.Buttons.Cancel.Label</a>
+    <button type="button" id="btnSubmit" style="display:none;" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Save & Next</button>
+    <button type="button" id="btnBasicInfoNextTab" style="display:none;" class="@ViewBag.UI.Buttons.Next.CssClass"><i class="@ViewBag.UI.Buttons.Next.Icon"></i>@ViewBag.UI.Buttons.Next.Label</button>
+</div>

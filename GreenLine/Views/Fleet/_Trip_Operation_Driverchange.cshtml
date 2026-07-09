@@ -1,0 +1,436 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@{
+    var trip = Model.CTM;
+    GreenLineDataService.Helper.Interface.IMasterService _MS = new GreenLineDataService.Helper.MasterService();
+    var allDriversTotal = _MS.GetDriverMstDetails();
+    var allDrivers = allDriversTotal.Where(d => d.ActiveFlag == "Y" && (d.Driver_Status == "Available" || d.Driver_Id == trip.Driver1 || d.Driver_Id == trip.Driver2)).ToList();
+    
+    var totalCaptains = allDriversTotal.Count;
+    var activeCaptains = allDriversTotal.Count(d => d.ActiveFlag == "Y");
+    var utilization = totalCaptains > 0 ? (int)Math.Round((double)activeCaptains * 100 / totalCaptains) : 0;
+}
+
+<style>
+    .crew-panel { border-radius: 12px; border: 1px solid #e9ebec; overflow: hidden; background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.03); }
+    .crew-panel-header { padding: 18px 24px; border-bottom: 1px solid #e9ebec; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: space-between; }
+    .crew-panel-header.assigned { background-color: #f1f5f9; color: #334155; }
+    .crew-panel-header.available { background-color: #f8fafc; color: #334155; }
+    .crew-panel-body { padding: 20px; background-color: #fafbfc; min-height: 450px; }
+
+    .driver-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; display: flex; align-items: center; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .driver-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-2px); }
+
+    .assigned-card { background: #fff; border-left: 4px solid #3b82f6; }
+    .available-card { background: #fff; border-left: 4px solid #10b981; }
+    
+    .avatar-box { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .avatar-assigned { background-color: #eff6ff; color: #3b82f6; }
+    .avatar-available { background-color: #ecfdf5; color: #10b981; }
+
+    .btn-action-add { background: #10b981; color: #fff; border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.2s; padding: 0; }
+    .btn-action-add:hover { background: #059669; transform: scale(1.05); }
+
+    .btn-action-remove { background: #fee2e2; color: #ef4444; border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: 0.2s; padding: 0; }
+    .btn-action-remove:hover { background: #fecaca; color: #dc2626; transform: scale(1.05); }
+
+    .detail-pill { background: #f1f5f9; color: #475569; font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; }
+
+    .scrollable-list { max-height: 400px; overflow-y: auto; padding-right: 8px; }
+    .scrollable-list::-webkit-scrollbar { width: 5px; }
+    .scrollable-list::-webkit-scrollbar-track { background: transparent; }
+    .scrollable-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .scrollable-list::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h4 class="fw-bold text-dark mb-0 fs-18">Captain Allocation</h4>
+        <p class="text-muted mb-0 fs-13 mt-1">Manage and assign drivers to Trip <strong>@trip.TripNo</strong></p>
+    </div>
+    <div class="col-md-6 d-flex justify-content-end gap-3">
+        <div class="bg-white rounded border p-2 px-3 shadow-sm d-flex align-items-center gap-3">
+            <div>
+                <span class="text-muted fs-11 fw-bold text-uppercase">Total</span>
+                <h5 class="mb-0 fw-bold text-dark">@totalCaptains</h5>
+            </div>
+            <div class="vr bg-light"></div>
+            <div>
+                <span class="text-muted fs-11 fw-bold text-uppercase">Active</span>
+                <h5 class="mb-0 fw-bold text-success">@activeCaptains</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Duty Assignment -->
+    <div class="col-xl-5">
+        <div class="crew-panel">
+            <div class="crew-panel-header assigned">
+                <span><i class="ri-user-star-line me-2 text-primary"></i>Assigned to Trip</span>
+                @*<span class="badge bg-primary rounded-pill">@( (@Model.CTM.Driver1 > 0 ? 1 : 0) + (@Model.CTM.Driver2 > 0 ? 1 : 0) ) / 2</span>*@
+            </div>
+            <div class="crew-panel-body" id="currentCrewList">
+                @if (@Model.CTM.Driver1 > 0)
+                {
+                    <div class="driver-card assigned-card gap-3" id="crew_@Model.CTM.Driver1">
+                        <div class="avatar-box avatar-assigned"><i class="ri-steering-fill"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-dark fs-14 text-uppercase">@Model.CTM.Driver1Name</div>
+                            
+                        </div>
+                        <button type="button" class="btn-action-remove btnRemoveCrew" data-driver="@Model.CTM.Driver1" title="Remove Driver"><i class="ri-delete-bin-line"></i></button>
+                    </div>
+                }
+                @if (@Model.CTM.Driver2 > 0)
+                {
+                    <div class="driver-card assigned-card gap-3" id="crew_@Model.CTM.Driver2">
+                        <div class="avatar-box avatar-assigned"><i class="ri-steering-fill"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-dark fs-14 text-uppercase">@Model.CTM.Driver2Name</div>
+                          
+                        </div>
+                        <button type="button" class="btn-action-remove btnRemoveCrew" data-driver="@Model.CTM.Driver2" title="Remove Driver"><i class="ri-delete-bin-line"></i></button>
+                    </div>
+                }
+                @if (@Model.CTM.Driver1 == 0 && @Model.CTM.Driver2 == 0)
+                {
+                    <div class="text-center text-muted py-5 mt-4" id="noCrewMsg">
+                        <div class="avatar-md mx-auto mb-3">
+                            <div class="avatar-title bg-light text-muted rounded-circle fs-24"><i class="ri-user-unfollow-line"></i></div>
+                        </div>
+                        <h6 class="fw-bold fs-14">No Captains Assigned</h6>
+                        <p class="fs-13 mb-0">Select from the available list to assign.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Captains -->
+    <div class="col-xl-7">
+        <div class="crew-panel">
+            <div class="crew-panel-header available">
+                <span><i class="ri-team-line me-2 text-success"></i>Available Driver</span>
+                @*<div class="search-box" style="width:200px;">
+                    <input type="text" id="driverSearch" class="form-control form-control-sm bg-white" placeholder="Search Driver...">
+                    <i class="ri-search-line search-icon"></i>
+                </div>*@
+            </div>
+            <div class="crew-panel-body">
+                <div id="availableDriversList" class="scrollable-list pe-2">
+                    @foreach (var drv in allDrivers)
+                    {
+                        <div class="driver-card available-card driver-row gap-3" data-id="@((int)drv.Driver_Id)" data-name="@drv.Driver_Name" data-search="@drv.Driver_Name.ToLower()">
+                            <div class="avatar-box avatar-available"><i class="ri-user-line"></i></div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-dark fs-14 text-uppercase mb-2">@drv.Driver_Name</div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="detail-pill"><i class="ri-phone-line me-1 text-muted"></i>@(string.IsNullOrEmpty(drv.Mobileno) ? "N/A" : drv.Mobileno)</span>
+                                    <span class="detail-pill"><i class="ri-map-pin-line me-1 text-muted"></i>@(string.IsNullOrEmpty(drv.Driver_Location) ? "HQ" : drv.Driver_Location)</span>
+                                    @if (!string.IsNullOrEmpty(drv.VEHNO))
+                                    {
+                                        <span class="detail-pill"><i class="ri-truck-line me-1 text-muted"></i>@drv.VEHNO</span>
+                                    }
+                                </div>
+                            </div>
+                            <button type="button" class="btn-action-add btnAssignDriver" data-id="@((int)drv.Driver_Id)" data-name="@drv.Driver_Name" title="Assign to Trip"><i class="ri-add-line"></i></button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initDriverChangeTab() {
+        // Hide already-assigned drivers from Available Captains on load
+        $('#currentCrewList .driver-card').each(function () {
+            var assignedId = $(this).attr('id');
+            if(assignedId) {
+                assignedId = assignedId.replace('crew_', '');
+                $('.driver-row[data-id="' + assignedId + '"]').hide();
+            }
+        });
+
+        // Search filter
+        $('#driverSearch').on('input', function () {
+            var q = $(this).val().toLowerCase();
+            $('.driver-row').each(function () {
+                $(this).toggle(!q || $(this).data('search').includes(q));
+            });
+        });
+
+        // Assign driver
+        $(document).on('click', '.btnAssignDriver', function () {
+            var id   = $(this).data('id');
+            var name = $(this).data('name');
+            assignDriver(id, name);
+        });
+
+        // Remove driver — opens Remark/Reason popup (same style as Detach Driver in Vehicle Driver Mapping)
+        $(document).on('click', '.btnRemoveCrew', function () {
+            var driverId   = $(this).data('driver');
+            var $card      = $('#crew_' + driverId);
+            var driverName = $card.find('.fw-bold.text-dark').first().text().trim() || 'Driver';
+
+            // ── Build modal body: driver info strip + reason textarea ──
+            var modalBody = [
+                /* Driver info strip */
+                '<div class="d-flex align-items-start gap-3 p-3 rounded-2 mb-3" style="background:#f8f9fa;border:1px solid #e9ecef;">',
+                '    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:#fde8e8;">',
+                '        <i class="ri-steering-fill text-danger fs-17"></i>',
+                '    </div>',
+                '    <div class="lh-sm">',
+                '        <div class="fw-semibold text-dark fs-13">' + driverName + '</div>',
+                '        <div class="text-muted fs-12">Trip: <span class="fw-medium text-primary">@trip.TripNo</span></div>',
+                '        <div class="text-muted fs-12">Vehicle: <span class="fw-medium text-primary">@Model.CTM.VehicleNo</span></div>',
+                '    </div>',
+                '</div>',
+                /* Confirmation text */
+                '<p class="fs-13 mb-3">Are you sure you want to remove <strong class="text-danger">' + driverName + '</strong> from Trip <strong class="text-primary">@trip.TripNo</strong>?</p>',
+                /* Remark / Reason field */
+                '<div class="mb-1">',
+                '    <label for="txtRemoveReason" class="form-label fw-semibold fs-13 mb-1">',
+                '        Remark / Reason <span class="text-danger">*</span>',
+                '    </label>',
+                '    <textarea id="txtRemoveReason" class="form-control" rows="3" maxlength="500"',
+                '              placeholder="Enter reason for removing this driver..."',
+                '              style="resize:none;font-size:13px;"></textarea>',
+                '    <div class="invalid-feedback" id="removeReasonError">Please enter a reason before proceeding.</div>',
+                '    <div class="text-end text-muted" style="font-size:11px;margin-top:4px;"><span id="removeReasonCharCount">0</span> / 500</div>',
+                '</div>'
+            ].join('\n');
+
+            // Set modal title & icon
+            $('#glFormModalLabel').html('<i class="ri-delete-bin-line me-2 text-danger"></i>Remove Driver');
+
+            // Populate modal body
+            $('#glFormLoader').hide();
+            $('#glFormContent').html(modalBody);
+
+            // Character counter (live)
+            $(document).off('input.removeReason').on('input.removeReason', '#txtRemoveReason', function () {
+                $('#removeReasonCharCount').text($(this).val().length);
+                if ($(this).val().length > 0) {
+                    $(this).removeClass('is-invalid');
+                    $('#removeReasonError').hide();
+                }
+            });
+
+            // Wire Save button
+            $('#glFormSaveBtn').off('click.removeDriver').on('click.removeDriver', function () {
+                var reason = $.trim($('#txtRemoveReason').val());
+                if (!reason) {
+                    $('#txtRemoveReason').addClass('is-invalid');
+                    $('#removeReasonError').show();
+                    $('#txtRemoveReason').focus();
+                    return;
+                }
+
+                // Close modal, then call removeDriver with the reason
+                bootstrap.Modal.getInstance(document.getElementById('glFormModal')).hide();
+                removeDriver(driverId, reason);
+            });
+
+            // Open modal
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('glFormModal')).show();
+
+            // Auto-focus textarea
+            document.getElementById('glFormModal').addEventListener('shown.bs.modal', function onShown() {
+                $('#txtRemoveReason').focus();
+                this.removeEventListener('shown.bs.modal', onShown);
+            });
+        });
+    }
+
+    function assignDriver(id, name) {
+        if ($('#currentCrewList .driver-card').length >= 2) {
+            TosterNotification('warning', 'Maximum 2 drivers allowed. Please remove one first.', 'Limit Reached');
+            return;
+        }
+        if ($('#crew_' + id).length) { TosterNotification('warning', 'Driver already assigned', ''); return; }
+        
+        var nextCapNum = $('#currentCrewList .driver-card').length + 1;
+        
+        var card = '<div class="driver-card assigned-card gap-3" id="crew_' + id + '">'
+            + '<div class="avatar-box avatar-assigned"><i class="ri-steering-fill"></i></div>'
+            + '<div class="flex-grow-1"><div class="fw-bold text-dark fs-14 text-uppercase">' + name + '</div>'
+            + '</div>'
+            + '<button type="button" class="btn-action-remove btnRemoveCrew" data-driver="' + id + '" title="Remove Driver"><i class="ri-delete-bin-line"></i></button></div>';
+            App.blockUI({ boxed: true });
+            var StrURL1 = DomainName + '/Account/GetData';
+            var Driver = id;
+            var Drivername = name;
+            var Currentvehicle = '@Model.CTM.VehicleId';
+            var TripNo = '@Model.CTM.TripNo'
+            var parameters = {};
+            parameters['Driver'] = Driver;
+            parameters['vehicleId'] = Currentvehicle;
+            $.ajax({
+                url: StrURL1,
+                cache: false,
+                type: 'POST',
+                data: {
+                    Method: 'ChekDriverAllready_Map',
+                    parameters: parameters
+                },
+                success: function (Data) {
+                    var parsedData = JSON.parse(Data);
+                    if (parsedData.length > 0) {
+                        var VehicleNo = parsedData[0].VehicleNo;
+                        if (parsedData[0].VehicleNo != "" && parsedData[0].IsAttached == 1) {
+                            GLModal.showPopup({
+                                title: 'Vehicle Attach Restriction',
+                                message: `<strong>Driver :</strong> ${Drivername} - In Transit With <strong>Vehicle :</strong> ${VehicleNo} So You Can't Attach this Driver.`,
+                                type: 'error',
+                                buttonText: 'OK',
+                                onClose: function () {
+                                }
+                            });
+                        }
+                        else if (parsedData[0].VehicleNo != "" && parsedData[0].IsAttached == 0) {
+                            GLModal.showConfirm({
+                                title: 'Vehicle Attach Warning',
+                                message: `<strong>Driver:</strong> ${Drivername}<br>Already Attached With <strong>Vehicle : </strong> ${VehicleNo}<br>Do you want to attach this vehicle (${Currentvehicle}) with this (${Drivername}) Driver?`,
+                                type: 'warning',
+                                confirmText: 'Continue',
+                                cancelText: 'Cancel',
+                                onConfirm: function () {
+
+                                    var Str = DomainName + '/Account/SetData';
+                                    var parameters = {};
+                                    parameters['vehicleId'] = Currentvehicle;
+                                    parameters['DriverId'] = Driver;
+                                    parameters['TripNo'] = TripNo;
+                                    parameters['BaseUsername'] = '@ViewBag.BaseUserName';
+                                    $.ajax({
+                                        url: Str,
+                                        cache: false,
+                                        type: 'POST',
+                                        data: {
+                                            Method: 'InsertUpdate_VehicleDriver_Mapping_For_Trip',
+                                            parameters: parameters
+                                        },
+                                        success: function (Data) {
+                                            var parsedData = JSON.parse(Data);
+                                            if (parsedData.length > 0) {
+                                                if (parsedData[0].Status == "1") {
+                                                    $('#noCrewMsg').hide();
+                                                    $('#currentCrewList').append(card);
+                                                    $('.driver-row[data-id="' + id + '"]').hide();
+                                                }
+                                                else {
+                                                    TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                                }
+                                                App.unblockUI();
+                                            }
+                                        },
+                                        error: function (req, status, error) {
+                                            TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                            App.unblockUI();
+                                        }
+                                    });
+
+                                },
+                                onCancel: function () {
+                                }
+                            });
+                        }
+                        App.unblockUI();
+                    }
+                    else
+                    {
+                          var Str = DomainName + '/Account/SetData';
+                           var parameters = {};
+                           parameters['vehicleId'] = Currentvehicle;
+                           parameters['DriverId'] = Driver;
+                           parameters['TripNo'] = TripNo;
+                           parameters['BaseUsername'] = '@ViewBag.BaseUserName';
+                           $.ajax({
+                               url: Str,
+                               cache: false,
+                               type: 'POST',
+                               data: {
+                                   Method: 'InsertUpdate_VehicleDriver_Mapping_For_Trip',
+                                   parameters: parameters
+                               },
+                               success: function (Data) {
+                                   var parsedData = JSON.parse(Data);
+                                   if (parsedData.length > 0) {
+                                       if (parsedData[0].Status == "1") {
+                                           $('#noCrewMsg').hide();
+                                           $('#currentCrewList').append(card);
+                                           $('.driver-row[data-id="' + id + '"]').hide();
+                                       }
+                                       else {
+                                           TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                       }
+                                       App.unblockUI();
+                                   }
+                               },
+                               error: function (req, status, error) {
+                                   TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                   App.unblockUI();
+                               }
+                           });
+
+                        App.unblockUI();
+                    }
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                    App.unblockUI();
+                }
+            });
+            App.unblockUI();
+
+    }
+
+    function removeDriver(id, reason) {
+         var Driver = id;
+         var Currentvehicle = '@Model.CTM.VehicleId';
+         var TripNo = '@Model.CTM.TripNo'
+         var Str = DomainName + '/Account/SetData';
+            var parameters = {};
+            parameters['vehicleId'] = Currentvehicle;
+            parameters['DriverId'] = Driver;
+            parameters['TripNo'] = TripNo;
+            parameters['BaseUsername'] = '@ViewBag.BaseUserName';
+            parameters['DetachReason'] = reason || '';
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: Str,
+                cache: false,
+                type: 'POST',
+                data: {
+                    Method: 'Remove_Driver_For_Trip',
+                    parameters: parameters
+                },
+                success: function (Data) {
+                    var parsedData = JSON.parse(Data);
+                    if (parsedData.length > 0) {
+                        if (parsedData[0].Status == "1") {
+                            $('#crew_' + id).remove();
+                            $('.driver-row[data-id="' + id + '"]').show();
+                            if (!$('#currentCrewList .driver-card').length) {
+                                $('#noCrewMsg').show();
+                            }
+                            TosterNotification("success", "Driver removed successfully", "Success");
+                        }
+                        else {
+                            TosterNotification("error", "Error !! There was an error during process. Please check your internet connection or contact administrator.", "Error");
+                        }
+                        App.unblockUI();
+                    }
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", "Error !! There was an error during process. Please check your internet connection or contact administrator.", "Error");
+                    App.unblockUI();
+                }
+            });
+
+    }
+
+</script>

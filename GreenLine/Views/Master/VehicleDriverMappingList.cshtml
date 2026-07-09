@@ -1,0 +1,240 @@
+@model IEnumerable<GreenLineDataService.Models.Cygnus_VehicleDriver_Mapping>
+
+@{
+    ViewBag.Title = "Vehicle Driver Mapping ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Vehicle Driver Mapping</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Vehicle Driver Mapping </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <!-- Header Bar -->
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">Vehicle Driver Mapping List</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a href="@Url.Content("~/Master/AddEditVehicleDriverMapping/0")" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="tblVehicleDriverMapping">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">VehicleNo</th>
+                            <th class="text-center">First Driver</th>
+                            <th class="text-center">Second Driver</th>
+                            <th class="text-center">Created By</th>
+                            <th class="text-center">Created Date</th>
+                            <th class="text-center">Modified By</th>
+                            <th class="text-center">Modified Date</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="locationTable">
+                        @foreach (var item in Model)
+                        {
+
+                            <tr>
+                                <td class="text-center fw-medium">
+                                    <a href="@Url.Content("~/Master/AddEditVehicleDriverMapping/" + item.Id)" class="text-primary">
+                                        @item.VehicleNo
+                                    </a>
+                                </td>
+                                <td class="text-center">@item.First_Driver_name</td>
+                                <td class="text-center">@item.Second_Driver_name</td>
+                                <td class="text-center">@item.EntryBy</td>
+                                <td class="text-center">@item.EntryDate</td>
+                                <td class="text-center">@item.UpdateBy</td>
+                                <td class="text-center">@item.UpdateDate</td>
+                                <td class="text-center">
+                                    @if (item.First_Driver != 0)
+                                    {
+                                        <a href="javascript:void(0);" class="@ViewBag.UI.Buttons.Edit.CssClass btn-detach-driver"
+                                           data-vehicleid="@item.VehicleId"
+                                           data-vehicleno="@item.VehicleNo"
+                                           data-drivername="@item.First_Driver_name"
+                                           data-driverId="@item.First_Driver"
+                                           data-drivertype="FIRST">
+                                            <i class="ri-link-unlink-m align-middle me-1"></i> Detach 1st Driver
+                                        </a>
+                                    }
+                                    @if (item.Second_Driver != 0)
+                                    {
+                                        <a href="javascript:void(0);" class="@ViewBag.UI.Buttons.Edit.CssClass btn-detach-driver"
+                                           data-vehicleid="@item.VehicleId"
+                                           data-vehicleno="@item.VehicleNo"
+                                           data-drivername="@item.Second_Driver_name"
+                                           data-driverid="@item.Second_Driver"
+                                           data-drivertype="SECOND">
+                                            <i class="ri-link-unlink-m align-middle me-1"></i> Detach 2nd Driver
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var FormComponents = function (DomainName) {
+
+        var _detach = {};
+
+        // ── Build combined confirm + remark modal content ──
+        function _buildModalContent(showWarning) {
+            var warningHtml = showWarning
+                ? '<div class="alert alert-warning d-flex align-items-start gap-2 py-2 px-3 mb-3" style="font-size:13px;">' +
+                  '    <i class="ri-error-warning-line fs-16 flex-shrink-0 mt-1"></i>' +
+                  '    <div><strong>Warning!</strong> This vehicle has an active in-transit trip and only one driver is assigned. Detaching will leave the trip with no driver.</div>' +
+                  '</div>'
+                : '';
+
+            return [
+                /* ── Driver info strip ── */
+                '<div class="d-flex align-items-start gap-3 p-3 rounded-2 mb-3" style="background:#f8f9fa;border:1px solid #e9ecef;">',
+                '    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:#fde8e8;">',
+                '        <i class="ri-user-line text-danger fs-17"></i>',
+                '    </div>',
+                '    <div class="lh-sm">',
+                '        <div class="fw-semibold text-dark fs-13">' + _detach.driverName + '</div>',
+                '        <div class="text-muted fs-12">' + _detach.label + '</div>',
+                '        <div class="text-muted fs-12">Vehicle: <span class="fw-medium text-primary">' + _detach.vehicleNo + '</span></div>',
+                '    </div>',
+                '</div>',
+                /* ── Confirmation sentence ── */
+                '<p class="fs-13 mb-3">Are you sure you want to detach <strong class="text-danger">' + _detach.driverName + '</strong>',
+                '(' + _detach.label + ') from vehicle <strong class="text-primary">' + _detach.vehicleNo + '</strong>?</p>',
+                /* ── Optional transit warning ── */
+                warningHtml,
+                /* ── Remark field ── */
+                '<div class="mb-1">',
+                '    <label for="txtDetachReason" class="form-label fw-semibold fs-13 mb-1">',
+                '        Remark / Reason <span class="text-danger">*</span>',
+                '    </label>',
+                '    <textarea id="txtDetachReason" class="form-control" rows="3" maxlength="500"',
+                '              placeholder="Enter reason for detaching this driver..."',
+                '              style="resize:none;font-size:13px;"></textarea>',
+                '    <div class="invalid-feedback" id="detachReasonError">Please enter a reason before proceeding.</div>',
+                '    <div class="text-end text-muted" style="font-size:11px;margin-top:4px;"><span id="detachReasonCharCount">0</span> / 500</div>',
+                '</div>'
+            ].join('\n');
+        }
+
+        var initEvents = function (DomainName) {
+
+            // Character counter
+            $(document).on('input', '#txtDetachReason', function () {
+                $('#detachReasonCharCount').text($(this).val().length);
+                if ($(this).val().length > 0) {
+                    $(this).removeClass('is-invalid');
+                    $('#detachReasonError').hide();
+                }
+            });
+
+            // Detach button click → validate transit first, then open single modal
+            $(document).on('click', '.btn-detach-driver', function () {
+                _detach.vehicleId  = $(this).data('vehicleid');
+                _detach.vehicleNo  = $(this).data('vehicleno');
+                _detach.driverName = $(this).data('drivername');
+                _detach.driverId   = $(this).data('driverid');
+                _detach.driverType = $(this).data('drivertype');
+                _detach.label      = _detach.driverType === 'FIRST' ? '1st Driver' : '2nd Driver';
+
+                App.blockUI({ boxed: true });
+
+                $.ajax({
+                    url: DomainName + '/Master/ValidateDriverDetach',
+                    type: 'POST',
+                    data: { vehicleId: _detach.vehicleId },
+                    success: function (res) {
+                        App.unblockUI();
+
+                        // Set modal title & icon
+                        $('#glFormModalLabel').html(
+                            '<i class="ri-link-unlink-m me-2 text-danger"></i>Detach ' + _detach.label
+                        );
+
+                        // Populate body with confirm message + optional warning + remark field
+                        $('#glFormLoader').hide();
+                        $('#glFormContent').html(_buildModalContent(res.ShowTransitWarning));
+
+                        // Wire Save button (unbind first to avoid stacking)
+                        $('#glFormSaveBtn').off('click.detach').on('click.detach', function () {
+                            var reason = $.trim($('#txtDetachReason').val());
+
+                            if (!reason) {
+                                $('#txtDetachReason').addClass('is-invalid');
+                                $('#detachReasonError').show();
+                                $('#txtDetachReason').focus();
+                                return;
+                            }
+
+                            // Close modal and navigate
+                            bootstrap.Modal.getInstance(document.getElementById('glFormModal')).hide();
+                            window.location.href =
+                                DomainName + '/Master/DetachDriverMapping?vehicleId='
+                                + _detach.vehicleId
+                                + '&driverType=' + _detach.driverType
+                                + '&driverId='   + _detach.driverId
+                                + '&detachReason=' + encodeURIComponent(reason);
+                        });
+
+                        // Open the common glFormModal
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('glFormModal')).show();
+
+                        // Focus the textarea after modal is shown
+                        document.getElementById('glFormModal').addEventListener('shown.bs.modal', function onShown() {
+                            $('#txtDetachReason').focus();
+                            this.removeEventListener('shown.bs.modal', onShown);
+                        });
+                    },
+                    error: function () {
+                        App.unblockUI();
+                        TosterNotification('error', 'Could not validate detach. Please try again.', 'Error');
+                    }
+                });
+            });
+
+        };
+
+        return {
+            init: function (DomainName) {
+                initEvents(DomainName);
+
+                GlDataTable.init('tblVehicleDriverMapping', {
+                    ordering: true,
+                    columnDefs: [
+                        { className: "text-center", targets: "_all" },
+                        { orderable: false, targets: -1 }
+                    ],
+                    initComplete: function () {
+                        $(this.api().column(-1).header()).find('button').remove();
+                    }
+                });
+            }
+        };
+    }();
+</script>

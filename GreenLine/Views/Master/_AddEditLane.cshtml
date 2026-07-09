@@ -1,0 +1,137 @@
+@model GreenLineDataService.Models.CYGNUS_LaneMaster
+@using GreenLineDataService.Models;
+@{
+    GreenLineDataService.Helper.Interface.IMasterService MS = new GreenLineDataService.Helper.MasterService();
+    List<CYGNUS_State> Liststate = MS.GetStateMaster().Where(c => c.activeflag == "Y").ToList();
+    List<CYGNUS_citymaster> cityList = MS.GetCityMaster().Where(c => (c.activeflag == null ? c.activeflag == null : c.activeflag == "Y")).OrderBy(c => c.Location).ToList();
+  
+    List<CYGNUS_Master_General> zoneList = MS.GetGeneralMasterWithParam("ZONE").ToList();
+}
+
+@using (Html.BeginForm("AddEditLane", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-horizontal form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.Lane_ID)
+
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-map-pin-2-line align-middle me-1"></i> Lane Information
+        </h5>
+        <div class="row g-3">
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Lane Name </label>
+                    @if (Model.Lane_ID > 0)
+                    {
+                        @Html.TextBoxFor(m => m.Lane_Name, new { @class = "form-control required disabled-field", @placeholder = "Enter Lane Name", @readonly = "readonly" })
+                    }
+                    else
+                    {
+                        @Html.TextBoxFor(m => m.Lane_Name, new { @class = "form-control required", @placeholder = "Enter Lane Name" })
+                    }
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">City </label>
+                    @Html.DropDownListFor(c => c.City, new SelectList(cityList, "city_code", "Location", Model.City), "", new { @class = "form-control select2 required", @placeholder = "Select City" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">State </label>
+                    @Html.DropDownListFor(m => m.State, new SelectList(Liststate, "stcd", "stnm", Model.State), "", new { @class = "form-control select2 required", @placeholder = "Select State", @disabled = "disabled", @id = "State_Disabled" })
+                    @Html.HiddenFor(m => m.State, new { @id = "State" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Zone </label>
+                    @Html.DropDownListFor(m => m.Zone, new SelectList(zoneList, "CodeId", "CodeDesc", Model.Zone), "", new { @class = "select2 required form-control", @placeholder = "Select Zone", @disabled = "disabled", @id = "Zone_Disabled" })
+                    @Html.HiddenFor(m => m.Zone, new { @id = "Zone" })
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var DomainName = typeof window.DomainName !== 'undefined' ? window.DomainName : '@Url.Content("~/").TrimEnd('/')';
+
+        function clearStateZone() {
+            $("#State").val(null);
+            $("#Zone").val(null);
+
+            var stateDDL = $("#State_Disabled");
+            if (stateDDL.data('select2')) { stateDDL.select2('destroy'); }
+            stateDDL.val(null).select2({
+                placeholder: "Select State",
+                allowClear: true,
+                dropdownParent: $('#glFormModal')
+            });
+
+            var zoneDDL = $("#Zone_Disabled");
+            if (zoneDDL.data('select2')) { zoneDDL.select2('destroy'); }
+            zoneDDL.val(null).select2({
+                placeholder: "Select Zone",
+                allowClear: true,
+                dropdownParent: $('#glFormModal')
+            });
+        }
+
+        $('#City').change(function () {
+            var City = $(this).val();
+            if (!City) {
+                clearStateZone();
+                return;
+            }
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: DomainName + '/Master/Get_Country_State_City_Zone_on_Pincode?Code=' + City + '&Type=C',
+                type: 'GET',
+                dataType: "json",
+                success: function (response) {
+                    if (response && response.length > 0) {
+                        var stateCode = response[0].StateCode || null;
+                        var zoneId = response[0].ZoneId || null;
+
+                        if (stateCode || zoneId) {
+                            $("#State").val(stateCode);
+                            $("#Zone").val(zoneId);
+
+                            var stateDDL = $("#State_Disabled");
+                            if (stateDDL.data('select2')) { stateDDL.select2('destroy'); }
+                            stateDDL.val(stateCode).select2({
+                                placeholder: "Select State",
+                                allowClear: true,
+                                dropdownParent: $('#glFormModal')
+                            });
+
+                            var zoneDDL = $("#Zone_Disabled");
+                            if (zoneDDL.data('select2')) { zoneDDL.select2('destroy'); }
+                            zoneDDL.val(zoneId).select2({
+                                placeholder: "Select Zone",
+                                allowClear: true,
+                                dropdownParent: $('#glFormModal')
+                            });
+                        } else {
+                            clearStateZone();
+                        }
+                    } else {
+                        clearStateZone();
+                    }
+                    App.unblockUI();
+                },
+                error: function (jqXHR, exception) {
+                    clearStateZone();
+                    TosterNotification("error", "Error occurred while contacting database or API.", "Oops..!!");
+                    App.unblockUI();
+                }
+            });
+        });
+    });
+</script>

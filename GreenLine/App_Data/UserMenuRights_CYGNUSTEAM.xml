@@ -1,0 +1,483 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfDocumentElement xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>0</DisplayRank>
+    <NavigationURL />
+    <ParentID>5000</ParentID>
+    <MenuId>5002</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Admin</DisplayName>
+    <MenuLevel>0</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>0</DisplayRank>
+    <NavigationURL />
+    <ParentID>5002</ParentID>
+    <MenuId>5010</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Company Structure</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>1</DisplayRank>
+    <NavigationURL />
+    <ParentID>5002</ParentID>
+    <MenuId>5011</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Stakeholders </DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>2</DisplayRank>
+    <NavigationURL>/Master/ListGeneralMaster</NavigationURL>
+    <ParentID>5002</ParentID>
+    <MenuId>5012</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>General Masters</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>0</DisplayRank>
+    <NavigationURL>/Master/UserList</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>5013</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>User Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>2</DisplayRank>
+    <NavigationURL>/Master/StateMaster</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>5014</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>State Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>1</DisplayRank>
+    <NavigationURL>/Master/LocationList</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>5015</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Location Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>3</DisplayRank>
+    <NavigationURL>/Master/CityMaster</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>5016</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>City Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>4</DisplayRank>
+    <NavigationURL>/Master/Pincode</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>5017</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Pincode Master </DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>0</DisplayRank>
+    <NavigationURL>/Master/CustomerGroup</NavigationURL>
+    <ParentID>5011</ParentID>
+    <MenuId>5018</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Customer Group </DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>1</DisplayRank>
+    <NavigationURL>/Master/Customer</NavigationURL>
+    <ParentID>5011</ParentID>
+    <MenuId>5019</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Customer Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>4</DisplayRank>
+    <NavigationURL>/Master/VendorList</NavigationURL>
+    <ParentID>5011</ParentID>
+    <MenuId>5020</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Vendor Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>3</DisplayRank>
+    <NavigationURL />
+    <ParentID>5002</ParentID>
+    <MenuId>5021</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Operation</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>3</DisplayRank>
+    <NavigationURL>/Master/VehicleModel</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>5024</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Vehicle Model Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>2</DisplayRank>
+    <NavigationURL>/Master/VehicleList</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>5030</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Vehicle Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>4</DisplayRank>
+    <NavigationURL />
+    <ParentID>5002</ParentID>
+    <MenuId>5058</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Finance &amp; Accounts</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>0</DisplayRank>
+    <NavigationURL>/Contract/CustomerContract</NavigationURL>
+    <ParentID>5058</ParentID>
+    <MenuId>5094</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Customer Contract</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>2</DisplayRank>
+    <NavigationURL />
+    <ParentID>5000</ParentID>
+    <MenuId>5122</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Fleet</DisplayName>
+    <MenuLevel>0</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>0</DisplayRank>
+    <NavigationURL />
+    <ParentID>5122</ParentID>
+    <MenuId>5123</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Trip Operations</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>9</DisplayRank>
+    <NavigationURL>/Master/DesignationMapping</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>5409</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Designation Mapping</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>3</DisplayRank>
+    <NavigationURL>/Master/DriverList</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>7476</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Driver Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>11</DisplayRank>
+    <NavigationURL>Master/FuelStation</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>7529</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Fuel Station Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>18</DisplayRank>
+    <NavigationURL>/Master/VehicTrailerMapping</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>7535</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Vehicle Trailer Mapping</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>11</DisplayRank>
+    <NavigationURL>/Master/MasterCountriesList</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>7543</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Country Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>12</DisplayRank>
+    <NavigationURL>/Master/LaneMaster</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>7559</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Lane Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>13</DisplayRank>
+    <NavigationURL>/Master/Organization</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>7560</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Organization Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>7</DisplayRank>
+    <NavigationURL>/Fleet/Pickup_Request</NavigationURL>
+    <ParentID>5123</ParentID>
+    <MenuId>7562</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>PickUp Request</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>9</DisplayRank>
+    <NavigationURL>/Fleet/VehicleAllocation</NavigationURL>
+    <ParentID>5123</ParentID>
+    <MenuId>7563</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Vehicle Allocation</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>23</DisplayRank>
+    <NavigationURL>/Master/VehicleType_WiseDocument</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>7566</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Vehicle Type Wise Document</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>24</DisplayRank>
+    <NavigationURL>/Master/VehicleDriverMappingList</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>7567</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Vehicle Driver Mapping</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>10</DisplayRank>
+    <NavigationURL>/Fleet/TripList</NavigationURL>
+    <ParentID>5123</ParentID>
+    <MenuId>7568</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Trip List</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>2</DisplayRank>
+    <NavigationURL>/Master/Card</NavigationURL>
+    <ParentID>5058</ParentID>
+    <MenuId>7569</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Card Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>15</DisplayRank>
+    <NavigationURL>/Master/CardAssignment</NavigationURL>
+    <ParentID>5058</ParentID>
+    <MenuId>7570</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Card Assignment Master</DisplayName>
+    <MenuLevel>0</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>8</DisplayRank>
+    <NavigationURL>/Fleet/ApproveRejectSpotPR</NavigationURL>
+    <ParentID>5123</ParentID>
+    <MenuId>7571</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>PR Approve/Reject</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>16</DisplayRank>
+    <NavigationURL>/Master/Expense</NavigationURL>
+    <ParentID>5058</ParentID>
+    <MenuId>7572</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Expense Master</DisplayName>
+    <MenuLevel>0</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>11</DisplayRank>
+    <NavigationURL>/Master/consigneelist</NavigationURL>
+    <ParentID>5011</ParentID>
+    <MenuId>7573</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Consignee Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>14</DisplayRank>
+    <NavigationURL>/Master/Geofence</NavigationURL>
+    <ParentID>5010</ParentID>
+    <MenuId>7575</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Geofence Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>25</DisplayRank>
+    <NavigationURL>/Master/NotesCategoryMapping</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>7576</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Notes Category Mapping</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>11</DisplayRank>
+    <NavigationURL>/Fleet/TripStageApprovalMaster</NavigationURL>
+    <ParentID>5123</ParentID>
+    <MenuId>7577</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Trip Stage Approval Master</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+  <DocumentElement>
+    <UserId>CYGNUSTEAM</UserId>
+    <DisplayRank>26</DisplayRank>
+    <NavigationURL>/Master/VehicleDocumentType_List</NavigationURL>
+    <ParentID>5021</ParentID>
+    <MenuId>7580</MenuId>
+    <HasAccess>true</HasAccess>
+    <DisplayName>Vehicle Document Type</DisplayName>
+    <MenuLevel>1</MenuLevel>
+    <IsNewPortal>true</IsNewPortal>
+    <IsFavorite>false</IsFavorite>
+  </DocumentElement>
+</ArrayOfDocumentElement>

@@ -1,0 +1,43 @@
+@{
+    ViewBag.Title = "Internal Server Error";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .btn-error-home {
+        transition: all 0.3s ease;
+        font-weight: 500;
+        background-color: @ViewBag.UI.Buttons.Add.BackgroundColor !important;
+        border-color: @ViewBag.UI.Buttons.Add.BorderColor !important;
+        color: @ViewBag.UI.Buttons.Add.TextColor !important;
+    }
+    .btn-error-home:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        filter: brightness(1.1);
+        color: @ViewBag.UI.Buttons.Add.TextColor !important;
+    }
+</style>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6 col-xl-5">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-body p-4 text-center">
+                <div class="avatar-lg mx-auto mt-2">
+                    <div class="avatar-title bg-light text-danger display-3 rounded-circle">
+                        <i class="ri-server-line"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-2">
+                    <h4>500 - Internal Server Error</h4>
+                    <p class="text-muted mx-4">Oops! Something went wrong on our end. Please try again later or contact the system administrator if the issue persists.</p>
+                    <div class="mt-4">
+                    <div class="mt-4">
+                        <a href="@Url.Content("~/Home/Index")" class="btn btn-error-home w-100"><i class="ri-home-4-line me-1 align-middle"></i> Back to Home</a>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

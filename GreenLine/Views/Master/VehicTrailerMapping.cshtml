@@ -1,0 +1,135 @@
+﻿@model IEnumerable<GreenLineDataService.Models.CYGNUS_TRAILER_MAPPING>
+
+@{
+    ViewBag.Title = "Vehicle Trailer Mapping ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Vehicle Trailer Mapping List</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Vehicle Trailer Mapping </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <!-- Header Bar -->
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">Vehicle Trailer Mapping</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+
+                    <a href="@Url.Content("~/Master/AddEditVehicTrailerMapping")" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="tblVehicleTrailerMapping">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">VehicleNo</th>
+                            <th class="text-center">Trailer No</th>
+                            <th class="text-center">Created By</th>
+                            <th class="text-center">Created Date</th>
+                            <th class="text-center">Modified By</th>
+                            <th class="text-center">Modified Date</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="locationTable">
+                        @foreach (var item in Model)
+                        {
+
+                            <tr>
+                                <td class="text-center fw-medium">
+                                    <a href="@Url.Content("~/Master/AddEditVehicTrailerMapping?Vehicleid=" + item.VehicleId)" class="text-primary">
+                                        @item.VehicleNo
+                                    </a>
+                                </td>
+                                <td class="text-center">@item.TrailerNo </td>
+                                <td class="text-center">@item.EntryBy</td>
+                                <td class="text-center">@item.EntryDate</td>
+                                <td class="text-center">@item.UpdateBy</td>
+                                <td class="text-center">@item.UpdateDate</td>
+                                <td class="text-center">
+                                    <a href="@Url.Content("~/Master/AddEditVehicTrailerMapping?Vehicleid=" + item.VehicleId)" class="@ViewBag.UI.Buttons.Edit.CssClass" title="Edit">
+                                        <i class="@ViewBag.UI.Buttons.Edit.Icon align-middle"></i>
+                                    </a>
+                                    @if (!string.IsNullOrEmpty(item.TrailerNo) && item.IsAttached != true)
+                                    {
+                                        <a href="javascript:void(0);" class="@ViewBag.UI.Buttons.Edit.CssClass btn-detach"
+                                           data-vehicleid="@item.VehicleId"
+                                           data-vehicleno="@item.VehicleNo"
+                                           data-trailerno="@item.TrailerNo">
+                                            <i class="ri-link-unlink-m align-middle me-1"></i> Detach
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var FormComponents = function (DomainName) {
+        var selectedId = "";
+
+        var initEvents = function (DomainName) {
+
+            $(document).on('click', '.btn-detach', function () {
+                var vehicleId  = $(this).data('vehicleid');
+                var vehicleNo  = $(this).data('vehicleno');
+                var trailerNo  = $(this).data('trailerno');
+
+                showConfirm({
+                    title: 'Detach Trailer',
+                    message: 'Are you sure you want to detach trailer <strong class="text-danger">' + trailerNo + '</strong> from vehicle <strong class="text-primary">' + vehicleNo + '</strong>?',
+                    type: 'info',
+                    confirmText: 'Yes, Detach',
+                    onConfirm: function () {
+                        window.location.href = DomainName + '/Master/DetachTrailerMapping?VehicleId=' + vehicleId;
+                    }
+                });
+            });
+
+        };
+
+        return {
+            init: function (DomainName) {
+                initEvents(DomainName);
+
+                GlDataTable.init('tblVehicleTrailerMapping', {
+                    ordering: true,
+                    columnDefs: [
+                        { className: "text-center", targets: "_all" },
+                        { orderable: false, targets: -1 }
+                    ],
+                    initComplete: function () {
+                        $(this.api().column(-1).header()).find('button').remove();
+                    }
+                });
+                $(document).on('click', '#btnDownload', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "User", "User Master List");
+                });
+            }
+        };
+    }();</script>

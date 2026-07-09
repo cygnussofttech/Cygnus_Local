@@ -1,0 +1,582 @@
+@model GreenLineDataService.Models.CYGNUS_custcontract_charge
+@using GreenLineDataService.Models
+
+@{
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+
+    var WeightconsiderList = new List<SelectListItem> {
+        new SelectListItem { Text = "Higher of Volumetric and Actual Weight", Value = "H" },
+        //new SelectListItem { Text = "Always Actual weight", Value = "A" },
+        //new SelectListItem { Text = "Always Volumetric weight", Value = "V" },
+    };
+
+    var DiscountRateList = new List<SelectListItem> {
+     new SelectListItem { Text = "In % of Freight", Value = "H" },
+     new SelectListItem { Text = "Flat (In Rs.)", Value = "F" },
+     new SelectListItem { Text = "PerKg", Value = "W" },
+     new SelectListItem { Text = "PerPkg", Value = "P" },
+     new SelectListItem { Text = "PerTon", Value = "T" },
+    };
+
+    var DemurrageCalculationList = new List<SelectListItem> {
+        new SelectListItem { Text = "Inclusive of free storage days", Value = "1" },
+        new SelectListItem { Text = "Exclusive of free storage days ", Value = "2" },
+     };
+
+    var DemurrageRateRateList = new List<SelectListItem> {
+        new SelectListItem { Text = "% of Invoice", Value = "%I" },
+        new SelectListItem { Text = "Per Kg Per Day", Value = "WD" },
+        new SelectListItem { Text = "Per PKg Per Day", Value = "PD" },
+    };
+
+    var DieselHikeReviewType = new List<SelectListItem> {
+        new SelectListItem { Text = "Monthly", Value = "M" },
+        new SelectListItem { Text = "Yearly", Value = "Y" },
+        new SelectListItem { Text = "EffectiveDate", Value = "ED" }
+    };
+
+    var EffectiveType = new List<SelectListItem> {
+         new SelectListItem { Text = "From Fright Rate", Value = "FR" },
+         new SelectListItem { Text = "Per KM", Value = "KM" },
+    };
+
+    var RefrenceFuelType = new List<SelectListItem> {
+    new SelectListItem { Text = "HSD", Value = "R1" },
+    new SelectListItem { Text = "LNG", Value = "R2" },
+    new SelectListItem { Text = "CNG", Value = "R3" },
+    new SelectListItem { Text = "Power", Value = "R4" },
+};
+}
+
+@using (Html.BeginForm("AddServiceSelection", "Contract", FormMethod.Post, new { id = "form_sampleservice", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.ContractId)
+    @Html.HiddenFor(m => m.Custcode)
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-service-line align-middle me-1"></i> Service Selection
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @*Service Selection*@
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Transit Mode</label>
+                                @Html.DropDownListFor(m => m.trans_type, new SelectList(ViewBag.trans_type, "CodeId", "CodeDesc", Model.trans_type), new { @class = "required select2 form-control", placeholder = "Select Transit Mode", @disabled = "disabled" })
+                                @Html.HiddenFor(m => m.trans_type)
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Rate Types Allowed</label>
+                                @Html.TextBoxFor(m => m.rate_type, new { placeholder = "Select Rate Type", @class = "form-control required" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Matrices Allowed</label>
+                                @Html.DropDownListFor(m => m.matrix_type, new SelectList(ViewBag.objMasterMatrixList, "CodeId", "CodeDesc"), new { placeholder = "Select Allowed Matrix", @class = "form-control select2 required", @disabled = "disabled" })
+                                @Html.HiddenFor(m => m.matrix_type)
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Pickup/Delivery</label>
+                                @Html.TextBoxFor(m => m.pkp_dly, new { placeholder = "Select PickUp delivery", @class = "form-control required" })
+                            </div>
+                        </div>
+                   
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Fuel Type</label>
+                                @Html.DropDownListFor(m => m.fuel_type, new SelectList(ViewBag.FUELTY, "CodeId", "CodeDesc"), "", new { @class = "select2 form-control required", placeholder = "Select Fuel Type" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Weight to Consider</label>
+                                @Html.DropDownListFor(m => m.cft_weight_type, new SelectList(WeightconsiderList, "Value", "Text"), new { @class = "required select2 form-control", placeholder = "Select Weight to Consider", @disabled = "disabled" })
+                                @Html.HiddenFor(m => m.cft_weight_type)
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Service Type </label>
+                                @if (string.IsNullOrEmpty(Model.service_type))
+                                {
+                                    @Html.DropDownListFor(m => m.service_type, new SelectList(ViewBag.SVCTYPE, "CodeId", "CodeDesc"), "", new { @class = "required select2 form-control", placeholder = "Select Service Type" })
+                                }
+                                else
+                                {
+                                    @Html.DropDownListFor(m => m.service_type, new SelectList(ViewBag.SVCTYPE, "CodeId", "CodeDesc"), new { @class = "required select2 form-control", placeholder = "Select Service Type" })
+                                    @Html.HiddenFor(m => m.service_type)
+                                }
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">LR Format</label>
+                                @Html.DropDownListFor(m => m.lr_type, new SelectList(ViewBag.LRTYPE, "CodeId", "CodeDesc"), "", new { @class = "required select2 form-control", placeholder = "Select LR Format", })
+                            </div>
+                        </div>
+                   
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Dedicated Vehicles</label>
+                                <div class="gap-3 d-flex">
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.Dedicated_Vehicle, "Y", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Yes</label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.Dedicated_Vehicle, "N", new { @class = "form-check-input" })
+                                        <label class="form-check-label">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Risk Type</label>
+                                <div class="gap-3 d-flex">
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.risktype, "C_Q", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Carrier Risk</label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.risktype, "O_Q", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Owner Risk</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @*Freight Related Services*@
+        @*<div id="divFrightRate" style="display:none;">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="ri-settings-3-line align-middle me-1"></i> Freight Related Services
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Deferment allowed</label>
+                                        <div class="col-12">
+                                            <div class="col-md-1 form-check ">
+                                                @Html.CheckBoxFor(m => m.Differ_allowed, new { @class = "form-check-input" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Freight as % of Invoice</label>
+                                        <div class="col-12">
+                                            <div class="col-md-1 form-check ">
+                                                @Html.CheckBoxFor(m => m.freight_per_inv, new { @class = "form-check-input", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Deferment days</label>
+                                        <div class="col-12">
+                                            @Html.TextBoxFor(m => m.difer_days, new { placeholder = "Enter Deferment Days", @class = "form-control required", @minlength = "0", @maxlength = "2", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Discount(In %)</label>
+                                        <div class="col-12">
+                                            @Html.TextBoxFor(m => m.difer_disc_per, new { placeholder = "Enter Discount in %", @class = "form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label col-md-6">Rate(% of Inv)</label>
+                                        <div class="col-12">
+                                            <div class="col-md-12 d-flex justify-content-between">
+                                                <div style="width:30%;">
+                                                    @Html.TextBoxFor(m => m.rate_per_inv, new { placeholder = "Rate(% of Inv)", @class = "form-control required", @minlength = "0", @maxlength = "2", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                                </div>
+                                                <div>
+                                                    @Html.DropDownListFor(m => m.frt_disc_ratetype, new SelectList(DiscountRateList, "Value", "Text"), "", new { @class = "required select2 drp form-control", placeholder = "Select Weight to Consider" })
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Type of Minimum Freight</label>
+                                        <div class="col-12">
+                                            <div class="d-flex gap-3">
+                                                <div class="form-check">
+                                                    @Html.RadioButtonFor(m => m.min_freight_type, "B", new { @class = "form-check-input", @checked = "true" })
+                                                    <label class="form-check-label">Base Wise</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    @Html.RadioButtonFor(m => m.min_freight_type, "%", new { @class = "form-check-input" })
+                                                    <label class="form-check-label">Percent Wise</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label col-md-2">Type of Service</label>
+                                        <div class="col-12">
+                                            <div class="d-flex">
+                                                <div class="col-lg-3 col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label col-md-10">COD/DOD Charges</label>
+                                                        <div class="col-12">
+                                                            <div class="col-md-1 form-check ">
+                                                                @Html.CheckBoxFor(m => m.Codecharge, new { @class = "form-check-input" })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-3 col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label col-md-10">DACC Charges</label>
+                                                        <div class="col-12">
+                                                            <div class="col-md-1 form-check">
+                                                                @Html.CheckBoxFor(m => m.DACcarage, new { @class = "form-check-input" })
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-3 col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label col-md-10">ODA Charges</label>
+                                                        <div class="col-12">
+                                                            <div class="col-md-1 form-check">
+                                                                @Html.CheckBoxFor(m => m.ODAchatrge, new { @class = "form-check-input" })
+                                                            </div>
+                                                            <div class="radio-list" id="odaRadioButtons">
+                                                                <div class="d-flex gap-3">
+                                                                    <div class="form-check">
+                                                                        <div class="col-12">
+                                                                            @Html.RadioButtonFor(m => m.oda_type, "S", new { @class = "form-check-input" })
+                                                                            <label class="form-check-label">As per Standard</label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="form-check mb-2 mx-2">
+                                                                        <div class="col-12">
+                                                                            @Html.RadioButtonFor(m => m.oda_type, "C", new { @class = "form-check-input", })
+                                                                            <label class="form-check-label">As per Customer </label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="row" style="background-color: #E4F2F7; margin: 10px; display:none;" id="divcoddacc">
+                                <div class="col-md-12" style="margin-top: 10px; margin-bottom:10px;" id="divCod">
+                                    <div class="form-group d-flex">
+                                        <label class="form-label col-md-2">COD/DOD Charges</label>
+                                        <div class="col-md-2">
+                                            @Html.TextBoxFor(m => m.cod_chrg_rs, new { placeholder = "Enter Charges Minimum (in Rs)", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <label class="form-label">Rate</label>
+                                        </div>
+                                        <div class="col-md-2">
+                                            @Html.TextBoxFor(m => m.cod_chrg_per, new { placeholder = "Enter Rate", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <label class="form-label">Select Weight</label>
+                                        </div>
+                                        <div class="col-md-2">
+                                            @Html.DropDownListFor(m => m.cod_chrg_ratetype, new SelectList(DiscountRateList, "Value", "Text"), "", new { @class = "select2 drp form-form", placeholder = "Select Weight to Consider" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12" style="margin-top: 10px; margin-bottom: 10px; display: none;" id="divdacc">
+                                    <div class="form-group d-flex">
+                                        <label class="form-label col-md-2">DACC Charges</label>
+                                        <div class="col-md-2">
+                                            @Html.TextBoxFor(m => m.dacc_chrg_rs, new { placeholder = "Enter Charges	Minimum (in Rs)", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <label class="form-label">Rate</label>
+                                        </div>
+                                        <div class="col-md-2">
+                                            @Html.TextBoxFor(m => m.dacc_chrg_per, new { placeholder = "Enter Rate", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <label class="form-label">Select Weight</label>
+                                        </div>
+                                        <div class="col-md-2">
+                                            @Html.DropDownListFor(m => m.dacc_chrg_ratetype, new SelectList(DiscountRateList, "Value", "Text"), "", new { @class = "select2 drp form-control", placeholder = "Select Weight to Consider" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+
+        @*<div id="divDemurrageInfo" style="display:none;">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="ri-settings-3-line align-middle me-1"></i> Demurrage Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Demurrage Charge applicable?</label>
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                @Html.CheckBoxFor(m => m.IsDemChargeApplcbl, new { @class = "form-check-input" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Demurrage Calculation Basis </label>
+                                        <div class="col-12">
+                                            @Html.DropDownListFor(m => m.dem_cal_bas, new SelectList(DemurrageCalculationList, "Value", "Text"), "", new { @class = "required select2 drp form-control", placeholder = "Select Demurrage Calculation Basis" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Free Storage Days</label>
+                                        <div class="col-12">
+                                            @Html.DropDownListFor(m => m.dem_day, new SelectList(ViewBag.freeStorageDays, "CodeId", "CodeDesc"), "", new { @class = "select2 drp form-control  required", placeholder = "Select Free Storage Days" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Min Demurrage Charges</label>
+                                        <div class="col-12">
+                                            @Html.TextBoxFor(m => m.dem_chrg_min, new { placeholder = "Enter Min Demurrage Charges", @class = "form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Demurrage Rate </label>
+                                        <div class="col-12">
+                                            @Html.DropDownListFor(m => m.dem_chrg_per, new SelectList(ViewBag.demarrageRate, "CodeId", "CodeDesc", Model.dem_chrg_per), "", new { @class = "select2 form-control  required", placeholder = "Select Charges" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Demurrage Rate Type </label>
+                                        <div class="col-12">
+                                            @Html.DropDownListFor(m => m.dem_chrg_ratetype, new SelectList(DemurrageRateRateList, "Value", "Text"), "", new { @class = "select2 drp form-control", placeholder = "Select Weight to Consider" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Max Demuarrge Charges</label>
+                                        <div class="col-12">
+                                            @Html.TextBoxFor(m => m.dem_chrg_max, new { placeholder = "Enter Max Demuarrge Charges", @class = " form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>*@
+
+        @*Diesel Hike*@
+        <div class="col-md-12">
+            <div class="card m-0">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-fire-line align-middle me-1"></i> Fuel Hike
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Fuel Hike Applicable.?</label>
+                                <div class="form-check">
+                                    @Html.CheckBoxFor(m => m.IsDieselHikeApplicable, new { @class = "form-check-input" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Review Type</label>
+                                @Html.DropDownListFor(m => m.DieselHikeReviewType, new SelectList(DieselHikeReviewType, "Value", "Text"), "", new { @class = "select2 required drp form-control", placeholder = "Select Hike Review Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Base Fuel Rate</label>
+                                @Html.TextBoxFor(m => m.BaseDieselRate, new { @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Fuel Rate Date</label>
+                                <div class="input-group date" data-date-format="dd M yyyy">
+                                    @Html.TextBoxFor(m => m.RateDate,
+                                        Convert.ToDateTime(Model.RateDate).Year < 1900
+                                            ? Convert.ToDateTime(Model.Contract_Stdate).ToString("dd MMM yyyy") :
+                                           Convert.ToDateTime(Model.RateDate).ToString("dd MMM yyyy"),
+                                        new { @class = "form-control date-picker required", placeholder = "Select Fuel Rate Date" })
+                                    <span class="input-group-text bg-light border-start-0" style="cursor:pointer;">
+                                        <i class="ri-calendar-2-line"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Current Fuel Rate</label>
+                            @Html.TextBoxFor(m => m.CurrentDieselRate, new { @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @readonly = true })
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Change Amount (Rs.)</label>
+                                @Html.TextBoxFor(m => m.Hike_Amount_Rs, new { @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @readonly = true })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Effective Amount (Rs.)</label>
+                                @Html.TextBoxFor(m => m.Effective_Amount_Rs, new { @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @readonly = true })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Hike (%)</label>
+                                @Html.TextBoxFor(m => m.Hike_Amount_Percentage, new { @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @max = "100", @readonly = true })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Effective (%)</label>
+                                @Html.TextBoxFor(m => m.Effective_Amount_Percentage, new { @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @max = "100", @readonly = true })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Fuel (%)</label>
+                                @Html.TextBoxFor(m => m.CurrentDieselPercentage, new { @class = "form-control", @readonly = true })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Effected On Date</label>
+                                <div class="input-group date" data-date-format="dd M yyyy">
+                                    @Html.TextBoxFor(m => m.EffectedDate,
+                                        Convert.ToDateTime(Model.EffectedDate).Year < 1900
+                                            ? Convert.ToDateTime(Model.Contract_Stdate).ToString("dd MMM yyyy") :
+                                           Convert.ToDateTime(Model.EffectedDate).ToString("dd MMM yyyy"),
+                                        new { @class = "form-control date-picker required", placeholder = "Select Effected Date" })
+                                    <span class="input-group-text bg-light border-start-0" style="cursor:pointer;">
+                                        <i class="ri-calendar-2-line"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 DieselHikeDiv">
+                            <div class="form-group">
+                                <label class="form-label required-field">Effective Type</label>
+                                @Html.DropDownListFor(m => m.EffectiveType, new SelectList(EffectiveType, "Value", "Text"), "", new { @class = "required select2 drp form-control", placeholder = "Select Effective Type" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Reference Fuel Type</label>
+                                @Html.DropDownListFor(m => m.ReferenceFuelType, new SelectList(RefrenceFuelType, "Value", "Text", Model.ReferenceFuelType), "", new { @class = "select2 reselect required form-control", placeholder = "Select Reference Fuel Type" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Fuel Surcharge Applicable</label>
+                                <div class="gap-3 d-flex">
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.fuelSurchagre, "Y", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Yes</label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.fuelSurchagre, "N", new { @class = "form-check-input" })
+                                        <label class="form-check-label">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Fuel Hike Rate Details?</label>
+                                <div class="chkactive">
+                                    <a href="#" class="btn default btn-xs blue-stripe DieselHikeRate" style="padding: 7px 5px;" data-toggle="modal" data-type="1"><i class="fa fa-lock"></i>&nbsp;Show Diesel Hike Rate</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+}
+
+<div class="form-actions">
+    <button type="button" id="btnSubmitservicePreviousTab" class="@ViewBag.UI.Buttons.Previous.CssClass"><i class="@ViewBag.UI.Buttons.Previous.Icon"></i>@ViewBag.UI.Buttons.Previous.Label</button>
+    <button type="button" id="btnSubmitservice" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Save & Next</button>
+    <button type="button" id="btnSubmitserviceNextTab" class="@ViewBag.UI.Buttons.Next.CssClass"><i class="@ViewBag.UI.Buttons.Next.Icon"></i>@ViewBag.UI.Buttons.Next.Label</button>
+</div>

@@ -1,0 +1,37 @@
+<!-- Global Reusable Add/Edit Form Modal -->
+<div id="glFormModal" class="modal fade" aria-labelledby="glFormModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg"> <!-- Large by default for forms -->
+        <div class="modal-content border-0">
+            <!-- Modal Header -->
+            <div class="modal-header p-3">
+                <h5 class="modal-title mb-0 fw-bold text-primary" id="glFormModalLabel" style="color: #405189 !important; font-size: 16px;">Form Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="glFormModalClose"></button>
+            </div>
+
+            <!-- Modal Body (Dynamic Form Content Loads Here) -->
+            <div class="modal-body p-4" style="overflow-y: auto; max-height: calc(100vh - 200px);">
+                <div id="glFormLoader" class="text-center p-5 hidden">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Fetching form details...</p>
+                </div>
+                <div id="glFormContent">
+                    <!-- AJAX content will be injected here -->
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer bg-light p-3">
+                <div class="hstack gap-2 justify-content-end">
+                    <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass" data-bs-dismiss="modal">
+                        <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i>@ViewBag.UI.Buttons.Cancel.Label
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass" id="glFormSaveBtn">
+                        <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>@ViewBag.UI.Buttons.Submit.Label
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

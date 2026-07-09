@@ -1,0 +1,93 @@
+@model IEnumerable<GreenLineDataService.Models.Cygnus_Master_Vehicle_DocumentType>
+
+@{
+    ViewBag.Title = "Document Type List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Document Type List</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Document Type List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <!-- Header Bar -->
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">Document Types</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a href="@Url.Content("~/Master/VehicleDocumentType")" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" title="Add New Document Type">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="tblDocumentTypeList">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Document Name</th>
+                            <th class="text-center">Short Name</th>
+                            <th class="text-center">Is Date</th>
+                            <th class="text-center">Is Insurance</th>
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="text-center fw-medium">@item.Document_Name</td>
+                                    <td class="text-center">@item.ShortName</td>
+                                    <td class="text-center">@(item.Is_Date ? "Yes" : "No")</td>
+                                    <td class="text-center">@(item.Is_Insurance ? "Yes" : "No")</td>
+                                    <td class="text-center">
+                                        <a href="@Url.Content("~/Master/VehicleDocumentType/" + item.Id)" class="@ViewBag.UI.Buttons.Edit.CssClass" title="Edit">
+                                            <i class="@ViewBag.UI.Buttons.Edit.Icon align-middle"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No records found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function () {
+        return {
+            init: function (DomainName) {
+                GlDataTable.init('tblDocumentTypeList', {   
+                    statusFilter: [2,3],
+                    columnDefs: [
+                        { orderable: false, searchable: false, targets: [2,3,4] }
+                    ],
+                    order: [[0, 'asc']]
+                });
+            }
+        }
+    }();
+</script>

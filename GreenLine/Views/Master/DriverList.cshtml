@@ -1,0 +1,152 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_FLEET_DRIVER_DOCDET>
+@{
+    ViewBag.Title = "Driver List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Driver Master</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Driver List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom-dashed d-flex align-items-center">
+                <h4 class="card-title mb-0 flex-grow-1">
+                    <i class="ri-steering-2-line align-middle me-1"></i> Driver List
+                </h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass" id="btnDownloadMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon"></i>
+                    </button>
+                    <a href="@Url.Content("~/Master/AddEditDriver")" class="@ViewBag.UI.Buttons.Add.CssClass">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle" id="DriverList">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Manual Code</th>
+                            <th class="text-center">Driver Name</th>
+                            <th class="text-center">Location</th>
+                            <th class="text-center">Status</th>
+                            @*<th class="text-center">Vehicle No.</th>*@
+                            <th class="text-center no-cc">Status</th>
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+
+        var loadData = function (DomainName) {
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: DomainName + '/Master/GetDriverListJson',
+                type: 'POST',
+                success: function (result) {
+                    GlDataTable.refresh('DriverList', {
+                        data: result,
+                        statusFilter: 5,
+                        columns: [
+                            { data: "Manual_Driver_Code" },
+                            { data: "Driver_Name" },
+                            { data: "Driver_Location" },
+                            { data: "Driver_Status" },
+                            //{ data: "VEHNO" },
+                            { data: "ActiveFlag", columnControl: false },
+                            { data: "Driver_Id", columnControl: false }
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [4],
+                                render: function (data, type, row) {
+                                    var isChecked = data == "Y" ? "checked" : "";
+                                    return '<label class="switch"><input class="btnToggleStatus" type="checkbox" ' + isChecked + ' data-id="' + row.Driver_Id + '" data-name="' + row.Driver_Name + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [5],
+                                render: function (data) {
+                                    return '<a href="' + DomainName + '/Master/AddEditDriver/' + data + '" class="@(ViewBag.UI.Buttons.Edit.CssClass) waves-effect waves-light" title="Edit"><i class="@(ViewBag.UI.Buttons.Edit.Icon) align-middle"></i></a>';
+                                }
+                            },
+                            { orderable: false, targets: [4,5] }
+                        ],
+                        createdRow: function (row) {
+                            $('td', row).addClass('text-center');
+                        }
+                    });
+
+                    App.unblockUI();
+                },
+                error: function () {
+                    TosterNotification("error", 'Operation failed. Please try again or contact your administrator.', "Oops..!!");
+                    App.unblockUI();
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                loadData(DomainName);
+
+                $(document).off("click", ".btnToggleStatus").on("click", ".btnToggleStatus", function (e) {
+                    e.preventDefault();
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name") || ("Driver ID " + id);
+                    var isChecked = checkbox.is(':checked');
+
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    // Revert checkbox state visually until confirmed
+                    checkbox.prop('checked', !isChecked);
+
+                    showConfirm({
+                        title: action + " Driver",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for driver <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActive_Driver', { id: id }, function (res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    loadData(DomainName);
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $(document).off('click', '#btnDownloadMasterReport').on('click', '#btnDownloadMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "Driver", "Driver Master List");
+                });
+            }
+        };
+    }();
+</script>

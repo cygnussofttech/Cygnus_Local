@@ -1,0 +1,264 @@
+@model GreenLineDataService.ViewModel.CYGNUS_Vehicle_ModelViewModel
+@using GreenLineDataService.Models
+@{
+    var isEdit = Model.WVT.Type_Code != null && Model.WVT.Type_Code > 0;
+    var modeText = isEdit ? "Edit" : "Add";
+    ViewBag.Title = modeText + " Vehicle Model";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    bool isActive = (Model.WVT.ActiveFlag != null && Model.WVT.ActiveFlag.ToUpper() == "Y") || Model.EditFlag == false;
+
+    if (!isEdit)
+    {
+        Model.WVT.ActiveFlag = "Y";
+    }
+
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+    List<CYGNUS_Master_General> TruckList = _masterService.GetGeneralMaster().Where(c => c.CodeType == "VHCAT").ToList();
+    List<CYGNUS_Master_General> FuleTypeList = _masterService.GetGeneralMaster().Where(c => c.CodeType == "FUELTY").ToList();
+
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">@ViewBag.Title</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Content("~/Master/VehicleModel")">Vehicle Model</a></li>
+                    <li class="breadcrumb-item active">@modeText</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+@using (Html.BeginForm("AddEditVehicleModel", "Master", FormMethod.Post, new { @id = "form_sample", @class = "form-modern-ui" }))
+{
+    @Html.HiddenFor(c => c.WVT.Type_Code)
+    @Html.HiddenFor(c => c.WVT.ActiveFlag)
+
+    <div class="row">
+        <div class="col-lg-12">
+            <!-- Basic Information -->
+            <div class="card">
+                <div class="card-header border-bottom-dashed py-3">
+                    <h5 class="card-title mb-0 flex-grow-1"><i class="ri-edit-box-line align-middle me-1"></i> Basic Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Vehicle Model Code</label>
+                                @Html.TextBox("Display_TypeCode", isEdit ? Model.WVT.Type_Code.ToString() : "", new { @placeholder = "System Generated", @class = "form-control bg-light", @readonly = "true" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Manufacturer Name</label>
+                                @Html.TextBoxFor(c => c.WVT.Made_By, new { @placeholder = "Enter Manufacturer Name", @class = "form-control required", @autocomplete = "off" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Vehicle Name</label>
+                                @Html.TextBoxFor(c => c.WVT.Type_Name, new { @placeholder = "Enter Vehicle Name", @class = "form-control required", @autocomplete = "off" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Model No.</label>
+                                @Html.TextBoxFor(c => c.WVT.Model_No, new { @placeholder = "Enter Model No.", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Truck / Trailer</label>
+                                @Html.DropDownListFor(c => c.WVT.Vehicle_Type_Category, new SelectList(TruckList, "CodeId", "CodeDesc"), "", new { @class = "form-control select2 required", @placeholder = "Select Category" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Tyre Rotation (KM)</label>
+                                @Html.TextBoxFor(c => c.WVT.TyreRotate_KM, new { @placeholder = "Enter KM", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Type Description</label>
+                                @Html.TextBoxFor(c => c.WVT.Type_Desc, new { @placeholder = "Enter Description", @class = "form-control required" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label">Avg Speed (KM/H)</label>
+                                @Html.TextBoxFor(c => c.WVT.AvgSpeedPerHour, new { @placeholder = "Enter Speed", @class = "form-control", @onkeypress = "return validInt(event)", @maxlength = "10" })
+                            </div>
+                        </div>
+                        @if (isEdit)
+                        {
+                            <div class="col-md-3 d-flex align-items-end">
+                                <div class="form-check form-switch form-switch-md mb-2">
+                                    <input type="checkbox" name="isActive_Check" value="true" class="form-check-input" id="isActive_Check" @(isActive ? "checked" : "") />
+                                    <label class="form-check-label" for="isActive_Check">Status</label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capacity Information -->
+            <div class="card mb-0">
+                <div class="card-header border-bottom-dashed py-3">
+                    <h5 class="card-title mb-0 flex-grow-1"><i class="ri-truck-line align-middle me-1"></i> Capacity & Technical Details</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Gross Vehicle Weight (Ton)</label>
+                                @Html.TextBoxFor(c => c.WVT.Payload, new { @placeholder = "Enter GVW", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Unladen Weight (Ton)</label>
+                                @Html.TextBoxFor(c => c.WVT.usedcapacity, new { @placeholder = "Enter Unladen Weight", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Capacity (Ton)</label>
+                                @Html.TextBoxFor(c => c.WVT.Capacity, new { @placeholder = "Enter Capacity", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Rate per KM</label>
+                                @Html.TextBoxFor(c => c.WVT.Rate_Per_KM, new { @placeholder = "Enter Rate", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Fuel Type</label>
+                                @*@Html.TextBoxFor(c => c.WVT.Fuel_Type, new { @placeholder = "e.g. Diesel/CNG", @class = "form-control required" })*@
+                                @Html.DropDownListFor(c => c.WVT.Fuel_Type, new SelectList(FuleTypeList, "CodeId", "CodeDesc"), "", new { @class = "form-control select2 required", @placeholder = "Select Fuel Type" })
+
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Height (Ft)</label>
+                                @Html.TextBoxFor(c => c.WVT.Height, new { @placeholder = "Enter Height", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Length (Ft)</label>
+                                @Html.TextBoxFor(c => c.WVT.length, new { @placeholder = "Enter Length", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label required-label">Width (Ft)</label>
+                                @Html.TextBoxFor(c => c.WVT.width, new { @placeholder = "Enter Width", @class = "form-control required", @onkeypress = "return validFloat(event,this.id)" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="form-actions">
+                    <a class="@ViewBag.UI.Buttons.Cancel.CssClass" href="@Url.Content("~/Master/VehicleModel")">
+                        <i class="@ViewBag.UI.Buttons.Cancel.Icon align-middle"></i>@ViewBag.UI.Buttons.Cancel.Label
+                    </a>
+                    <button type="submit" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass">
+                        <i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i>@ViewBag.UI.Buttons.Submit.Label 
+                    </button>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                rules: {},
+                messages: {},
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible") || element.next(".select2-container").length > 0) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                },
+                submitHandler: function (form) {
+                    App.blockUI({ boxed: true });
+                    $("#btnSubmit").prop("disabled", true);
+                    
+                    $.post($(form).attr('action'), $(form).serialize(), function (data, status) {
+                        App.unblockUI();
+                        if (status == "success") {
+                            GLModal.showSuccess("Success", "Vehicle Model record has been saved successfully!", function() {
+                                window.location.href = DomainName + '/Master/VehicleModel';
+                            });
+                        } else {
+                            GLModal.showError("Error", "Process failed. Please contact administrator.");
+                            $("#btnSubmit").prop("disabled", false);
+                        }
+                    }).fail(function() {
+                        App.unblockUI();
+                        GLModal.showError("Error", "A server-side error occurred.");
+                        $("#btnSubmit").prop("disabled", false);
+                    });
+                }
+            });
+        }
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                
+                // Initialize Select2
+                $('.select2').select2({
+                    placeholder: "Select an option",
+                    allowClear: true
+                });
+
+                // Status Toggle Binding
+                $('#isActive_Check').on('change', function () {
+                    $("#WVT_ActiveFlag").val($(this).is(":checked") ? "Y" : "N");
+                });
+            }
+        }
+    }();
+</script>

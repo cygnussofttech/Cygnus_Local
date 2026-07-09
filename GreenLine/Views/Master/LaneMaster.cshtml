@@ -1,0 +1,276 @@
+@model GreenLineDataService.ViewModel.CYGNUS_LaneViewModel
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Lane Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Lane Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Lane Master</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom-dashed d-flex align-items-center">
+                <h4 class="card-title mb-0 flex-grow-1">List of Lanes</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light controls" id="btnDownloadStateMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </a>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" id="addLane">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="LaneList">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Lane Name</th>
+                                <th class="text-center">State</th>
+                                <th class="text-center">City</th>
+                                <th class="text-center">Zone</th>
+                                <th class="text-center no-cc">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.listCL)
+                            {
+                                <tr>
+                                    <td class="text-center">@item.Lane_Name</td>
+                                    <td class="text-center">@item.State_name</td>
+                                    <td class="text-center">@item.City_name</td>
+                                    <td class="text-center">@item.Zone_desc</td>
+                                    <td class="text-center">
+                                        <button class="@ViewBag.UI.Buttons.Edit.CssClass btnEditLane" data-id="@item.Lane_ID">
+                                            <i class="@ViewBag.UI.Buttons.Edit.Icon"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Structure -->
+<div class="modal fade" id="LaneModal" tabindex="-1" aria-labelledby="LaneModalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content border-0 shadow" id="LaneModalContent">
+            <!-- Content loaded via AJAX -->
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            form1.validate({
+                errorElement: 'span',
+                errorClass: 'help-block text-danger small',
+                focusInvalid: true,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                highlight: function (element) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass('is-invalid');
+                },
+                errorPlacement: function (error, element) {
+                    var errorId = (element.attr('id') || element.attr('name')) + "-error";
+                    var existingError = $('#' + errorId);
+                    
+                    if (existingError.length) {
+                        existingError.html(error.html());
+                        existingError.show();
+                    } else {
+                        error.attr("id", errorId);
+                        error.addClass('invalid-feedback text-danger');
+                        if (element.hasClass('select2-hidden-accessible')) {
+                            var container = element.next('.select2-container');
+                            error.insertAfter(container.length > 0 ? container : element);
+                        } else {
+                            error.insertAfter(element);
+                        }
+                        error.show();
+                    }
+                }
+            });
+        }
+
+        var GetLaneDetails = function (id, DomainName) {
+            GLModal.showForm({
+                title: id > 0 ? "Edit Lane" : "Add lane",
+                icon: 'ri-edit-box-line',
+                url: DomainName + '/Master/AddEditLane?id=' + id,
+                onLoaded: function () {
+                    $("#State_Disabled, #Zone_Disabled, #City").select2({
+                        placeholder: "Select an option",
+                        allowClear: true,
+                        dropdownParent: $('#glFormModal')
+                    });
+
+                    if (id > 0) {
+                        $("#Lane_Name").attr("readonly", true);
+                    }
+
+                    $("#Lane_Name").on('change', function () {
+                        CheckDuplicate(DomainName);
+                    });
+                },
+                onSave: function () {
+                    if (!$('#form_sample').valid()) return false;
+                    return $.ajax({
+                        url: DomainName + '/Master/LaneMaster',
+                        data: $("#form_sample").serialize(),
+                        type: 'GET',
+                        success: function (data) {
+                            if (data) {
+                                //TosterNotification("success", "Record has been updated successfully..!", "Success");
+                            } else {
+                                TosterNotification("error", 'Operation fail..!! There is some issue please try again.', "Oops..!!");
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        var handleSave = function (DomainName) {
+            $("#glFormSaveBtn").off('click').on('click', function () {
+                if (!$('#form_sample').valid()) return;
+
+                App.blockUI({ boxed: true });
+                var LaneObj = {
+                    Lane_ID: $("#Lane_ID").val(),
+                    Lane_Name: $("#Lane_Name").val(),
+                    State: $("#State").val(),
+                    City: $("#City").val(),
+                    Zone: $("#Zone").val()
+                };
+
+                $.ajax({
+                    url: DomainName + '/Master/AddEditLane',
+                    type: 'POST',
+                    data: JSON.stringify(LaneObj),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.Status) {
+                            TosterNotification("success", "Lane saved successfully!", "Success");
+                            //bootstrap.Modal.getInstance(document.getElementById('LaneModal')).hide();
+                            location.reload(); // Simple reload for now
+                        } else {
+                            TosterNotification("error", data.Message || 'Save failed.', "Error");
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        TosterNotification("error", 'Post failed.', "Error");
+                        App.unblockUI();
+                    }
+                });
+            });
+        }
+       function CheckDuplicate(DomainName) {
+            var LaneName = $("#Lane_Name").val();
+            if (!LaneName) return;
+
+            App.blockUI({
+                target: '#glFormModal',
+                overlayColor: 'none',
+                centerY: true,
+                boxed: true
+            });
+            var LaneId = $("#Lane_ID").val() || 0;
+            var strurl = DomainName + '/Master/CheckDuplicateLane?LaneName=' + encodeURIComponent(LaneName) + '&LaneId=' + LaneId;
+            $.ajax({
+                url: strurl,
+                cache: false,
+                data: {},
+                type: 'POST',
+                success: function (data) {
+                    if (data > "0") {
+                        TosterNotification("error", 'Lane <b>"' + LaneName + '"</b> already exists!!!', "Oops..!!");
+                        $("#Lane_Name").val("").focus();
+                    }
+                    App.unblockUI('#glFormModal');
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                    App.unblockUI('#glFormModal');
+                }
+            });
+        }
+
+
+        return {
+            init: function (DomainName) {
+                $("#addLane").click(function () {
+                    GetLaneDetails(0, DomainName);
+                });
+
+                $(document).on('click', '#btnDownloadStateMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "Lane", "Lane_Master_List");
+                });
+
+                handleSave(DomainName);
+
+                $(document).on('click', ".btnEditLane", function () {
+                    var id = $(this).data('id');
+                    GetLaneDetails(id, DomainName);
+                });
+
+                     //$('#State').prop('disabled', true).addClass('disabled-field');
+                     //    $('#Zone').prop('disabled', true).addClass('disabled-field');
+
+                     //    $('#City').change(function () {
+                     //        var City = $(this).val();
+                     //        if (!City) {
+                     //            $("#State").val(null).trigger("change");
+                     //            $("#Zone").val(null).trigger("change");
+                     //            return;
+                     //        }
+                     //        $.ajax({
+                     //            url: DomainName + '/Master/Get_Country_State_City_Zone_on_Pincode?Code=' + City + '&Type=S',
+                     //            type: 'GET',
+                     //            dataType: "json",
+                     //            success: function (response) {
+                     //                if (response && response.length > 0) {
+                     //                    $("#State").val(response[0].StateCode).trigger('change');
+                     //                    $("#Zone").val(response[0].ZoneId).trigger('change');
+                     //                }
+                     //                App.unblockUI();
+                     //            },
+                     //            error: function (jqXHR, exception) {
+                     //                result = { Status: false, Message: "Error occurred while contacting database or API." };
+                     //            }
+                     //        });
+
+                     //    });
+                GlDataTable.init('LaneList', {
+                    columnDefs: [
+                        { orderable: false, targets: [4] }
+                    ]
+                });
+            }
+        }
+    }();
+
+</script>

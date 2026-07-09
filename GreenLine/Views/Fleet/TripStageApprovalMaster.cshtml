@@ -1,0 +1,206 @@
+@{
+    ViewBag.Title = "Trip Stage Approval Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-0">@ViewBag.Title</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Fleet</a></li>
+                    <li class="breadcrumb-item active">@ViewBag.Title</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0 m-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Trips for Stage Approval</h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle table-nowrap m-0" id="tblTripStageApproval">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center no-cc">IsMannualStageMark</th>
+                                <th class="text-center no-cc">Trip No</th>
+                                <th class="text-center">PR No</th>
+                                <th class="text-center">From Lane</th>
+                                <th class="text-center">To Lane</th>
+                                <th class="text-center">Vehicle No</th>
+                                <th class="text-center">Driver 1</th>
+                                <th class="text-center">Driver 2</th>
+                                <th class="text-center">Start Address</th>
+                                <th class="text-center">End Address</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="form-actions">
+    <button type="button" class="@ViewBag.UI.Buttons.Submit.CssClass" id="btnSaveTripStage">
+        <i class="@ViewBag.UI.Buttons.Submit.Icon"></i> @ViewBag.UI.Buttons.Submit.Label
+    </button>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function () {
+        var tripStatusMap = {};
+        var initialDbCheckedMap = {};
+
+        var loadDataTable = function (DomainName, TableName) {
+            App.blockUI({
+                target: '#' + TableName,
+                boxed: true,
+                message: 'Loading data...'
+            });
+
+            $.ajax({
+                url: DomainName + "/Account/GetDataWithoutAlias",
+                type: 'POST',
+                dataType: "json",
+                data: {
+                    Method: "USP_GetTripStageApprovalMasterList",
+                    parameters: { "ClusterHead": "" }
+                },
+                success: function (data) {
+                    var tableData = data;
+                    if (typeof data === 'object' && !Array.isArray(data)) {
+                        var tableNames = Object.keys(data);
+                        for (var i = 0; i < tableNames.length; i++) {
+                            if (Array.isArray(data[tableNames[i]])) {
+                                tableData = data[tableNames[i]];
+                                break;
+                            }
+                        }
+                    }
+
+                    // Reset status map and populate from incoming data
+                    tripStatusMap = {};
+                    initialDbCheckedMap = {};
+                    tableData.forEach(function (row) {
+                        var isDbChecked = (row.IsMannualStageMark === true || row.IsMannualStageMark === 1 || row.IsMannualStageMark === "1");
+                        tripStatusMap[row.TripNo] = isDbChecked;
+                        initialDbCheckedMap[row.TripNo] = isDbChecked;
+                    });
+
+                    GlDataTable.refresh(TableName, {
+                        data: tableData,
+                        order: [[1, "asc"]],
+                        columns: [
+                            { data: "IsMannualStageMark", orderable: false },
+                            { data: "TripNo" },
+                            { data: "PRNo" },
+                            { data: "From_Lane" },
+                            { data: "To_Lane" },
+                            { data: "VehicleNo" },
+                            { data: "Driver1" },
+                            { data: "Driver2" },
+                            { data: "Start_Address" },
+                            { data: "End_Address" }
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [0],
+                                orderable: false,
+                                render: function (data, type, full) {
+                                    var isDbChecked = full.IsMannualStageMark === true || full.IsMannualStageMark === 1 || full.IsMannualStageMark === "1";
+                                    var isChecked = tripStatusMap[full.TripNo] ? "checked" : "";
+                                    var isDisabled = isDbChecked ? "disabled" : "";
+                                    return '<input type="checkbox" class="form-check-input chkTripManualStage" ' + isChecked + ' ' + isDisabled + ' data-id="' + full.TripNo + '" style="cursor: pointer;">';
+                                }
+                            }
+                        ],
+                        createdRow: function (row, data) {
+                            $(row).find('td').addClass('text-center');
+                        }
+                    });
+
+                    $('#mainContainer').show(500);
+                    App.unblockUI('#' + TableName);
+                },
+                error: function () {
+                    TosterNotification("error", 'Failed to load data', "Error");
+                    App.unblockUI('#' + TableName);
+                }
+            });
+        }
+
+        var saveChanges = function (DomainName) {
+            var updates = [];
+            for (var tripNo in tripStatusMap) {
+                if (tripStatusMap[tripNo] === true && !initialDbCheckedMap[tripNo]) {
+                    updates.push({
+                        TripNo: tripNo,
+                        IsMannualStageMark: true
+                    });
+                }
+            }
+
+            if (updates.length === 0) {
+                TosterNotification("warning", "Please select at least one new trip to mark.", "Warning");
+                return;
+            }
+
+            showConfirm({
+                title: "Save Changes",
+                message: 'Are you sure you want to save manual stage approval updates for the selected trips?',
+                type: "success",
+                confirmText: "Yes",
+                cancelText: "No",
+                onConfirm: function () {
+                    App.blockUI({ boxed: true, message: 'Saving status updates...' });
+                    $.ajax({
+                        url: DomainName + '/Fleet/SaveTripStageApproval',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(updates),
+                        success: function (res) {
+                            App.unblockUI();
+                            if (res.Status) {
+                                GLModal.showSuccess("Manual stage marks updated successfully!");
+                                loadDataTable(DomainName, "tblTripStageApproval");
+                            } else {
+                                GLModal.showError(res.Message || "Failed to update manual stage marks.");
+                            }
+                        },
+                        error: function () {
+                            App.unblockUI();
+                            GLModal.showError("Network error: Failed to save changes.");
+                        }
+                    });
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                loadDataTable(DomainName, "tblTripStageApproval");
+
+                // Toggle individual row
+                $(document).on('change', '.chkTripManualStage', function () {
+                    var tripNo = $(this).data('id');
+                    var isChecked = $(this).is(':checked');
+                    tripStatusMap[tripNo] = isChecked;
+                });
+
+                // Save triggers
+                $(document).on('click', '#btnSaveTripStage', function (e) {
+                    e.preventDefault();
+                    saveChanges(DomainName);
+                });
+            }
+        };
+    }();
+</script>

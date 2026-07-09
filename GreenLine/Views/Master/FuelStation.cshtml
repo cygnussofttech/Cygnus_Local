@@ -1,0 +1,166 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Fuel Station Master";
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">@ViewBag.Title</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Fuel Station</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Fuel Stations</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a id="btnDownloadFuelStationList" class="@ViewBag.UI.Buttons.Excel.CssClass" href="javascript:void(0);">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon"></i>
+                    </a>
+                    <a class="@ViewBag.UI.Buttons.Add.CssClass" href="@Url.Content("~/Master/AddEditFuelStation/0")">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="FuelStationList">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="center">Station</th>
+                            <th class="center">City</th>
+                            <th class="center">State</th>
+                            <th class="center">Contact Person</th>
+                            <th class="center">Contact Number</th>
+                            <th class="center">Ugelro Id</th>
+                            <th class="center no-cc">Status</th>
+                            <th class="center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var UI = {
+        editBtn: '@ViewBag.UI.Buttons.Edit.CssClass',
+        editIcon: '@ViewBag.UI.Buttons.Edit.Icon'
+    };
+
+    var FormComponents = (function () {
+        var loadData = function () {
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: DomainName + '/Master/FuelStationListJson',
+                type: 'POST',
+                success: function (result) {
+                    GlDataTable.refresh('FuelStationList', {
+                        data: result,
+                        statusFilter: 6,
+                        columns: [
+                            { data: "StationName" },
+                            { data: "CityName" },
+                            { data: "StateName" },
+                            { data: "ContactPersonName" },
+                            { data: "ContactPersonNumber" },
+                            { data: "UgelroId" },
+                            { 
+                                data: "IsActive",
+                                orderable: false,
+                                render: function (data, type, row) {
+                                    var isChecked = (data === true) ? "checked" : "";
+                                    return '<label class="switch"><input class="btnToggleStatus" type="checkbox" ' + isChecked + ' data-id="' + row.Id + '" data-name="' + row.StationName + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            { 
+                                data: "Id",
+                                orderable: false,
+                                render: function (data) {
+                                    return '<div class="d-flex justify-content-center gap-1">' +
+                                           '<a href="' + DomainName + '/Master/AddEditFuelStation/' + data + '" class="' + UI.editBtn + '" title="Edit"><i class="' + UI.editIcon + '"></i></a>' +
+                                           '</div>';
+                                }
+                            }
+                        ],
+                        createdRow: function (row) {
+                            $('td', row).addClass('text-center align-middle');
+                        }
+                    });
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function () {
+                    TosterNotification("error", "Failed to load fuel station data.", "Error");
+                    App.unblockUI();
+                }
+            });
+        };
+
+        var initEvents = function () {
+            $(document).on("click", ".btnToggleStatus", function (e) {
+                e.preventDefault();
+                var checkbox = $(this);
+                var id = checkbox.data("id");
+                var name = checkbox.data("name");
+                var isChecked = checkbox.is(':checked');
+                
+                var action = isChecked ? "Activate" : "Inactivate";
+                var type = isChecked ? "success" : "info";
+
+                showConfirm({
+                    title: action + " Fuel Station",
+                    message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for <strong style="color:#405189">"' + name + '"</strong>?',
+                    type: type,
+                    confirmText: "Yes",
+                    cancelText: "No",
+                    onConfirm: function () {
+                        App.blockUI({ boxed: true, message: 'Updating status...' });
+                        $.ajax({
+                            url: DomainName + '/Master/ActiveInActiveFuelStation',
+                            type: 'POST',
+                            data: { id: id },
+                            success: function (status) {
+                                App.unblockUI();
+                                if (status) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    loadData();
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            },
+                            error: function() {
+                                App.unblockUI();
+                                GLModal.showError("An error occurred while updating status.");
+                            }
+                        });
+                    }
+                });
+            });
+
+            $(document).on('click', '#btnDownloadFuelStationList', function (e) {
+                e.preventDefault();
+                DownloadMasterReport(DomainName, "FuelStationMaster", "Fuel_Station_Master_List");
+            });
+        };
+
+        return {
+            init: function () {
+                loadData();
+                initEvents();
+            }
+        };
+    })();
+</script>

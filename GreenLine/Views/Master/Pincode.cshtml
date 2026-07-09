@@ -1,0 +1,330 @@
+@model GreenLineDataService.ViewModel.CYGNUS_pincodemasterViewModel
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Pincode Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+    List<CYGNUS_State> stateList = _masterService.GetStateMaster().Where(c => c.activeflag == null ? c.activeflag == null : c.activeflag == "Y").OrderBy(c => c.stnm).ToList();
+    List<CYGNUS_citymaster> cityList = new List<CYGNUS_citymaster>();
+}
+
+<style>
+    .pincode-master-page .card { border-radius: 0.25rem !important; }
+    
+    /* Standard card styling matching User List */
+    .pincode-master-page .card-title { 
+        font-size: 15px; 
+        font-weight: 600; 
+        color: var(--vz-body-color);
+        margin-bottom: 0; 
+    }
+    
+    .pincode-master-page .filter-label { 
+        font-size: 13px; 
+        font-weight: 600; 
+        color: var(--vz-body-color); 
+        margin-right: 5px; 
+    }
+
+    /* Table specific refinements */
+    #PincodeList .btn-label {
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+    #PincodeList .btn-label i {
+        margin-right: 8px;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Pincode Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Pincode Master</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="pincode-master-page">
+    <div class="card shadow-sm border-0 rounded-0">
+        <!-- Header Bar -->
+        <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+            <h4 class="card-title mb-0 flex-grow-1">List of Pincodes</h4>
+            <div class="flex-shrink-0 d-flex gap-2">
+                <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass" id="btnDownloadMasterReport">
+                    <i class="@ViewBag.UI.Buttons.Excel.Icon"></i>
+                </button>
+                <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass" id="addEdit">
+                    <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="card-body border-bottom bg-light bg-opacity-10 py-3">
+            <div class="row align-items-center g-3">
+                <div class="col-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="filter-label mb-0">State:</span>
+                        <div style="width: 200px;">
+                            @Html.DropDownListFor(c => c.WPM.StateCode, new SelectList(stateList, "stcd", "stnm", Model.WPM.StateCode), "", new { @class = "form-control select2", @placeholder="Select State" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="filter-label mb-0">City:</span>
+                        <div style="width: 200px;">
+                            @Html.DropDownListFor(c => c.WPM.cityname, new SelectList(cityList, "city_code", "Location", Model.WPM.cityname), "", new { @class = "form-control select2", @placeholder="Select City" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="card-body p-0">
+            <div id="tblData" style="display:none;">
+                <div class="table-responsive">
+                    @{
+                        Html.RenderPartial("_PincodeList", Model.listWPM.ToList());
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                rules: {},
+                messages: {},
+                invalidHandler: function (event, validator) {
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible") || element.next(".select2-container").length > 0) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                }
+            });
+        };
+
+        var GetObjectDet = function (id, DomainName) {
+            GLModal.showForm({
+                title: id > 0 ? "Edit Pincode" : "Add New Pincode",
+                icon: 'ri-edit-box-line',
+                url: DomainName + '/Master/PincodeMasters?id=' + id,
+                onLoaded: function () {
+                    Formvalidate(DomainName);
+
+                    $("#StateCode, #cityname, #Handling_Location").select2({
+                        placeholder: "Select an option",
+                        allowClear: true,
+                        dropdownParent: $('#glFormModal')
+                    });
+
+                    if (id > 0) {
+                        $("#pincode").attr("readonly", true);
+                    }
+                },
+                onSave: function () {
+                    if (!$('#form_sample').valid()) return false;
+                    
+                    return $.ajax({
+                        url: DomainName + '/Master/AddEditPincode',
+                        data: $("#form_sample").serialize(),
+                        type: 'GET',
+                        success: function (data) {
+                            if (data === true || (data && data.Status === true)) {
+                                TosterNotification("success", "Record has been updated successfully..!", "Success");
+                                bindTable($("#WPM_cityname").val(), DomainName);
+                            } else {
+                                var msg = (data && data.Message) ? data.Message : 'Operation fail..!! There is some issue please try again.';
+                                TosterNotification("error", msg, "Oops..!!");
+                            }
+                        }
+                    });
+                }
+            });
+        };
+
+        var bindTable = function (id, DomainName) {
+            App.blockUI({ boxed: true });
+            var strUrl = DomainName + '/Master/GetPincodeByCity/' + id;
+            $.ajax({
+                url: strUrl,
+                cache: false,
+                type: 'POST',
+                success: function (data) {
+                    // Destroy previous DataTable instance to prevent leaks
+                    if ($.fn.DataTable.isDataTable('#PincodeList')) {
+                        $('#PincodeList').DataTable().destroy();
+                    }
+
+                    $("#tblData").hide();
+                    $("#tblData .table-responsive").html(data);
+
+                    // Initialize standardized project datatable
+                    if (typeof GlDataTable !== 'undefined') {
+                        GlDataTable.init("PincodeList", {
+                            searching: true,
+                            statusFilter: 3,
+                            columnDefs: [
+                                { orderable: false, targets: [3, 4] }
+                            ]
+                        });
+                    }
+
+                    App.unblockUI();
+                    $("#tblData").fadeIn(400);
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Oops..!!");
+                    App.unblockUI();
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                $("#addEdit").on('click', function () {
+                    GetObjectDet("0", DomainName);
+                });
+
+                $(document).on('click', '.btnMasterEdit', function (e) {
+                    var id = $(this).data('id');
+                    GetObjectDet(id, DomainName);
+                });
+
+                $(document).on('change', '#StateCode', function (e) {
+                    var id = $(this).val();
+                    var StrURL = DomainName + "/Master/GetCityByStateJson?Id=" + id;
+                    var DDLName = "cityname";
+                    App.blockUI({ boxed: true });
+                    FillDropDownfromOther(DDLName, StrURL, "");
+                });
+
+                $(document).on('change', '#pincode', function () {
+                    var pincodeNo = $(this).val();
+                    if (!pincodeNo || pincodeNo.length !== 6) return;
+
+                    var strUrl = DomainName + "/Account/GetDataWithoutAlias";
+                    $.ajax({
+                        url: strUrl,
+                        type: 'POST',
+                        dataType: "json",
+                        data: { Method: 'USP_Checkpincode', parameters: { "pincodeNo": pincodeNo } },
+                        success: function (data) {
+                            if (data && data.length > 0 && data[0].Status == "1") {
+                                TosterNotification("error", 'Pincode No Already Exist....', "Oops..!!");
+                                $("#pincode").val('').focus();
+                            }
+                            App.unblockUI();
+                        },
+                        error: function (req, status, error) {
+                            TosterNotification("error", 'Operation fail..!! There is some issue while update candidate status... Please try again later..', "Oops..!!");
+                            App.unblockUI();
+                        }
+                    });
+                });
+
+                $("#WPM_StateCode").on('change', function () {
+                    var id = $(this).val();
+                    var StrURL = DomainName + '/Master/GetCityByStateJson?Id=' + id;
+                    var DDLName = 'WPM_cityname';
+                    App.blockUI({ boxed: true });
+                    FillDropDownfromOther(DDLName, StrURL, '');
+                });
+
+                $("#WPM_cityname").on('change', function () {
+                    var id = $(this).val();
+                    if (!id) {
+                        $("#tblData").hide();
+                        return false;
+                    }
+                    bindTable(id, DomainName);
+                });
+
+                $(document).on('click', '#btnDownloadMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "PincodeMaster", "Pincode Master List");
+                });
+
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    e.preventDefault();
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    showConfirm({
+                        title: action + " Pincode",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActive_Pincode', { id: id }, function (res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    var cityname = $("#WPM_cityname").val();
+                                    bindTable(cityname, DomainName);
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+        };
+    }();
+</script>

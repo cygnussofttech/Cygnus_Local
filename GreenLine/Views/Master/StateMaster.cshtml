@@ -1,0 +1,429 @@
+@model GreenLineDataService.ViewModel.CYGNUS_StateViewModel
+@using GreenLineDataService.Models;
+@using System.Linq;
+@{
+    ViewBag.Title = "State Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+    List<CYGNUS_Master_General> ListRateType = _masterService.GetGeneralMasterWithParam("RATETYPE").ToList();
+    List<CYGNUS_Master_General> ListZone = _masterService.GetGeneralMasterWithParam("ZONE").ToList();
+    List<CYGNUX_Master_Countries> CountryList = _masterService.GetCountryMaster().ToList();
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">State Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">State Master</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of States</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light" id="btnDownloadMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" id="addEdit">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="tblState">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">State Code</th>
+                            <th class="text-center">State Name</th>
+                            <th class="text-center">Country Name</th>
+                            <th class="text-center">Zone</th>
+                            <th class="text-center">Union Territory</th>
+                            <th class="text-center no-cc">Status</th>
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Form Template: Wrapped in script to prevent duplicate name attributes in DOM -->
+<script type="text/template" id="stateFormTemplate">
+    @using (Html.BeginForm("AddEditStateMaster", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-horizontal form-modern-ui", enctype = "multipart/form-data" }))
+    {
+            <!-- Section 1: Basic Information -->
+            <div class="section-box mb-4">
+                <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+                    <i class="ri-information-line align-middle me-1"></i> Basic Information
+                    @Html.HiddenFor(m => m.WST.srno)
+                </h5>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-label">State Code</label>
+                            @Html.TextBoxFor(m => m.WST.stcd, new { placeholder = "Enter State Code", @class = "form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            @Html.ValidationMessageFor(model => model.WST.stcd)
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-label">State Name</label>
+                            @Html.TextBoxFor(m => m.WST.stnm, new { placeholder = "Enter State Name", @class = "form-control required", onKeyPress = "return ValidateAlpha(event);" })
+                            @Html.ValidationMessageFor(model => model.WST.stnm)
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-label">State Prefix</label>
+                            @Html.TextBoxFor(m => m.WST.statePrefix, new { placeholder = "Enter State Prefix", @class = "form-control required", @maxlength = "4" })
+                            @Html.ValidationMessageFor(model => model.WST.statePrefix)
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-label">Country Name</label>
+                            @Html.DropDownListFor(m => m.WST.countrycd, new SelectList(CountryList, "Id", "CountryName", Model.WST.countrycd), "", new { @class = "form-control select2-modal required", @placeholder = "Select Country" })
+                            @Html.ValidationMessageFor(model => model.WST.countrycd)
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-label">Zone</label>
+                            @Html.DropDownListFor(m => m.WST.Zone, new SelectList(ListZone, "CodeId", "CodeDesc", Model.WST.Zone), "", new { @class = "select2-modal form-control required", @placeholder = "Select Zone" })
+                            @Html.ValidationMessageFor(model => model.WST.Zone)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Configuration -->
+            <div class="section-box mb-3">
+                <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+                    <i class="ri-settings-2-line align-middle me-1"></i> Configuration & Status
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <div class="d-flex gap-4 pt-2">
+                            <div class="form-check form-switch">
+                                @Html.CheckBoxFor(m => m.WST.IsUnionTerritory, new { @class = "form-check-input" })
+                                <label class="form-check-label fw-bold ms-2" for="WST_IsUnionTerritory">Union Territory</label>
+                            </div>
+                            <div class="form-check form-switch" id="activeContainer">
+                                @Html.CheckBoxFor(m => m.WST.activeflag2, new { @class = "form-check-input" })
+                                <label class="form-check-label fw-bold ms-2" for="WST_activeflag2">Status</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    }
+</script>
+
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                rules: {},
+                messages: {},
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible") || element.next(".select2-container").length > 0) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                }
+            });
+        }
+
+        var loadData = function (DomainName, TableName) {
+
+            App.blockUI({
+                target: '#' + TableName,
+                boxed: true,
+                message: 'Loading data...'
+            });
+
+            $.ajax({
+                url: DomainName + "/Account/GetDataWithoutAlias",
+                type: 'POST',
+                dataType: "json",
+                data: {
+                    Method: "USP_StateMaster_List",
+                    parameters: { "CustCode": "" }
+                },
+                success: function (data) {
+                    var tableData = data;
+                    if (typeof data === 'object' && !Array.isArray(data)) {
+                        var tableNames = Object.keys(data);
+                        for (var i = 0; i < tableNames.length; i++) {
+                            if (Array.isArray(data[tableNames[i]])) {
+                                tableData = data[tableNames[i]];
+                                break;
+                            }
+                        }
+                    }
+
+                    GlDataTable.refresh(TableName, {
+                        data: tableData,
+                        statusFilter: 5,
+                        columns: [
+                            { data: "stcd"},
+                            { data: "stnm"},
+                            { data: "CountryName" },
+                            { data: "zonename" },
+                            { data: "IsUnionTerritory", columnControl: false },
+                            { data: "activeflag", columnControl: false },
+                            { data: "srno", columnControl: false }
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [4],
+                                render: function (data, type, full, meta) {
+                                    var isUT = (data === true || data === "true" || data === "Y" || data === 1) ? "checked" : "";
+                                    return '<label class="switch"><input type="checkbox" ' + isUT + ' disabled><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [5],
+                                render: function (data, type, full, meta) {
+                                    var isActive = data == "Y" ? "checked" : "";
+                                    return '<label class="switch"><input type="checkbox" ' + isActive + ' class="btnToggleStatus" data-id="' + full.srno + '" data-name="' + full.stnm + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [6],
+                                render: function (data, type, full) {
+                                    return '<button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass btnMasterEdit" title="Edit" data-id="' + data + '">' +
+                                           '<i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>';
+                                }
+                            },
+                            { orderable: false, targets: [4, 5, 6] }
+                        ],
+                        createdRow: function (row, data) {
+                            $(row).find('td').addClass('text-center');
+                        }
+                    });
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function () {
+                    TosterNotification("error", 'Failed to load data', "Error");
+                    App.unblockUI();
+                }
+            });
+        }
+        var CheckDuplicateState = function (DomainName) {
+            var stateName = $("#WST_stnm").val();
+            var srno = $("#WST_srno").val() || 0;
+            if (!stateName) return;
+
+            $.ajax({
+                url: DomainName + '/Master/CheckDuplicateState',
+                type: 'POST',
+                data: { StateName: stateName, srno: srno },
+                success: function (isDuplicate) {
+                    if (isDuplicate) {
+                        TosterNotification("error", 'State Name already exists!', "Duplicate");
+                        $("#WST_stnm").val('').focus();
+                    }
+                }
+            });
+        }
+
+        var CheckDuplicateStateCode = function (DomainName) {
+            var stateCode = $("#WST_stcd").val();
+            var srno = $("#WST_srno").val() || 0;
+            if (!stateCode) return;
+
+            $.ajax({
+                url: DomainName + '/Master/CheckDuplicateState',
+                type: 'POST',
+                data: { StateCode: stateCode, srno: srno },
+                success: function (isDuplicate) {
+                    if (isDuplicate) {
+                        TosterNotification("error", 'State Code already exists!', "Duplicate");
+                        $("#WST_stcd").val('').focus();
+                    }
+                }
+            });
+        }
+
+        var getDetails = function(id, DomainName) {
+            var title = (id > 0) ? "Edit State" : "Add New State";
+            
+            // 1. Prepare Common Modal
+            $("#glFormLoader").hide();
+            $("#glFormContent").show();
+            $('#glFormModalLabel').text(title);
+            $('#glFormContent').html($('#stateFormTemplate').html());
+            
+            // 2. Load Data if Edit
+            if (id > 0) {
+                $("#activeContainer").show();
+                App.blockUI({ boxed: true });
+                $.ajax({
+                    url: DomainName + '/Master/GetStateDetailsById',
+                    type: 'GET',
+                    data: { id: id },
+                    success: function (res) {
+                        $("#WST_srno").val(res.srno);
+                        $("#WST_stnm").val(res.stnm);
+                        $("#WST_stcd").val(res.stcd);
+                        $("#WST_countrycd").val(res.countrycd).trigger('change');
+                        $("#WST_Zone").val(res.Zone).trigger('change');
+                        $("#WST_statePrefix").val(res.statePrefix);
+                        $("#WST_IsUnionTerritory").prop("checked", res.IsUnionTerritory);
+                        $("#WST_activeflag2").prop("checked", (res.activeflag == "Y" ? true : false));
+                        App.unblockUI();
+                    }
+                });
+            } else {
+                $("#activeContainer").hide();
+                $("#WST_srno").val(0);
+                $("#WST_activeflag2").prop("checked", true);
+            }
+
+            // 3. Initialize Plugins
+            Formvalidate(DomainName);
+            $('#glFormContent .select2-modal').select2({ dropdownParent: $('#glFormModal') });
+
+            // 4. Bind Global Save Button
+            $('#glFormSaveBtn').off('click').on('click', function() {
+                saveData(DomainName);
+            });
+
+            // 5. Show Modal
+            $('#glFormModal').modal('show');
+        };
+
+        function saveData(DomainName) {
+            var form = $('#glFormContent #form_sample');
+            if (!form.valid()) return;
+
+            App.blockUI({ target: '#glFormModal', boxed: true });
+            var postData = form.serialize();
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: postData,
+                success: function (res) {
+                    App.unblockUI('#glFormModal');
+                    if (res == true || res == "true") {
+                        GLModal.showSuccess("Success", "Record saved successfully!");
+                        $('#glFormModal').modal('hide');
+                        loadData(DomainName, "tblState");
+                    } else {
+                        GLModal.showError("Error", "Failed to save record.");
+                    }
+                },
+                error: function() {
+                    App.unblockUI('#glFormModal');
+                    GLModal.showError("Error", "Network error.");
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                Formvalidate(DomainName);
+                loadData(DomainName, "tblState");
+
+                $(document).on('blur', "#WST_stnm", function () {
+                    CheckDuplicateState(DomainName);
+                });
+
+                $(document).on('blur', "#WST_stcd", function () {
+                    CheckDuplicateStateCode(DomainName);
+                });
+
+                $(document).on('click', '#btnDownloadMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "State_Master", "State_Master_List");
+                });
+
+                $("#addEdit").on('click', function() {
+                    getDetails(0, DomainName);
+                });
+
+                $(document).on('click', '.btnMasterEdit', function () {
+                    var id = $(this).data('id');
+                    getDetails(id, DomainName);
+                });
+
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    // Revert checkbox state until confirmed
+                    checkbox.prop('checked', !isChecked);
+
+                    showConfirm({
+                        title: action + " State",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for state <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActiveState', { id: id }, function(res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    loadData(DomainName, "tblState");
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+            }
+        }
+    }();
+</script>

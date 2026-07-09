@@ -1,0 +1,96 @@
+@model IEnumerable<GreenLineDataService.Models.Cygnus_Master_VehicleType_wise_Document>
+
+@{
+    ViewBag.Title = "Type Wise Document";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Type Wise Document</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Type Wise Document</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <!-- Header Bar -->
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">Type Wise Document</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a href="@Url.Content("~/Master/AddEditVehicleType_WiseDocument")" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </a>
+                 
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="tblTypeWiseDocumentList">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Name</th>
+                            <th class="text-center">Document Assign</th>
+                            @*<th class="text-center">Created By</th>
+                            <th class="text-center">Created Date</th>
+                            <th class="text-center">Modified By</th>
+                            <th class="text-center">Modified Date</th>*@
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="locationTable">
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center">@item.Vehicle_DocumentType</td>
+                                <td class="text-center">@item.Document_Assign</td>
+                                @*<td class="text-center">@item.EntryBy</td>
+                                <td class="text-center">@item.EntryDate</td>
+                                <td class="text-center">@item.UpdateDate</td>
+                                <td class="text-center">@item.UpdateBy</td>*@
+                                <td class="text-center">
+                                    <a href="@Url.Content("~/Master/AddEditVehicleType_WiseDocument/" + item.Vehicle_DocumentTypeID)" class="@ViewBag.UI.Buttons.Edit.CssClass" title="Edit">
+                                        <i class="@ViewBag.UI.Buttons.Edit.Icon align-middle"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var FormComponents = function (DomainName) {
+        var initEvents = function (DomainName) {
+        };
+
+        return {
+            init: function (DomainName) {
+                initEvents(DomainName);
+
+                GlDataTable.init('tblTypeWiseDocumentList', {
+                    ordering: true,
+                    columnDefs: [
+                        { orderable: false, targets: [2] },
+                        { className: "text-center", targets: [0, 1] },
+                        { type: 'string', targets: [1] }
+                    ]
+                });
+            }
+        };
+    }();
+</script>

@@ -1,0 +1,73 @@
+﻿@model GreenLineDataService.Models.CYGNUS_custcontract_charge_constraint
+@using GreenLineDataService.Models
+@using GreenLine.Helpers
+
+@{
+    GreenLineDataService.Helper.Interface.IContractService _contractService = new GreenLineDataService.Helper.ContractService();
+
+    List<CYGNUS_Master_General> objMasterList = _contractService.GetContractTransMode(Model.contractid).ToList();
+    List<CYGNUS_Master_General> objMasterMatrixList = _contractService.GetContractMatrixType(Model.contractid).ToList();
+
+    var SlabList = new List<SelectListItem> {
+        new SelectListItem { Text = "Select Slab", Value = "0",Selected=true },
+        new SelectListItem { Text = "Multi Slab Contract Rate", Value = "S" },
+        new SelectListItem { Text = "Multiple Slab Range", Value = "M" },
+    };
+}
+
+@using (Html.BeginCollectionItem("ObjChargeContraint1", ""))
+{
+    <div id="divStandardChargeCriteria">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-body">
+                            <div class="card-header align-items-center d-flex ui-page-header section-header-bg">
+                                <h5 class="card-title">
+                                    <i class="ri-information-line align-middle me-1"></i> Name : <label id="Name" class="Name"><b>Sundry - Multiple Slab Range</b></label>
+                                </h5>
+                            </div>
+                            @Html.HiddenFor(m => m.contractid)
+                            @Html.HiddenFor(m => m.use_trans_type)
+                            @Html.HiddenFor(m => m.use_to)
+                            @Html.HiddenFor(m => m.use_from)
+                            @Html.HiddenFor(m => m.use_rate_type)
+
+                            @Html.HiddenFor(m => m.InsertType)
+                            @Html.HiddenFor(m => m.Matrixtype)
+
+                            <div class="row d-flex justify-content-center">
+
+                                @if (Model.use_trans_type == "Y")
+                                {
+                                    <div class="col-lg-3 col-md-6 mb-3">
+                                        <div class="form-group">
+                                            <label class="form-label text-muted">Select Trans Mode</label>
+                                            <div class="col-12">
+                                                @Html.DropDownListFor(m => m.FilterTrnsMode, new SelectList(objMasterList, "CodeId", "CodeDesc"), new { placeholder = "Select  Matrix Type", @class = "form-control select2  required" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (Model.use_to == "Y" || Model.use_from == "Y")
+                                {
+                                    <div class="col-lg-3 col-md-6 mb-3">
+                                        <div class="form-group">
+                                            <label class="form-label text-muted">Select Matrix Type</label>
+                                            <div class="col-12">
+                                                @Html.DropDownListFor(m => m.FilterMatrixtype, new SelectList(objMasterMatrixList, "CodeId", "CodeDesc"), new { placeholder = "Select  Matrix Type", @class = "form-control select2  required" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+

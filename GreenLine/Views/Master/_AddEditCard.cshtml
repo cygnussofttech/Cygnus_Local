@@ -1,0 +1,157 @@
+@model GreenLineDataService.ViewModel.CYGNUS_Master_CardViewModel
+
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm("AddEditCard", "Master", FormMethod.Post, new { id = "card_form", @class = "form-horizontal form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.Card.Id)
+
+    <!-- Section 1: Card Identification -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-bank-card-2-line align-middle me-1"></i> Card Identification
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Card Number</label>
+                    @Html.TextBoxFor(m => m.Card.CardNo, new { @class = "form-control required", placeholder = "Enter Card Number", autocomplete = "off" })
+                    @Html.ValidationMessageFor(m => m.Card.CardNo)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Card Type</label>
+                    @Html.DropDownListFor(m => m.Card.CardType, new SelectList(ViewBag.CardTypes, "Value", "Text", Model.Card.CardType), "", new { @class = "form-control select2 required", @placeholder = "Select Type" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Card Provider</label>
+                    @Html.DropDownListFor(m => m.Card.CardProvider, new SelectList(ViewBag.CardProviders, "Value", "Text", Model.Card.CardProvider), "", new { @class = "form-control select2 required", @placeholder = "Select Provider" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Max Limit</label>
+                    @Html.TextBoxFor(m => m.Card.MaxLimit, new { @class = "form-control required", placeholder = "0.00", onkeypress = "return validFloat(event, this.id)" })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Owner Information -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-user-settings-line align-middle me-1"></i> Owner Information
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Name on Card</label>
+                    @Html.TextBoxFor(m => m.Card.NameOnCard, new { @class = "form-control", placeholder = "Account Holder Name" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Registered Mobile</label>
+                    @Html.TextBoxFor(m => m.Card.MobileNo, new { @class = "form-control", placeholder = "10 Digit Mobile", maxlength = "10", onkeypress = "return validDigits(event, this.id)" })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Validity & Status -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-calendar-check-line align-middle me-1"></i> Validity & Status
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label required-label">Valid From</label>
+                    <div class="input-group">
+                        @Html.TextBoxFor(m => m.Card.ValidFrom, "{0:dd MMM yyyy}", new { @class = "form-control datepicker required", id = "Card_ValidFrom", placeholder = "dd MMM yyyy"})
+                        <span class="input-group-text"><i class="ri-calendar-event-line"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label required-label">Valid Till</label>
+                    <div class="input-group">
+                        @Html.TextBoxFor(m => m.Card.ValidTill, "{0:dd MMM yyyy}", new { @class = "form-control datepicker required", id = "Card_ValidTill", placeholder = "dd MMM yyyy" })
+                        <span class="input-group-text"><i class="ri-calendar-event-line"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Card.Id > 0)
+            {
+                <div class="col-md-4">
+                    <div class="d-flex gap-4 pt-2">
+                        <div class="form-check form-switch">
+                            @Html.CheckBoxFor(m => m.Card.IsActive, new { @class = "form-check-input", @id = "Card_IsActive" })
+                            <label class="form-check-label fw-bold ms-2" for="Card_IsActive">Status</label>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @Html.HiddenFor(m => m.Card.IsActive)
+            }
+        </div>
+    </div>
+}
+
+<style>
+    /* Section box styling - Minimal and Spacious */
+    .section-box {
+        background: transparent;
+        padding: 0 5px;
+    }
+
+    .form-check-input {
+        width: 1.5em;
+        height: 1.5em;
+        cursor: pointer;
+    }
+    
+    .form-check-label {
+        cursor: pointer;
+        padding-top: 2px;
+    }
+
+    /* Validation pattern from Pincode Master */
+    .required-label::after {
+        content: " *";
+        color: #f06548;
+        font-weight: bold;
+    }
+
+    /* Validation Message and Error Styling */
+    .help-block, .text-danger, label.error, span.error, .field-validation-error {
+        color: #f06548 !important;
+        font-size: 11px !important;
+        margin-top: 4px !important;
+        display: block !important;
+        font-weight: 500 !important;
+    }
+
+    .has-error .form-control, 
+    .has-error .select2-container .select2-choice,
+    .has-error .select2-container .select2-selection {
+        border-color: #f06548 !important;
+    }
+</style>

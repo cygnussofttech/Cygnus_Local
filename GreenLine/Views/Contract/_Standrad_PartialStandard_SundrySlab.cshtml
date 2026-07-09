@@ -1,0 +1,51 @@
+﻿@model GreenLineDataService.Models.CYGNUS_CustContract_FRTMatrix_SingleSlab
+@using GreenLineDataService.Models
+@using GreenLine.Helpers
+@{
+    GreenLineDataService.Helper.Interface.IContractService _contractService = new GreenLineDataService.Helper.ContractService();
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    List<CYGNUS_LaneMaster> GetStartLaneDetails = _contractService.GetCustomerLaneId(Model.Custcode);
+    List<CYGNUS_LaneMaster> GetEndLaneDetails = _masterService.GetLaneDetails();
+};
+<tr class="editorRow">
+    @Html.Hidden("hdnblnk", Model.Id, new { @class = "iHidden" })
+    @using (Html.BeginCollectionItem("FTLList", Model.Id.ToString()))
+    {
+        @Html.HiddenFor(m => m.Matrixtype)
+        @Html.HiddenFor(m => m.TransMode)
+        @Html.HiddenFor(m => m.chargecode)
+        @Html.HiddenFor(m => m.chargetype)
+        <td>
+            @Html.DisplayFor(m => m.Id)
+        </td>
+        <td>
+            @Html.DropDownListFor(m => m.FromLane, new SelectList(GetStartLaneDetails, "Lane_ID", "Lane_Name"), "", new { placeholder = "Select From Location", @class = "form-control select2 ft required", @disabled = "disabled" })
+            @Html.HiddenFor(m => m.FromLane)
+        </td>
+        <td>
+            @Html.DropDownListFor(m => m.ToLane, new SelectList(GetEndLaneDetails, "Lane_ID", "Lane_Name"), "", new { placeholder = "Select To Location", @class = "form-control select2 ft required", @disabled = "disabled" })
+            @Html.HiddenFor(m => m.ToLane)
+        </td>
+        @*<td>
+            @Html.TextBoxFor(m => m.LaneCode, new { placeholder = "Enter LaneCode", @class = "form-control", @disabled = "disabled" })
+            @Html.HiddenFor(m => m.LaneCode)
+        </td>*@
+        <td>
+            @Html.TextBoxFor(m => m.rate, new { placeholder = "Enter Rate", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+        </td>
+        <td>
+            @Html.DropDownListFor(m => m.ratetype, new SelectList(ViewBag.objRateList, "CodeId", "CodeDesc"), "", new { placeholder = "Select Rate Type", @class = "form-control select2" })
+        </td>
+        @*<td class="col-md-1 center">
+                @if (Model.Id > 1)
+                {
+                    <text><a href="#" style="color: Maroon; font-size: 14px; font-weight: bolder;" class="chargedeleteRow">X</a></text>
+                }
+                else
+                {
+                    <a href="#" id="DeleteFirstRow" style="color: Maroon; font-size: 14px; font-weight: bolder;" class="deleteRow"></a>
+                }
+            </td>*@
+    }
+</tr>

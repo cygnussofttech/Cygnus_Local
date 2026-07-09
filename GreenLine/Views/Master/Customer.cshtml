@@ -1,0 +1,258 @@
+@model GreenLineDataService.ViewModel.CYGNUS_CUSTHDRViewModel
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Customer Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Location cell ellipsis */
+    .loc-cell {
+        max-width: 180px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Customer Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Customer</a></li>
+                    <li class="breadcrumb-item active">List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Customers</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light controls" id="btnDownloadStateMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </a>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" id="addEdit">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </button>
+                    <input type="file" name="UploadFile" id="txtUploadFile" style="display:none;" />
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle table-nowrap mb-0" id="CustomerList">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Group Name</th>
+                                @*<th>Customer Code</th>*@
+                                <th>Customer Name</th>
+                                @*<th class="text-center">Pay Base</th>*@
+                                <th class="text-center">Mobile No</th>
+                                <th class="text-center">Location(s)</th>
+                                <th class="text-center no-cc">Status</th>
+                                @*<th class="text-center no-cc">Registered</th>
+                                <th class="text-center no-cc">GTA</th>*@
+                                <th class="text-center no-cc">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var FormComponents = function () {
+
+        var UploadExcel = function (DomainName) {
+            $('#txtUploadFile').change( function (e) {
+                App.blockUI({ boxed: true });
+                var files = e.target.files;
+                if (files.length > 0) {
+                    if (window.FormData !== undefined) {
+                        var data = new FormData();
+                        for (var x = 0; x < files.length; x++) {
+                            data.append("files" + x, files[x]);
+                        }
+                        $.ajax({
+                            type: "POST",
+                            url: DomainName + '/Master/CustomerMaster_UploadExcel',
+                            contentType: false,
+                            processData: false,
+                            data: data,
+                            success: function (data) {
+                                App.unblockUI();
+                                if (data.status == true) {
+                                    TosterNotification("success", "Records updated successfully!", "Success");
+                                }
+                                else {
+                                    TosterNotification("error", data.Message, "Error");
+                                }
+                                setTimeout(function () {
+                                    window.location = DomainName + "/Master/Customer";
+                                }, 2000);
+                            }
+                        });
+                    }
+                }
+            });
+        };
+
+        var LoadJSGridData = function (DomainName) {
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: DomainName + "/Account/GetDataWithoutAlias",
+                type: 'POST',
+                dataType: "json",
+                data: {
+                    Method: "USP_CustomerMaster_List",
+                    parameters: { "CustCode": "" }
+                },
+                success: function (data) {
+                    var tableData = data;
+                    if (typeof data === 'object' && !Array.isArray(data)) {
+                        var tableNames = Object.keys(data);
+                        for (var i = 0; i < tableNames.length; i++) {
+                            if (Array.isArray(data[tableNames[i]])) {
+                                tableData = data[tableNames[i]];
+                                break;
+                            }
+                        }
+                    }
+
+                    GlDataTable.refresh('CustomerList', {
+                        statusFilter: 4,
+                        data: tableData,
+                        columns: [
+                            { data: 'GRPNM' , className: 'text-center' },
+                            //{ data: 'CUSTCD' },
+                            { data: 'CUSTNM' },
+                            //{ data: 'Paybas' },
+                            { data: 'MOBILENO' , className: 'text-center' },
+                            { data: 'CUSTLOC' },
+                            { data: 'CUST_ACTIVE', className: 'text-center' },
+                            //{ data: 'IsRegistered', columnControl: false },
+                            //{ data: 'IsGTA', columnControl: false },
+                            { data: 'CUSTCD', columnControl: false, className: 'text-center' }
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [4],
+                                render: function (data, type, full) {
+                                    var isActive = data == 'Y';
+                                    return '<label class="switch"><input type="checkbox" ' + (isActive ? 'checked' : '') +
+                                           ' class="btnToggleStatus" data-id="' + full.CUSTCD + '" data-name="' + full.CUSTNM + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            //{
+                            //    targets: [7],
+                            //    render: function (data) {
+                            //        var isChecked = data == '1';
+                            //        return '<label class="switch"><input type="checkbox" ' + (isChecked ? 'checked' : '') + ' disabled><span class="slider round"></span></label>';
+                            //    }
+                            //},
+                            //{
+                            //    targets: [8],
+                            //    render: function (data) {
+                            //        var isChecked = data == '1';
+                            //        return '<label class="switch"><input type="checkbox" ' + (isChecked ? 'checked' : '') + ' disabled><span class="slider round"></span></label>';
+                            //    }
+                            //},
+                            {
+                                targets: [5],
+                                render: function (data, type, full) {
+                                    var btn = '<button type="button" class="@ViewBag.UI.Buttons.Edit.CssClass btnMasterEdit me-1" data-id="' + data + '">' +
+                                           '<i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>';
+                                    // [COMMENTED] Reset Password button - disabled on customer list
+                                    // if ('@ViewBag.BaseUserName' == 'CYGNUSTEAM' && full.IsUserAdded > 0) {
+                                    //     btn += '<button type="button" class="btn btn-warning btn-sm PasswordReset me-1" data-id="' + data + '">' +
+                                    //            '<i class="ri-lock-password-line"></i></button>';
+                                    // }
+                                    // [COMMENTED] Add User button - disabled on customer list
+                                    // if (full.IsUserAdded == 0) {
+                                    //     btn += '<button type="button" class="btn btn-success btn-sm btnAddUser" data-id="' + data + '">' +
+                                    //            '<i class="ri-user-add-line"></i></button>';
+                                    // }
+                                    return btn;
+                                }
+                            },
+                            { orderable: false, targets: [4, 5] },
+                            { className: 'loc-cell', targets: [3] }
+                        ]
+                    });
+
+                    App.unblockUI();
+                },
+                error: function () {
+                    TosterNotification("error", 'Failed to load data', "Error");
+                    App.unblockUI();
+                }
+            });
+        }
+
+        return {
+            init: function (DomainName) {
+                UploadExcel(DomainName);
+                $(".select2").select2({ placeholder: "Select Group", allowClear: true, width: '100%' });
+
+                $(document).on("click", "#addEdit", function () {
+                    App.blockUI({ boxed: true });
+                    window.location.href = DomainName + "/Master/CustomerMasters?CustomerCode=0";
+                });
+
+                $(document).on("click", ".btnMasterEdit", function () {
+                    App.blockUI({ boxed: true });
+                    window.location.href = DomainName + "/Master/CustomerMasters?CustomerCode=" + $(this).data('id');
+                });
+
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    e.preventDefault();
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    showConfirm({
+                        title: action + " Customer",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActive_Customer', { id: id }, function (res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    LoadJSGridData(DomainName);
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                LoadJSGridData(DomainName);
+                $(document).on('click', '#btnDownloadStateMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "Customer_Master", "Customer_Master_List");
+                });
+            }
+        }
+    }();
+
+</script>

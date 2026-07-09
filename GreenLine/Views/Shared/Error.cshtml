@@ -1,0 +1,212 @@
+@{
+    ViewBag.Title = "System Error";
+    // The layout will be automatically suppressed if returned as a PartialView from the controller
+    Layout = (Request.IsAjaxRequest() ? null : "~/Views/Shared/_Layout.cshtml");
+}
+
+<style>
+    .error-container {
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .error-illustration {
+        max-width: 220px;
+        margin: 0 auto 20px;
+        filter: drop-shadow(0 10px 15px rgba(0,0,0,0.08));
+    }
+
+    .error-code {
+        font-size: 50px;
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 12px;
+        background: linear-gradient(135deg, #f06548 0%, #ff7f5d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -1px;
+    }
+
+    .error-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #405189;
+        margin-bottom: 8px;
+    }
+
+    .error-message {
+        color: #878a99;
+        font-size: 13px;
+        line-height: 1.6;
+        max-width: 400px;
+        margin: 0 auto 20px;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .btn-error {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 18px;
+        font-weight: 600;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        letter-spacing: 0.3px;
+        font-size: 11px;
+    }
+
+    .btn-error-primary {
+        background-color: #3577f1;
+        border: none;
+        color: white;
+        box-shadow: 0 4px 15px rgba(53, 119, 241, 0.25);
+    }
+
+    .btn-error-primary:hover {
+        background-color: #2b60c4;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(53, 119, 241, 0.35);
+        color: white;
+    }
+
+    .btn-error-outline {
+        background-color: transparent;
+        border: 2px solid #e9ebec;
+        color: #405189;
+    }
+
+    .btn-error-outline:hover {
+        background-color: #f3f6f9;
+        border-color: #d8dde1;
+        transform: translateY(-2px);
+    }
+
+    .technical-details {
+        margin-top: 50px;
+        text-align: left;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .details-toggle {
+        color: #878a99;
+        font-size: 13px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .details-toggle:hover {
+        color: #405189;
+    }
+
+    .details-content {
+        background-color: #f9fbfd;
+        border: 1px solid #e9ebec;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 15px;
+        font-family: 'Fira Code', monospace;
+        font-size: 12px;
+        color: #495057;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+    }
+
+    /* Animation */
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+</style>
+
+<div class="row justify-content-center @(Request.IsAjaxRequest() ? "" : "align-items-center min-vh-50")">
+    <div class="col-xl-8 col-lg-10">
+        <div class="error-container animate-fade-in-up">
+            <!-- Illustration Placeholder (Using a modern SVG) -->
+            <div class="error-illustration">
+                <svg viewBox="0 0 500 350" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M420,280 Q450,280 450,250 L450,100 Q450,70 420,70 L80,70 Q50,70 50,100 L50,250 Q50,280 80,280 Z" fill="#f3f6f9" />
+                    <rect x="80" y="100" width="340" height="150" rx="10" fill="white" shadow="0 10px 20px rgba(0,0,0,0.05)" />
+                    <circle cx="110" cy="120" r="6" fill="#f06548" />
+                    <circle cx="130" cy="120" r="6" fill="#f7b84b" />
+                    <circle cx="150" cy="120" r="6" fill="#0ab39c" />
+                    <path d="M200,160 L300,160 M200,185 L280,185 M200,210 L320,210" stroke="#e9ebec" stroke-width="8" stroke-linecap="round" />
+                    <g transform="translate(300, 200) rotate(15)">
+                        <rect x="0" y="0" width="80" height="100" rx="5" fill="#3577f1" opacity="0.1" />
+                        <path d="M20,30 L60,30 M20,50 L50,50 M20,70 L55,70" stroke="#3577f1" stroke-width="4" stroke-linecap="round" />
+                    </g>
+                    <path d="M250,120 L250,280" stroke="#f06548" stroke-width="2" stroke-dasharray="8 8" opacity="0.3" />
+                </svg>
+            </div>
+
+            <div class="error-code">Oops!</div>
+            <h1 class="error-title">Something went wrong</h1>
+            <p class="error-message">
+                We encountered an unexpected error while processing your request. 
+                Don't worry, our team has been notified and is looking into it.
+            </p>
+
+            <div class="error-actions">
+                @if (!Request.IsAjaxRequest())
+                {
+                    <a href="#" onclick="history.back(); return false;" class="btn btn-error btn-error-outline">
+                        <i class="ri-arrow-left-line"></i> Go Back
+                    </a>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-error btn-error-primary">
+                        <i class="ri-home-4-line"></i> Back to Home
+                    </a>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-error btn-error-outline" data-bs-dismiss="modal">
+                        <i class="ri-close-line"></i> Close
+                    </button>
+                }
+            </div>
+
+            @if (ViewBag.StrError != null)
+            {
+                <div class="technical-details">
+                    <button type="button" class="details-toggle" onclick="toggleErrorDetails(this)">
+                        <i class="ri-arrow-right-s-line align-middle"></i> Technical Details
+                    </button>
+                    <div id="errorDetails" class="details-content">
+                        @ViewBag.StrError
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleErrorDetails(el) {
+        var details = document.getElementById('errorDetails');
+        var icon = el.querySelector('i');
+        
+        if (details.style.display === 'none' || details.style.display === '') {
+            details.style.display = 'block';
+            icon.classList.replace('ri-arrow-right-s-line', 'ri-arrow-down-s-line');
+        } else {
+            details.style.display = 'none';
+            icon.classList.replace('ri-arrow-down-s-line', 'ri-arrow-right-s-line');
+        }
+    }
+</script>

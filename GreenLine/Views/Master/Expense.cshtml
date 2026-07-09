@@ -1,0 +1,358 @@
+@model List<GreenLineDataService.Models.CYGNUS_Master_Expense>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Expense Master";
+}
+
+<style>
+    .badge-expense-type {
+        font-weight: 600;
+        font-size: 11px;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">@ViewBag.Title</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Expense Management</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">Expense List</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light controls" id="btnDownloadStateMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </a>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass" id="addEdit">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="ExpenseListTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Expense Name</th>
+                            <th class="text-center">Expense Type</th>
+                            <th class="text-center">Billable to Customer</th>
+                            <th class="text-center">Addition / Deduction</th>
+                            <th class="text-center">Attachment Mandatory</th>
+                            <th class="text-center">Remarks Mandatory</th>
+                            <th class="text-center no-cc">Status</th>
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="text-center fw-medium">@item.ExpenseName</td>
+                                    <td class="text-center">
+                                        @(item.ExpenseType == "Trip" ? "Against Trip" : "Against LR")
+                                    </td>
+                                    <td class="text-center">
+                                        @(item.BillableToCustomer ? "Yes" : "No")
+                                    </td>
+                                    <td class="text-center">
+                                        @(item.Addition ? "Addition" : (item.Deduction ? "Deduction" : "-"))
+                                    </td>
+                                    <td class="text-center">
+                                        @(item.AttachmentMandatory ? "Yes" : "No")
+                                    </td>
+                                    <td class="text-center">
+                                        @(item.RemarksMandatory ? "Yes" : "No")
+                                    </td>
+                                    <td class="text-center">
+                                        <label class="switch">
+                                            <input type="checkbox" class="btnToggleStatus" @(item.IsActive ? "checked" : "") data-id="@item.Id" data-name="@item.ExpenseName">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <button class="@ViewBag.UI.Buttons.Edit.CssClass btn-sm btnMasterEdit" data-id="@item.Id" title="Edit"><i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+
+        var Formvalidate = function () {
+            var form1 = $('#expense_form');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: "",
+                rules: {},
+                messages: {},
+                invalidHandler: function (event, validator) {
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2") || element.next(".select2-container").length > 0) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                }
+            });
+        };
+
+        var GetObjectDet = function (id, DomainName) {
+            GLModal.showForm({
+                title: id > 0 ? "Edit Expense" : "Add Expense",
+                icon: 'ri-money-dollar-circle-line',
+                url: DomainName + '/Master/_AddEditExpense/' + id,
+                onLoaded: function () {
+                    $(".select2").select2({
+                        placeholder: "Select an option",
+                        allowClear: true,
+                        dropdownParent: $('#glFormModal')
+                    });
+
+                    Formvalidate();
+
+                    // Sync hidden fields with the default selected radio on modal load
+                    var checkedRadio = $('input[name="FreightBillConfig"]:checked');
+                    if (checkedRadio.val() === 'Addition') {
+                        $('#hdnAddition').val('true');
+                        $('#hdnDeduction').val('false');
+                    } else if (checkedRadio.val() === 'Deduction') {
+                        $('#hdnAddition').val('false');
+                        $('#hdnDeduction').val('true');
+                    }
+
+                    // Handle changes in freight bill configuration radio buttons
+                    $('input[name="FreightBillConfig"]').on('change', function () {
+                        var val = $(this).val();
+                        if (val === 'Addition') {
+                            $('#hdnAddition').val('true');
+                            $('#hdnDeduction').val('false');
+                        } else {
+                            $('#hdnAddition').val('false');
+                            $('#hdnDeduction').val('true');
+                        }
+
+                        // Update active visual classes on outer card labels
+                        $('.freight-config-card').removeClass('active border-success border-danger').addClass('border-dashed');
+                        if (val === 'Addition') {
+                            $('#rdoAddition').closest('.freight-config-card').removeClass('border-dashed').addClass('active border-success');
+                        } else {
+                            $('#rdoDeduction').closest('.freight-config-card').removeClass('border-dashed').addClass('active border-danger');
+                        }
+                    });
+                },
+                onSave: function () {
+                    if (!$('#expense_form').valid()) return false;
+
+                    // Validation for Freight Bill Configuration
+                    var addition = $('#hdnAddition').val() === 'true';
+                    var deduction = $('#hdnDeduction').val() === 'true';
+                    if (!addition && !deduction) {
+                        TosterNotification("error", "Please select either Addition or Deduction for the Freight Bill configuration.", "Validation Error");
+                        return false;
+                    }
+
+
+                    return $.ajax({
+                        url: DomainName + '/Master/AddEditExpense',
+                        data: $("#expense_form").serialize(),
+                        type: 'POST',
+                        success: function (data) {
+                            if (data && data.Status) {
+                                TosterNotification("success", "Expense details saved successfully!", "Success");
+                                refreshTable(DomainName);
+                            } else {
+                                TosterNotification("error", data.Message || "Failed to save expense.", "Error");
+                            }
+                        }
+                    });
+                }
+            });
+        };
+
+        var refreshTable = function (DomainName) {
+            App.blockUI({ boxed: true, message: 'Refreshing...' });
+            $.ajax({
+                url: DomainName + '/Master/ExpenseListJson',
+                type: 'GET',
+                success: function (result) {
+                    GlDataTable.refresh('ExpenseListTable', {
+                        statusFilter: 6,
+                        data: result,
+                        columns: [
+                            { data: "ExpenseName", className: "fw-medium" },
+                            {
+                                data: "ExpenseType",
+                                render: function (data) {
+                                    return data === "Trip" ? "Against Trip" : "Against LR";
+                                }
+                            },
+                            {
+                                data: "BillableToCustomer",
+                                render: function (data) {
+                                    return data ? "Yes" : "No";
+                                }
+                            },
+                            {
+                                data: "Addition",
+                                render: function (data, type, row) {
+                                    if (row.Addition) {
+                                        return "Addition";
+                                    } else if (row.Deduction) {
+                                        return "Deduction";
+                                    }
+                                    return "-";
+                                }
+                            },
+                            {
+                                data: "AttachmentMandatory",
+                                render: function (data) {
+                                    return data ? "Yes" : "No";
+                                }
+                            },
+                            {
+                                data: "RemarksMandatory",
+                                render: function (data) {
+                                    return data ? "Yes" : "No";
+                                }
+                            },
+                            {
+                                data: "IsActive",
+                                render: function (data, type, row) {
+                                    var isChecked = (data === true) ? "checked" : "";
+                                    return '<label class="switch"><input class="btnToggleStatus" type="checkbox" ' + isChecked + ' data-id="' + row.Id + '" data-name="' + row.ExpenseName + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                data: "Id",
+                                render: function (data) {
+                                    return '<div class="d-flex justify-content-center gap-1">' +
+                                           '<button class="@ViewBag.UI.Buttons.Edit.CssClass btn-sm btnMasterEdit" data-id="' + data + '" title="Edit"><i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>' +
+                                           '</div>';
+                                }
+                            }
+                        ],
+                        createdRow: function (row) {
+                            $('td', row).addClass('text-center align-middle');
+                        }
+                    });
+                    App.unblockUI();
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", 'Operation failed. Please try again or contact your administrator.', "Error");
+                    App.unblockUI();
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                // Initialize DataTable
+                GlDataTable.init('ExpenseListTable', {
+                    statusFilter: 6,
+                    columnDefs: [
+                        { targets: 'no-cc', orderable: false, searchable: false, targets: [6, 7] }
+                    ],
+                    order: [[0, 'asc']]
+                });
+
+                // Add Button
+                $("#addEdit").on('click', function () {
+                    GetObjectDet("0", DomainName);
+                });
+
+                // Edit Button (delegated for dynamic rows)
+                $(document).on('click', '.btnMasterEdit', function (e) {
+                    var id = $(this).data('id');
+                    GetObjectDet(id, DomainName);
+                });
+
+                // Status Toggle
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    // Revert checkbox state until confirmed
+                    checkbox.prop('checked', !isChecked);
+
+                    showConfirm({
+                        title: action + " Expense",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for Expense: <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ToggleActiveExpense', { id: id }, function (status) {
+                                App.unblockUI();
+                                if (status) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    refreshTable(DomainName);
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $(document).on('click', '#btnDownloadStateMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "Expense", "Expense Master List");
+                });
+            }
+        };
+    }();
+</script>

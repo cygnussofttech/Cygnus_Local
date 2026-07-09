@@ -1,0 +1,221 @@
+<!-- JAVASCRIPT -->
+@{
+    // Use app start time as version hash — cached between pages, busted on deploy/restart (Appended Ticks to force reload now)
+    var ver = (System.Web.HttpRuntime.AppDomainAppId?.GetHashCode().ToString("x") ?? "1") + "_" + DateTime.Now.Ticks;
+}
+<!-- Velzon Vendor Scripts -->
+<script src="~/Velzon_assets/libs/bootstrap/js/bootstrap.bundle.min.js" defer></script>
+<script src="~/Velzon_assets/libs/simplebar/simplebar.min.js" defer></script>
+<script src="~/Velzon_assets/libs/node-waves/waves.min.js" defer></script>
+<script src="~/Velzon_assets/libs/feather-icons/feather.min.js" defer></script>
+<script src="~/Velzon_assets/js/pages/plugins/lord-icon-2.1.0.js" defer></script>
+<script src="~/Velzon_assets/js/plugins.js" defer></script>
+
+<!-- jQuery 3.7.1 + Migrate 3.4.1 (backward compatibility with legacy plugins) -->
+<script src="~/Scripts/jquery-3.7.1.min.js" type="text/javascript"></script>
+<script src="~/Scripts/jquery-migrate-3.4.1.min.js"></script>
+<script src="~/assets/plugins/jquery-ui/jquery-ui-1.10.3.custom.min.js" type="text/javascript" defer></script>
+
+<script src="~/assets/plugins/jquery.blockui.min.js" type="text/javascript" defer></script>
+<script src="~/assets/plugins/jquery.cokie.min.js" type="text/javascript" defer></script>
+
+<!-- Select2 JS -->
+<script src="~/assets/plugins/select2/select2.min.js" type="text/javascript" defer></script>
+
+<!-- DataTables 2.x Bootstrap5 + Buttons + ColumnControl (local) -->
+<script src="~/Velzon_assets/libs/datatables/js/dataTables.min.js" defer></script>
+<script src="~/Velzon_assets/libs/datatables/js/dataTables.bootstrap5.min.js" defer></script>
+<script src="~/Velzon_assets/libs/datatables/js/dataTables.buttons.min.js" defer></script>
+<script src="~/Velzon_assets/libs/datatables/js/buttons.bootstrap5.min.js" defer></script>
+<script src="~/Scripts/jszip.min.js" defer></script>
+<script src="~/Velzon_assets/libs/datatables/js/buttons.html5.min.js" defer></script>
+<script src="~/Velzon_assets/libs/datatables/js/dataTables.columnControl.min.js" defer></script>
+
+<!-- GreenLine DataTable Common Helper -->
+<script src="~/Scripts/glDataTable.js?ver=@ver" defer></script>
+
+<!-- App JS -->
+<script src="~/assets/scripts/core/app.js" type="text/javascript" defer></script>
+
+<!-- Validation JS -->
+<script src="~/assets/plugins/jquery-validation/dist/jquery.validate.min.js" type="text/javascript" defer></script>
+<script src="~/assets/plugins/jquery-validation/dist/additional-methods.min.js" type="text/javascript" defer></script>
+
+<!-- Inputmask JS -->
+<script src="~/assets/plugins/jquery-inputmask/jquery.inputmask.bundle.min.js" type="text/javascript" defer></script>
+
+<!-- Bootstrap-Switch JS -->
+<script src="~/assets/plugins/bootstrap-switch/js/bootstrap-switch.js" type="text/javascript" defer></script>
+
+<!-- Date Picker JS -->
+<script src="~/assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js" type="text/javascript" defer></script>
+<script src="~/assets/plugins/bootstrap-daterangepicker/daterangepicker.js" defer></script>
+<script src="~/assets/plugins/bootstrap-daterangepicker/moment.min.js" defer></script>
+
+<!-- Time Picker JS -->
+<script src="~/assets/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js" defer></script>
+
+<!-- Date Time Picker JS -->
+<script src="~/assets/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js" defer></script>
+
+<!-- Toastr JS -->
+<script src="~/assets/plugins/bootstrap-toastr/toastr.min.js" defer></script>
+
+<!-- Bootstrap Wizard JS -->
+<script type="text/javascript" src="~/assets/plugins/bootstrap-wizard/jquery.bootstrap.wizard.min.js" defer></script>
+
+<!-- Ckeditor Text Editor-->
+@{ var ckeditorPath = "~/Velzon_assets/libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js"; }
+<script src="@Url.Content(ckeditorPath)" defer></script>
+
+<!-- Global Variables & Initialization -->
+<script type="text/javascript">
+    var DomainName = "@System.Configuration.ConfigurationManager.AppSettings["DomainName"].ToString()";
+    var UserId = '@ViewBag.BaseUsername';
+    var CurrentFinYearStartDate = "@ViewBag.FinYearStartDate";
+    var CurrentFinYearEndDate = "@ViewBag.FinYearEndDate";
+    var BaseUserName = "@ViewBag.BaseUserName";
+    var logoutUrl = DomainName + '/Account/LogOff';
+    var isFreshLogin = '@(TempData["ForceHardReload"] != null ? "true" : "false")' === 'true';
+
+    // UITheme button tooltip map: css-suffix → tooltip text (from UITheme.json)
+    @{
+        var ui2 = (GreenLine.Classes.UIThemeConfig)ViewBag.UI;
+    }
+    var UIBtnTooltips = {
+        'ui-btn-excel':   '@(ui2?.Buttons?.Excel?.Tooltip   ?? ui2?.Buttons?.Excel?.Label   ?? "Download Excel")',
+        'ui-btn-add':     '@(ui2?.Buttons?.Add?.Tooltip     ?? ui2?.Buttons?.Add?.Label     ?? "Add")',
+        'ui-btn-edit':    '@(ui2?.Buttons?.Edit?.Tooltip    ?? ui2?.Buttons?.Edit?.Label    ?? "Edit")',
+        'ui-btn-delete':  '@(ui2?.Buttons?.Delete?.Tooltip  ?? ui2?.Buttons?.Delete?.Label  ?? "Delete")',
+        'ui-btn-back':    '@(ui2?.Buttons?.Back?.Tooltip    ?? ui2?.Buttons?.Back?.Label    ?? "Back")',
+        'ui-btn-cancel':  '@(ui2?.Buttons?.Cancel?.Tooltip  ?? ui2?.Buttons?.Cancel?.Label  ?? "Cancel")',
+        'ui-btn-submit':  '@(ui2?.Buttons?.Submit?.Tooltip  ?? ui2?.Buttons?.Submit?.Label  ?? "Save")',
+        'ui-btn-menu':    '@(ui2?.Buttons?.MenuRights?.Tooltip    ?? ui2?.Buttons?.MenuRights?.Label    ?? "Menu Rights")',
+        'ui-btn-reports': '@(ui2?.Buttons?.ReportsRights?.Tooltip ?? ui2?.Buttons?.ReportsRights?.Label ?? "Reports Rights")',
+        'ui-btn-reset':   '@(ui2?.Buttons?.ResetPassword?.Tooltip ?? ui2?.Buttons?.ResetPassword?.Label ?? "Reset Password")',
+        'ui-btn-unblock': '@(ui2?.Buttons?.UnblockUser?.Tooltip   ?? ui2?.Buttons?.UnblockUser?.Label   ?? "Unblock User")',
+        'ui-btn-view':    '@(ui2?.Buttons?.View?.Tooltip    ?? ui2?.Buttons?.View?.Label    ?? "View")',
+        'ui-btn-prev':    '@(ui2?.Buttons?.Previous?.Tooltip     ?? ui2?.Buttons?.Previous?.Label     ?? "Previous")',
+        'ui-btn-next':    '@(ui2?.Buttons?.Next?.Tooltip    ?? ui2?.Buttons?.Next?.Label    ?? "Next")',
+        'ui-btn-approve': '@(ui2?.Buttons?.Approve?.Tooltip ?? ui2?.Buttons?.Approve?.Label ?? "Approve")',
+        'ui-btn-reject':  '@(ui2?.Buttons?.Reject?.Tooltip  ?? ui2?.Buttons?.Reject?.Label  ?? "Reject")',
+        'ui-btn-clear':   '@(ui2?.Buttons?.Clear?.Tooltip   ?? ui2?.Buttons?.Clear?.Label   ?? "Clear")'
+    };
+</script>
+
+<!-- Custom & App Scripts -->
+<script src="~/Scripts/baseFunction.js?ver=@ver" defer></script>
+<script src="~/Velzon_assets/js/custom-layout.js?ver=@ver" defer></script>
+<script src="~/Velzon_assets/js/custom-modal.js" defer></script>
+
+<!-- Session Timeout Manager -->
+<script src="~/Scripts/session-timeout.js?ver=@ver" defer></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // --- Search URL Binding ---
+        if (typeof bindDropDownMenuJsonDDLSelectCodeWithName === 'function') {
+            bindDropDownMenuJsonDDLSelectCodeWithName("SearchURL", "");
+            $("#SearchURL").change(function () {
+                var Url = $(this).val();
+                if (Url) {
+                    location.href = DomainName + Url;
+                }
+            });
+        }
+
+        // --- Notification System ---
+        // getNotifications("0");        
+
+        // var newNotificationCount = 0;
+        // $("#header_inbox_bar").click(function () {
+        //     if (!$(this).hasClass("open") && newNotificationCount > 0) {
+        //         getNotifications("1");
+        //     }
+        // });
+
+        // function getNotifications(IsSeen) {
+        //     $.ajax({
+        //         url: DomainName + "/Home/GetData",
+        //         type: 'POST',
+        //         dataType: "json",
+        //         data: {
+        //             Method: 'USP_GetNotifiationForCurrentRole',
+        //             parameters: { Role: "", IsSeen: IsSeen, UserId: "@ViewBag.BaseUserName" },
+        //         },
+        //         success: function (result) {
+        //             newNotificationCount = 0;
+        //             var resultSrting = "";
+        //             $.each(result, function (key, value) {
+        //                 resultSrting += '<li><a href="' + DomainName + '/' + value.URL + '"><span class="subject"><span class="from">' + value.ModuleName + '</span><span class="time"> ' + value.TimeDiff + ' </span></span><span class="message"> ' + value.MessageText + '(' + value.HeaderText + ')</span></a></li>';
+        //                 if (value.IsNew) newNotificationCount += 1;
+        //             });
+        //             
+        //             if (newNotificationCount > 0) {
+        //                 $("#BadgeCount").html(newNotificationCount);
+        //             } else {
+        //                 $("#BadgeCount").html('0');
+        //             }
+        //             $("#NotificationCount").html(newNotificationCount + " New");
+        //             $("#NotificationList").html(resultSrting);
+        //         },
+        //         error: function (jqXHR, exception) {
+        //             if (typeof TosterNotification === 'function') {
+        //                 TosterNotification("error", "Failed to fetch notifications", "Error");
+        //             }
+        //         }
+        //     });
+        // }
+    });
+</script>
+
+<!-- ===== Global Bootstrap 5 Tooltip Initializer =====
+     Activates Bootstrap 5 tooltips on all ui-btn-* elements.
+     - If the element has a 'title' attribute, that text is used.
+     - Otherwise, the text is looked up from UIBtnTooltips (sourced from UITheme.json).
+     - Runs on DOMContentLoaded and after every $.ajax call (for DataTable rows).
+====================================================== -->
+<script type="text/javascript">
+    function initUIButtonTooltips() {
+        // Select all elements whose class contains 'ui-btn-'
+        var els = document.querySelectorAll('[class*="ui-btn-"]');
+        els.forEach(function (el) {
+            // Avoid double-init
+            if (el._bsTooltipInit) return;
+
+            // Determine tooltip text: explicit title attr first, then UIBtnTooltips map
+            var tipText = el.getAttribute('title') || '';
+            if (!tipText) {
+                // Match which ui-btn-* class the element has
+                var classes = el.className ? el.className.split(' ') : [];
+                for (var i = 0; i < classes.length; i++) {
+                    var cls = classes[i].trim();
+                    if (cls && UIBtnTooltips[cls]) {
+                        tipText = UIBtnTooltips[cls];
+                        break;
+                    }
+                }
+            }
+
+            if (!tipText) return; // nothing to show
+
+            // Set title so Bootstrap can read it
+            el.setAttribute('title', tipText);
+            el._bsTooltipInit = true;
+
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                new bootstrap.Tooltip(el, { trigger: 'hover', placement: 'top' });
+            }
+        });
+    }
+
+    // Run after the page is fully ready (scripts are defer-loaded)
+    document.addEventListener('DOMContentLoaded', function () {
+        initUIButtonTooltips();
+    });
+
+    // Re-run after every jQuery AJAX call (DataTable row rendering)
+    $(document).ajaxComplete(function () {
+        initUIButtonTooltips();
+    });
+</script>

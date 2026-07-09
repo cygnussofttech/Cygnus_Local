@@ -1,0 +1,222 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Geofence Master";
+}
+
+<style>
+    /* Custom cursor styling for disabled elements */
+    .switch input:disabled + .slider {
+        cursor: not-allowed !important;
+        opacity: 0.6;
+    }
+    .btnMasterEdit:disabled {
+        cursor: not-allowed !important;
+        pointer-events: auto !important;
+        opacity: 0.65;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">@ViewBag.Title</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Geofence Management</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">Geofence List</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass" id="btnDownloadMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon"></i>
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass" id="addEdit">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="GeofenceListTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Geofence Name</th>
+                            <th class="text-center">Department Type</th>
+                            <th class="text-center">Area Type</th>
+                            <th class="text-center">Shape Type</th>
+                            <th class="text-center">Radius (m)</th>
+                            <th class="text-center">Duration (Min)</th>
+                            <th class="text-center">Speed (Kmph)</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                     <tbody>
+                     </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+
+        var refreshTable = function (DomainName) {
+            App.blockUI({ boxed: true, message: 'Refreshing...' });
+            $.ajax({
+                url: DomainName + '/Master/GeofenceListJson',
+                type: 'POST',
+                success: function (result) {
+                    GlDataTable.refresh('GeofenceListTable', {
+                        data: result.data,
+                        statusFilter: 7,
+                        columns: [
+                            { data: "GeofenceName", className: "fw-medium" },
+                            {
+                                data: "DepartmentTypeName",
+                                render: function (data) {
+                                    return data ? data : "-";
+                                }
+                            },
+                            {
+                                data: "AreaType",
+                                render: function (data) {
+                                    return data ? data : "-";
+                                }
+                            },
+                            {
+                                data: "ShapeType",
+                                render: function (data) {
+                                    return data ? data : "-";
+                                }
+                            },
+                            {
+                                data: "Radius",
+                                render: function (data) {
+                                    return parseFloat(data).toFixed(0) + " m";
+                                }
+                            },
+                            {
+                                data: "Duration",
+                                render: function (data) {
+                                    return data + " Min";
+                                }
+                            },
+                            {
+                                data: "Speed",
+                                render: function (data) {
+                                    return parseFloat(data).toFixed(1) + " Kmph";
+                                }
+                            },
+                            {
+                                data: "IsActive",
+                                render: function (data, type, row) {
+                                    var isChecked = (data === true) ? "checked" : "";
+                                    var isDisabled = (row.IsManual === true) ? "" : "disabled";
+                                    return '<label class="switch"><input class="btnToggleStatus" type="checkbox" ' + isChecked + ' ' + isDisabled + ' data-id="' + row.Id + '" data-name="' + row.GeofenceName + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                data: "Id",
+                                render: function (data, type, row) {
+                                    var isDisabled = (row.IsManual === true) ? "" : "disabled";
+                                    return '<div class="d-flex justify-content-center gap-1">' +
+                                           '<button class="@ViewBag.UI.Buttons.Edit.CssClass btn-sm btnMasterEdit" ' + isDisabled + ' data-id="' + data + '" title="Edit"><i class="@ViewBag.UI.Buttons.Edit.Icon"></i></button>' +
+                                           '</div>';
+                                }
+                            }
+                        ],
+                        columnDefs: [
+                            { orderable: false, targets: [7, 8] }
+                        ],
+                        createdRow: function (row) {
+                            $('td', row).addClass('text-center align-middle');
+                        },
+                        order: [[0, 'asc']]
+                    });
+                    App.unblockUI();
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", 'Operation failed. Please try again or contact your administrator.', "Error");
+                    App.unblockUI();
+                }
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                // Initialize DataTable
+                GlDataTable.init('GeofenceListTable', {
+                    statusFilter: 7,
+                    columnDefs: [
+                        { orderable: false, targets: [7, 8] }
+                    ]
+                });
+                refreshTable(DomainName);
+
+                // Add Button (Full Page Redirect)
+                $("#addEdit").on('click', function () {
+                    window.location.href = DomainName + '/Master/AddEditGeofence/0';
+                });
+
+                // Edit Button (delegated for dynamic rows - Full Page Redirect)
+                $(document).on('click', '.btnMasterEdit', function (e) {
+                    if ($(this).prop('disabled')) return;
+                    var id = $(this).data('id');
+                    window.location.href = DomainName + '/Master/AddEditGeofence/' + id;
+                });
+
+                // Status Toggle
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    var checkbox = $(this);
+                    if (checkbox.prop('disabled')) return;
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    // Revert checkbox state until confirmed
+                    checkbox.prop('checked', !isChecked);
+
+                    showConfirm({
+                        title: action + " Geofence",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for Geofence: <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ToggleActiveGeofence', { id: id }, function (status) {
+                                App.unblockUI();
+                                if (status) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    refreshTable(DomainName);
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $(document).on('click', '#btnDownloadMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "Geofence", "Geofence Master List");
+                });
+            }
+        };
+    }();
+</script>

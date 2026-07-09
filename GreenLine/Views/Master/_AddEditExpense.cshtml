@@ -1,0 +1,181 @@
+@model GreenLineDataService.ViewModel.CYGNUS_Master_ExpenseViewModel
+
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm("AddEditExpense", "Master", FormMethod.Post, new { id = "expense_form", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.Expense.Id)
+
+    <!-- Section 1: Expense Information -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-money-dollar-circle-line align-middle me-1"></i> Expense Information
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="form-label required-label">Expense Name</label>
+                    @Html.TextBoxFor(m => m.Expense.ExpenseName, new { @class = "form-control required", placeholder = "e.g. Detention, Toll, Unloading...", autocomplete = "off" })
+                    @Html.ValidationMessageFor(m => m.Expense.ExpenseName)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Expense Type</label>
+                    @if (Model.Expense.Id > 0)
+                    {
+                        @Html.DropDownListFor(m => m.Expense.ExpenseType, new SelectList(ViewBag.ExpenseTypeList, "Value", "Text", Model.Expense.ExpenseType), "", new { @class = "form-control select2 required", @placeholder = "Select Type", @disabled = "disabled" })
+                        <input type="hidden" name="Expense.ExpenseType" value="@Model.Expense.ExpenseType" />
+                    }
+                    else
+                    {
+                        @Html.DropDownListFor(m => m.Expense.ExpenseType, new SelectList(ViewBag.ExpenseTypeList, "Value", "Text", Model.Expense.ExpenseType), "", new { @class = "form-control select2 required", @placeholder = "Select Type" })
+                    }
+                    @Html.ValidationMessageFor(m => m.Expense.ExpenseType)
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label d-block">Billable to Customer</label>
+                    <div class="form-check form-switch pt-1">
+                        @Html.CheckBoxFor(m => m.Expense.BillableToCustomer, new { @class = "form-check-input", id = "Expense_BillableToCustomer" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Freight Bill Configuration -->
+    <div class="section-box mb-3" id="secFreightBillConfig">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-file-list-3-line align-middle me-1"></i> Freight Bill Configuration
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="form-label fw-semibold text-muted mb-2">
+                        <i class="ri-information-line align-middle me-1"></i> Addition / Deduction in Freight Bill
+                    </label>
+                    <div class="row g-3">
+                        <!-- Addition Card -->
+                        <div class="col-md-6">
+                            <label class="freight-config-card d-flex align-items-center p-3 rounded border pointer position-relative @(Model.Expense.Addition ? "active border-success" : "border-dashed")" for="rdoAddition" style="cursor: pointer;">
+                                <input type="radio" name="FreightBillConfig" value="Addition" id="rdoAddition" class="form-check-input me-3" style="width: 1.25em; height: 1.25em;" @(Model.Expense.Addition ? "checked" : "") />
+                                <div>
+                                    <span class="d-block fw-bold text-success fs-14">Addition</span>
+                                    <span class="text-muted small fs-11">Amount will be added to Freight Bill</span>
+                                </div>
+                            </label>
+                        </div>
+                        <!-- Deduction Card -->
+                        <div class="col-md-6">
+                            <label class="freight-config-card d-flex align-items-center p-3 rounded border pointer position-relative @(!Model.Expense.Addition ? "active border-danger" : "border-dashed")" for="rdoDeduction" style="cursor: pointer;">
+                                <input type="radio" name="FreightBillConfig" value="Deduction" id="rdoDeduction" class="form-check-input me-3" style="width: 1.25em; height: 1.25em;" @(!Model.Expense.Addition ? "checked" : "") />
+                                <div>
+                                    <span class="d-block fw-bold text-danger fs-14">Deduction</span>
+                                    <span class="text-muted small fs-11">Amount will be deducted from Freight Bill</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    @Html.HiddenFor(m => m.Expense.Addition, new { id = "hdnAddition" })
+                    @Html.HiddenFor(m => m.Expense.Deduction, new { id = "hdnDeduction" })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Additional Settings -->
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-settings-3-line align-middle me-1"></i> Additional Settings
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label d-block">Attachment Mandatory?</label>
+                    <div class="form-check form-switch pt-1">
+                        @Html.CheckBoxFor(m => m.Expense.AttachmentMandatory, new { @class = "form-check-input", id = "Expense_AttachmentMandatory" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label d-block">Remarks Mandatory?</label>
+                    <div class="form-check form-switch pt-1">
+                        @Html.CheckBoxFor(m => m.Expense.RemarksMandatory, new { @class = "form-check-input", id = "Expense_RemarksMandatory" })
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Expense.Id > 0)
+            {
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label d-block">Status</label>
+                        <div class="form-check form-switch pt-1">
+                            @Html.CheckBoxFor(m => m.Expense.IsActive, new { @class = "form-check-input", @id = "Expense_IsActive" })
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @Html.HiddenFor(m => m.Expense.IsActive)
+            }
+        </div>
+    </div>
+}
+
+<style>
+    /* Freight Config Card Styling */
+    .freight-config-card {
+        position: relative !important;
+        transition: all 0.2s ease-in-out;
+        border-width: 1.5px !important;
+        background-color: #fafbfc;
+        border-color: #e2e8f0 !important;
+    }
+    
+    .freight-config-card:hover {
+        border-color: #405189 !important;
+        background-color: #f8fafc;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+    }
+    
+    .freight-config-card.active.border-success {
+        border-color: #0ab39c !important;
+        background-color: rgba(10, 179, 156, 0.04) !important;
+    }
+
+    .freight-config-card.active.border-danger {
+        border-color: #f06548 !important;
+        background-color: rgba(240, 101, 72, 0.04) !important;
+    }
+    
+    .freight-config-card .form-check-input {
+        width: 1.25em !important;
+        height: 1.25em !important;
+        margin-top: 0;
+        cursor: pointer;
+    }
+
+    .freight-config-card.active.border-success .form-check-input:checked {
+        background-color: #0ab39c;
+        border-color: #0ab39c;
+    }
+
+    .freight-config-card.active.border-danger .form-check-input:checked {
+        background-color: #f06548;
+        border-color: #f06548;
+    }
+</style>

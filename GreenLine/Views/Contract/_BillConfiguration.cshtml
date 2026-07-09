@@ -1,0 +1,638 @@
+@model GreenLineDataService.Models.CYGNUS_BILL_CONFIGURATION
+@using GreenLineDataService.Models
+@using GreenLine.Classes
+
+@{
+    List<CYGNUS_Customer_Bill_Details> billDetails = ViewBag.billDetails as List<CYGNUS_Customer_Bill_Details> ?? new List<CYGNUS_Customer_Bill_Details>();
+
+    var BillFormat = new List<SelectListItem> {
+    new SelectListItem { Text = "Standard", Value = "B1"},
+    new SelectListItem { Text = "Custome1", Value = "B2" },
+    new SelectListItem { Text = "Custome2", Value = "B3" },
+    };
+
+    var ItemDesc = new List<SelectListItem>
+{
+        new SelectListItem { Text = "Destination", Value = " <<Destination>>"},
+        new SelectListItem { Text = "Rate", Value = " <<Rate>>"},
+        new SelectListItem { Text = "Source", Value = " <<Source>>"},
+        new SelectListItem { Text = "TripDate", Value = " <<TripDate>>"},
+        new SelectListItem { Text = "Vehicle", Value = " <<Vehicle>>"},
+    };
+
+    var BillingInstanceList = new List<SelectListItem> {
+     new SelectListItem { Text = "On Booking - When LR is created", Value = "BKG" },
+     new SelectListItem { Text = "On Delivery - When LR status is Delivered", Value = "DEL" },
+     new SelectListItem { Text = "On POD Approval - When Freight Audit Team Flags the POD as Clean POD in system ( Sign , Seal , Count, Date  are okay) ", Value = "PA" },
+     new SelectListItem { Text = "On POD Scan - When POD is uploaded against the LR", Value = "PS" },
+     new SelectListItem { Text = "On POD Process Closure - When Physical POD is received at HO and marked in system against LR as Physical POD Received", Value = "PC" },
+ };
+
+    var BillingScheduleList = new List<SelectListItem> {
+     new SelectListItem { Text = "Monthly", Value = "1" },
+     new SelectListItem { Text = "Weekly", Value = "2" },
+     new SelectListItem { Text = "Others", Value = "3" },
+ };
+}
+
+
+<div class="row form-modern-ui">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="ri-bill-line align-middle me-1"></i> Customer Bill Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle m-0" id="tblBillDetails">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Action</th>
+                                <th class="text-center">GST No.</th>
+                                <th class="text-center">GST State </th>
+                                <th class="text-start" style="min-width: 180px;">Legal Business Name</th>
+                                <th class="text-start" style="min-width: 220px;">Address </th>
+                                <th class="text-center">Country </th>
+                                <th class="text-center">State </th>
+                                <th class="text-center">City </th>
+                                <th class="text-center">Area </th>
+                                <th class="text-center">Pincode  </th>
+                                <th class="text-center">SAP Code </th>
+                                <th class="text-center">PANNo </th>
+                                <th class="text-center">TANNo </th>
+                                <th class="text-center">Mobile No </th>
+                                <th class="text-center">Email</th>
+                                <th class="text-center">Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (billDetails != null && billDetails.Count > 0)
+                            {
+                                foreach (var item in billDetails)
+                                {
+                                    <tr>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input chkSelectBillAddress"
+                                                   data-gstin="@item.Bill_GSTIN"
+                                                   data-gststate="@item.GSTState"
+                                                   data-buisnessname="@item.Bill_Legal_Business_Name"
+                                                   data-address="@item.Bill_Address"
+                                                   data-area="@item.Area"
+                                                   data-city="@item.City"
+                                                   data-state="@item.State"
+                                                   data-country="@item.Country"
+                                                   data-pincode="@item.Bill_Pincode"
+                                                   data-isdefault="@item.IsDefault"
+                                                   style="cursor: pointer; transform: scale(1.2);" />
+                                        </td>
+                                        <td class="text-center">@item.Bill_GSTIN</td>
+                                        <td class="text-center">@item.GSTState</td>
+                                        <td class="text-start" style="white-space: normal; word-break: break-word;">@item.Bill_Legal_Business_Name</td>
+                                        <td class="text-start" style="white-space: normal; word-break: break-word;">@item.Bill_Address</td>
+                                        <td class="text-center">@item.Country</td>
+                                        <td class="text-center">@item.State</td>
+                                        <td class="text-center">@item.City</td>
+                                        <td class="text-center">@item.Area</td>
+                                        <td class="text-center">@item.Bill_Pincode</td>
+                                        <td class="text-center">@item.Bill_SAP_Code</td>
+                                        <td class="text-center">@item.Bill_PAN</td>
+                                        <td class="text-center">@item.Bill_TAN</td>
+                                        <td class="text-center">@item.Bill_Mobile</td>
+                                        <td class="text-center">@item.Bill_Email</td>
+                                        <td class="text-center">@(item.IsDefault ? "Yes" : "No")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.BeginForm("AddBillConfiguration", "Contract", FormMethod.Post, new
+{
+    id = "form_BillConfiguration",
+    @class = "form-modern-ui",
+    enctype = "multipart/form-data"
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.ContractId)
+    @Html.HiddenFor(m => m.CustCode)
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i class="ri-bill-line align-middle me-1"></i> Billing Configuration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <div class="d-flex">
+                                    <label class="form-label required-field">Bill To (Select From Customer Bill Address)</label>
+                                </div>
+                                @Html.TextAreaFor(m => m.BillTo, new { @class = "form-control required", placeholder = "Bill Address", @readonly = true })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">
+                                    Service HSN
+                                </label>
+                                @Html.DropDownListFor(m => m.HSN_Code, new SelectList(ViewBag.ServiceHSN, "CodeId", "CodeDesc"), "", new
+                                {
+                                    @class = "select2 form-control required",
+                                    placeholder = "Select Service HSN"
+                                })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Bill Format</label>
+                                @Html.DropDownListFor(m => m.Bill_Format, new SelectList(BillFormat, "Value", "Text"), "", new
+                                    {
+                                        @class = "select2 form-control required",
+                                        placeholder = "Select Bill Format"
+                                    })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Line Items Per Invoice</label>
+                                @Html.TextBoxFor(m => m.Max_Trip_Count, new { @class = "form-control", placeholder = "Enter Item Per Invoice", @onkeypress = "javascript:return validDigits(event,this)", Value = (Model.Max_Trip_Count == 0 ? "" : Model.Max_Trip_Count.ToString("G29")) })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Organization Bank</label>
+                                @Html.DropDownListFor(m => m.Bank_Details, new SelectList(ViewBag.bankDetails, "Bank_Account_No", "Bank_Name"), "", new { @class = "required select2 form-control", placeholder = "Select Bank" })
+                            </div>
+                            @if (ViewBag.bankDetails.Count == 0)
+                            {
+                                <a href="@Url.Action("OrganizationMaster", "Master", new { CompanyCode = Model.Bill_Org })" target="_blank" class="text-primary small">
+                                    <i class="ri-add-circle-line align-middle"></i> No bank details found. Click to add.
+                                </a>
+                            }
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Invoice Line Item Description</label>
+                                @Html.DropDownList("ddlItemDesc", new SelectList(ItemDesc, "Value", "Text"), "", new
+                                {
+                                    @class = "select2 form-control",
+                                    id = "ddlItemDesc",
+                                    placeholder = "Select Item Description"
+                                })
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="form-group">
+                                @Html.TextAreaFor(m => m.Item_Description, new { @class = "form-control ", id = "txtItemDesc", rows = 5, style = "resize: vertical; height: 70px !important;", placeholder = "Enter Item Description", @readonly = "readonly" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Document Type</label>
+                                @Html.DropDownListFor(m => m.DocumentType, new SelectList(ViewBag.VehicleDocumentType, "Id", "Document_Name"), "", new
+                           {
+                               @class = "select2 form-control required",
+                               placeholder = "Select Document Type"
+                           })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Single Line Item</label>
+                                <div class="gap-3 d-flex">
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.Single_Line_Item, "Y", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Yes</label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.Single_Line_Item, "N", new { @class = "form-check-input" })
+                                        <label class="form-check-label">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Trip Wise</label>
+                                <div class="gap-3 d-flex">
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.Trip_Wise, "Y", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Yes</label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.Trip_Wise, "N", new { @class = "form-check-input" })
+                                        <label class="form-check-label">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Aggregate Rate Wise</label>
+                                <div class="gap-3 d-flex">
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.Rate_Wise, "Y", new { @class = "form-check-input" })
+                                        <label class="form-check-label">Yes</label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        @Html.RadioButtonFor(m => m.Rate_Wise, "N", new { @class = "form-check-input" })
+                                        <label class="form-check-label">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12">
+                            <div class="form-group">
+                                <label class="form-label">Special Notes</label>
+                                @*@Html.TextAreaFor(m => m.Special_Notes, new { @class = "form-control", placeholder = "Enter Special Notes", style = "resize: vertical;", id = "txtSpecialNotes" })*@
+                                @Html.TextAreaFor(m => m.Special_Notes, new { @class = "form-control ckeditor-classic", placeholder = "Enter Special Notes", style = "resize: vertical;" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*Billing Information*@
+    <div class="col-md-12">
+        <div class="card m-0">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="ri-settings-3-line align-middle me-1"></i> Billing Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                POD Required
+                            </label>
+                            <div class="gap-3 d-flex">
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.PodRequired, "Y", new { @class = "form-check-input" })
+                                    <label class="form-check-label">Yes</label>
+                                </div>
+
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.PodRequired, "N", new { @class = "form-check-input" })
+                                    <label class="form-check-label">No</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                POD Submission
+                            </label>
+                            <div class="gap-3 d-flex">
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.PodSubmission, "P", new { @class = "form-check-input" })
+                                    <label class="form-check-label">Physical</label>
+                                </div>
+
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.PodSubmission, "D", new { @class = "form-check-input" })
+                                    <label class="form-check-label">Digital</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Bill Submission
+                            </label>
+                            <div class="gap-3 d-flex">
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.BillSubmission, "P", new { @class = "form-check-input" })
+                                    <label class="form-check-label">Physical</label>
+                                </div>
+
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.BillSubmission, "D", new { @class = "form-check-input" })
+                                    <label class="form-check-label">Digital</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Credit Limit Active Y/N</label>
+                            <div class="form-check">
+                                @Html.CheckBoxFor(m => m.CreditLimitActive, new { @class = "form-check-input" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">Credit Limit (In Rs)</label>
+                            @Html.TextBoxFor(m => m.credit_limit, new { placeholder = "Enter Credit Limit", @class = "form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", Value = (Model.credit_limit == 0 ? "" : Model.credit_limit.ToString("G29")) })
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">Credit Days</label>
+                            @Html.TextBoxFor(m => m.credit_day, new { placeholder = "Enter Credit Days", @class = "form-control required", @onkeypress = "javascript:return validDigits(event,this)", Value = (Model.credit_day == 0 ? "" : Model.credit_day.ToString()) })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">Grace Period (In Days)</label>
+                            @Html.TextBoxFor(m => m.GracePeriod, new { placeholder = "Enter Grace Period (In Days)", @class = "form-control required", @onkeypress = "javascript:return validDigits(event,this)", Value = (Model.GracePeriod == 0 ? "" : Model.GracePeriod.ToString()) })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">Grace Limit</label>
+                            @Html.TextBoxFor(m => m.GraceLimit, new { placeholder = "Enter Grace Limit", @class = "form-control required", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", Value = (Model.GraceLimit == 0 ? "" : Model.GraceLimit.ToString("G29")) })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">Billing Instance</label>
+                            @Html.DropDownListFor(m => m.bill_inst, new SelectList(BillingInstanceList, "Value", "Text"), "", new { @class = "required select2 form-control", placeholder = "Select Billing Instance" })
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">Bill Generation Branch</label>
+                            @Html.DropDownListFor(m => m.billgen_loccode, new SelectList(ViewBag.ListLocations, "LocCode", "LocName_LocCode"), "", new { @class = "required select2 form-control", placeholder = "Select Bill Generation Location" })
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Bill Submission Branch
+                            </label>
+                            @Html.DropDownListFor(m => m.billsub_loccode, new SelectList(ViewBag.ListLocations, "LocCode", "LocName_LocCode"), "", new { @class = "required select2 form-control", placeholder = "Select Bill Submission Location" })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Bill Collection Branch
+                            </label>
+                            @Html.DropDownListFor(m => m.billcol_loccode, new SelectList(ViewBag.ListLocations, "LocCode", "LocName_LocCode"), "", new { @class = "required select2 form-control", placeholder = "Select Bill Collection Location" })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">Billing Schedule</label>
+                            @Html.DropDownListFor(m => m.bill_schedule, new SelectList(BillingScheduleList, "Value", "Text"), "", new { @class = "required select2 form-control", placeholder = "Select Billing Schedule" })
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Bank Guarantee
+                            </label>
+                            <div class="gap-3 d-flex">
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.bank_guarantee_Y_N, "Y", new { @class = "form-check-input" })
+                                    <label class="form-check-label">Yes</label>
+                                </div>
+
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.bank_guarantee_Y_N, "N", new { @class = "form-check-input" })
+                                    <label class="form-check-label">No</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 div_bank_gurantee ">
+                        <div class="form-group">
+                            <label class="form-label required-field">Bank Amount</label>
+                            @Html.TextBoxFor(m => m.bank_amount, new { placeholder = "Enter Bank Amount", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", Value = (Model.bank_amount == 0 ? "" : Model.bank_amount.ToString("G29")) })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 div_bank_gurantee">
+                        <div class="form-group">
+                            <label class="form-label required-field">Organization Bank</label>
+                            @Html.DropDownListFor(m => m.bank_bill_details, new SelectList(ViewBag.bankDetails, "Bank_Account_No", "Bank_Name"), "", new { @class = "required select2 form-control", placeholder = "Select Bank" })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 div_bank_gurantee">
+                        <div class="form-group">
+                            <label class="form-label required-field">Validity Date</label>
+                            <div class="input-group date" data-date-format="dd M yyyy">
+                                @Html.TextBoxFor(m => m.bank_Validity_date, (Model.bank_Validity_date == null || Convert.ToDateTime(Model.bank_Validity_date).Year < 1900) ? "" : String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.bank_Validity_date)), new { @class = "form-control date-picker", @placeholder = "dd MMM yyyy" })
+                                <span class="input-group-text bg-light border-start-0" style="cursor:pointer;">
+                                    <i class="ri-calendar-2-line"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Deposit (?)
+                            </label>
+                            <div class="gap-3 d-flex">
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.deposit_Y_N, "Y", new { @class = "form-check-input" })
+                                    <label class="form-check-label">Yes</label>
+                                </div>
+
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.deposit_Y_N, "N", new { @class = "form-check-input" })
+                                    <label class="form-check-label">No</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 div_deposit_amount">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Deposit Amount
+                            </label>
+                            @Html.TextBoxFor(m => m.deposit_Amount, new { placeholder = "Enter Deposit Amount", @class = "form-control", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", Value = (Model.deposit_Amount == 0 ? "" : Model.deposit_Amount.ToString("G29")) })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Termination Notice (In Days)
+                            </label>
+                            @Html.TextBoxFor(m => m.termination_days, new { placeholder = "Enter Days", @class = "form-control required", @onkeypress = "javascript:return validDigits(event,this)", Value = (Model.termination_days == 0 ? "" : Model.termination_days.ToString()) })
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Penalty Clause
+                            </label>
+                            <div class="gap-3 d-flex">
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.panlty_clause_Y_N, "Y", new { @class = "form-check-input" })
+                                    <label class="form-check-label">Yes</label>
+                                </div>
+
+                                <div class="form-check">
+                                    @Html.RadioButtonFor(m => m.panlty_clause_Y_N, "N", new { @class = "form-check-input" })
+                                    <label class="form-check-label">No</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="form-label required-field">
+                                Penalty Details
+                            </label>
+                            @Html.TextAreaFor(m => m.panlty_details, new { placeholder = "Enter Panalty Details", @class = "form-control required" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="form-actions d-flex justify-content-center">
+    <button type="button" onclick="goToTab(7)" class="@ViewBag.UI.Buttons.Previous.CssClass"><i class="@ViewBag.UI.Buttons.Previous.Icon"></i>@ViewBag.UI.Buttons.Previous.Label</button>&nbsp;
+    <button type="button" id="btnBillConfigurationSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Save</button>
+    @*<button type="button" id="btnFinalSubmit" style="display:@(Model.isDone ? "block" : "none")" class="@ViewBag.UI.Buttons.Submit.CssClass"><i class="@ViewBag.UI.Buttons.Submit.Icon"></i>Final Save</button>*@
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        @*var isDone = @(Model.isDone ? "true" : "false");*@
+        var savedBillTo = @Html.Raw(Json.Encode(Model.BillTo ?? ""));
+
+        function normalizeStr(str) {
+            return (str || '').toString().replace(/\s+/g, '').toLowerCase();
+        }
+        var normalizedSaved = normalizeStr(savedBillTo);
+
+        $('.chkSelectBillAddress').each(function () {
+            //if (isDone && normalizedSaved !== "") {
+            if (normalizedSaved !== "") {
+                var gstin = $(this).data("gstin");
+                var gststate = $(this).data("gststate");
+                var buisnessname = $(this).data("buisnessname");
+                var address = $(this).data("address");
+                var area = $(this).data("area");
+                var city = $(this).data("city");
+                var state = $(this).data("state");
+                var pincode = $(this).data("pincode");
+                var country = $(this).data("country");
+
+                var formatted =
+                    "Business Name: " + buisnessname +
+                    "\nAddress: " + address +
+                    "\nGST No: " + gstin +
+                    "\nGST State: " + gststate +
+                    "\nArea: " + area +
+                    "\nCity: " + city +
+                    "\nState: " + state +
+                    "\nCountry: " + country +
+                    "\nPincode: " + pincode;
+
+                if (normalizedSaved.indexOf(normalizeStr(formatted)) !== -1) {
+                    $(this).prop("checked", true);
+                }
+            } else {
+                var isDefault = $(this).attr("data-isdefault");
+                if (isDefault === "True" || isDefault === "true") {
+                    $(this).prop("checked", true);
+                }
+            }
+        });
+
+        // Initial BillTo Fill
+        updateBillTo();
+
+
+        // =========================
+        // CHECKBOX CHANGE EVENT
+        // =========================
+
+        $(document).off("change", ".chkSelectBillAddress")
+            .on("change", ".chkSelectBillAddress", function () {
+
+                updateBillTo();
+
+                if (typeof TosterNotification === "function") {
+                    TosterNotification("success", "Billing Address updated!", "Selection Updated");
+                }
+            });
+
+
+        // =========================
+        // COMMON FUNCTION
+        // =========================
+
+        function updateBillTo() {
+
+            var addresses = [];
+
+            $('.chkSelectBillAddress:checked').each(function () {
+
+                var gstin = $(this).data("gstin");
+                var gststate = $(this).data("gststate");
+                var buisnessname = $(this).data("buisnessname");
+                var address = $(this).data("address");
+                var area = $(this).data("area");
+                var city = $(this).data("city");
+                var state = $(this).data("state");
+                var pincode = $(this).data("pincode");
+                var country = $(this).data("country");
+
+                var formatted =
+                    "Business Name: " + buisnessname +
+                    "\nAddress: " + address +
+                    "\nGST No: " + gstin +
+                    "\nGST State: " + gststate +
+                    "\nArea: " + area +
+                    "\nCity: " + city +
+                    "\nState: " + state +
+                    "\nCountry: " + country +
+                    "\nPincode: " + pincode;
+
+                addresses.push(formatted);
+            });
+
+            var finalBillTo = addresses.join("\n--------------\n");
+
+            $("#BillTo").val(finalBillTo);
+        }
+
+    });
+
+</script>
+
+<style>
+    /* Decrease CKEditor height for Special Notes specifically under Billing Configuration tab */
+    #tab_10 .ck-editor__editable_inline {
+        min-height: 80px !important;
+        height: 100px !important;
+    }
+</style>

@@ -1,0 +1,280 @@
+@model GreenLineDataService.ViewModel.CYGNUS_PickUpRequestViewModel
+@using GreenLineDataService.Models
+@{
+    var type = "Edit";
+    ViewBag.Title = "Vehicle Allocation List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+    <h4 class="mb-sm-0">@ViewBag.Title </h4>
+
+    <div class="page-title-right">
+        <ol class="breadcrumb m-0 shadow-none bg-transparent">
+            <li class="breadcrumb-item"><a href="javascript: void(0);">Fleet</a></li>
+            <li class="breadcrumb-item">@type PR / Vehicle Allocation</li>
+        </ol>
+    </div>
+</div>
+
+<div class="pt-3 pb-3 vehicle-allocation-page" id="mainContainer">
+    <div class="card shadow-sm border-0 rounded-0">
+        <!-- Header Bar Matching Pincode Design -->
+        <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+            <h4 class="card-title mb-0 flex-grow-1">List of PickUp Request</h4>
+        </div>
+
+        <!-- Filter Row Matching Pincode Design -->
+        <div class="card-body border-bottom bg-light bg-opacity-10 py-3">
+            <div class="row align-items-center g-3">
+                <div class="col-auto">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="filter-label mb-0">Allocation Type:</span>
+                        <div style="width: 200px;">
+                            @using (Html.BeginForm("Vehicle_AllocationList", "Fleet", FormMethod.Get, new { id = "filterForm" }))
+                            {
+                                <select name="type" class="form-select" onchange="document.getElementById('filterForm').submit();">
+                                    <option value="">Select Type</option>
+                                    <option value="FTL" @(ViewBag.SelectedType == "FTL" ? "selected" : "")>FTL</option>
+                                    <option value="PTL" @(ViewBag.SelectedType == "PTL" ? "selected" : "")>PTL</option>
+                                </select>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+     
+        <div class="card-body p-0">
+            <table id="WCM_Vehicle_AllocationList" class="table table-hover table-striped align-middle table-nowrap mb-0" style="overflow-x: scroll">
+                <thead class="table-light">
+        <tr>
+            <th class="center">
+                ID
+            </th>
+            <th class="center">
+                Customer Group
+            </th>
+            <th class="center">
+                Customer Code
+            </th>
+            <th class="center">
+                Address
+            </th>
+            <th class="center no-cc">Action</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.listCPR)
+        {
+            string BtnId = "Edit_" + item.PRNo.ToString();
+            string TrId = "TR" + item.PRNo.ToString();
+
+            <tr id="@TrId">
+                    <td class="center text-uppercase fw-medium">
+                        @item.PRNo
+                    </td>
+                <td>
+                    @item.CustomerGroup
+                </td>
+                <td>
+                    @item.Customer
+                </td>
+                <td>
+                    @item.Address
+                </td>
+                <td class="center">
+                    <button class="@ViewBag.UI.Buttons.Edit.CssClass btnEdit" data-id="@item.PRNo">
+                        <i class="@ViewBag.UI.Buttons.Edit.Icon"></i>
+                    </button>
+                    <a href="javascript:void(0);" class="btn btn-info btn-sm waves-effect waves-light btnAddVehAllocation" data-id="@item.PRNo">
+                        <i class="ri-truck-line align-bottom me-1"></i> Vehicle Allocation
+                    </a>
+                </td>
+
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+<div class="modal fade" id="PRModal" tabindex="-1" aria-labelledby="PRModalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow" id="PRModalContent">
+            <!-- Content loaded via AJAX -->
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+
+         var Formvalidate = function (DomainName) {
+
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span', //default input error message container
+                errorClass: 'help-block', // default input error message class
+                // errorClass: 'validate-inline',
+                focusInvalid: false, // do not focus the last invalid input
+
+                rules: {
+            
+                },
+                messages: {
+             
+                },
+                errorPlacement: function (error, element) { // render error placement for each input type
+                    //if (element.parents('.checkbox-list').size() > 0) {
+                    //    error.appendTo(element.parents('.checkbox-list').attr("data-error-container"));
+                    //} else {
+                    error.insertAfter(element); // for other inputs, just perform default behavior
+                    //}
+                },
+                invalidHandler: function (event, validator) { //display error alert on form submit
+                    for (var i = 0; i < validator.errorList.length; i++) {
+
+                    }
+
+                    //validator.errorMap is an object mapping input names -> error messages
+                    for (var i in validator.errorMap) {
+                    }
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                },
+                highlight: function (element) { // hightlight error inputs
+                    $(element)
+                        .closest('.form-group').addClass('has-error'); // set error class to the control group
+                },
+                unhighlight: function (element) { // revert the change done by hightlight
+                    $(element)
+                        .closest('.form-group').removeClass('has-error'); // set error class to the control group
+                },
+                success: function (label) {
+                    label
+                        .closest('.form-group').removeClass('has-error'); // set success class to the control group
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                    //  form1.submit();
+                }
+            });
+        }
+
+        var GetObjectDet = function (id, DomainName) {
+            GLModal.showForm({
+                title: "Edit " + id ,
+                icon: 'ri-edit-box-line',
+                url: DomainName + '/Fleet/AddEditPickup_Request?PRNo=' + id,
+                onLoaded: function () {
+                    $("#Lane_id,#ContractId").select2({
+                        placeholder: "Select an option",
+                        allowClear: true,
+                        dropdownParent: $('#glFormModal')
+                    });
+
+                    if (id > 0) {
+                        $("#Customer_Group").attr("readonly", true);
+                        $("#Customer_Code").attr("readonly", true);
+                    }
+                    CallSubmitClick(DomainName);
+                },
+                onSave: function () {
+                    if (!$('#form_sample').valid()) return false;
+                    //CallSubmitClick(DomainName);
+                    return $.ajax({
+                        url: DomainName + '/Fleet/Vehicle_AllocationList',
+                        data: $("#form_sample").serialize(),
+                        type: 'GET',
+                        success: function (data) {
+                            if (data) {
+                                //TosterNotification("success", "Record has been updated successfully..!", "Success");
+                                //bindTable($("#WCM_state").val(), DomainName);
+                            } else {
+                                TosterNotification("error", 'Operation fail..!! There is some issue please try again.', "Oops..!!");
+                            }
+                        }
+                    });
+                }
+            });
+        };
+        var CallSubmitClick = function (DomainName) {
+            $("#glFormSaveBtn").click(function (e) {
+                if (e.handled !== true) {
+                    e.handled = true;
+                    if (!$('#form_sample').valid()) {
+                        e.handled = false; 
+                        return;
+                    }
+
+                    App.blockUI({ boxed: true });
+                    var PickUpRequest = {
+                        "PRNo": $("#PRNo").val(),
+                        "Customer_Group": $("#Customer_Group").val(),
+                        "Customer_Code": $("#Customer_Code").val(),
+                        //"Location": $("#Location").val(),
+                        "Address": $("#Address").val(),
+                        "Lane_id": $("#Lane_id").val(),
+                        "ContractId": $("#ContractId").val()
+                    };
+
+                    $.ajax({
+                        url: DomainName + '/Fleet/AddEditPickup_Request',
+                        cache: false,
+                        data: JSON.stringify(PickUpRequest),
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data.Status) {
+                                TosterNotification("success", "PickUp Request updated!", "Success");
+                                var modalInstance = bootstrap.Modal.getInstance(document.getElementById('PRModal'));
+                                if (modalInstance) {
+                                    modalInstance.hide();
+                                }
+                            } else {
+                                TosterNotification("error", data.Message || 'Operation failed.', "Error");
+                            }
+                            App.unblockUI();
+                        },
+                        error: function () {
+                            TosterNotification("error", 'Post failed.', "Error");
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+        }
+
+        return {
+            //main function to initiate the module
+            init: function (DomainName) {
+                var tblId = 'WCM_Vehicle_AllocationList';
+                
+                GlDataTable.init(tblId, {
+                    columnDefs: [
+                        { orderable: false, targets: [4] }
+                    ]
+                });
+                
+                $(document).on('click', ".btnEdit", function () {
+                    var id = $(this).data('id');
+                    GetObjectDet(id, DomainName);
+                });
+                $(document).on("click", ".btnAddVehAllocation", function () {
+                    App.blockUI({ boxed: true });
+                    window.location.href = DomainName + "/Fleet/VehicleAllocation?PRNo=" + $(this).data('id');
+                });
+            }
+        }
+    }();
+
+
+</script>

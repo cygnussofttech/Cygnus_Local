@@ -1,0 +1,1111 @@
+@model GreenLineDataService.ViewModel.VehicleViewModel
+@{
+    ViewBag.Title = Model.EditFlag == "true" ? "Edit Vehicle" : "Add Vehicle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string type = Model.EditFlag == "true" ? "Edit" : "Add";
+    var ACTIVEFLAG = Model.VehicleHDR.IsActive ? "checked" : "";
+    var IsVehicleWarranty = Model.VehicleHDR.IsWarranty ? "checked" : "";
+    var IsVehicleUnderAMC = Model.VehicleHDR.IsAMC ? "checked" : "";
+}
+
+@using (Html.BeginForm("VehicleMasterSubmit", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.EditFlag)
+    
+    <!-- start page title -->
+    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <h4 class="mb-sm-0">@type Vehicle </h4>
+
+        <div class="page-title-right">
+            <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Content("~/Master/VehicleList")">Vehicle List</a></li>
+                <li class="breadcrumb-item active">@type</li>
+            </ol>
+        </div>
+    </div>
+    <!-- end page title -->
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex">
+                    <h5 class="card-title mb-0 flex-grow-1"><i class="ri-truck-line align-middle me-1"></i> Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        @Html.HiddenFor(m => m.VehicleHDR.ID)
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Registered</label>
+                                <div class="form-check form-switch mt-1">
+                                    @Html.CheckBoxFor(m => m.VehicleHDR.IsRegistered, new { @class = "form-check-input", @id = "IsRegistered" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Vehicle Category</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.VehicleCode, new SelectList(ViewBag.VehicleCodeList, "Value", "Text", Model.VehicleHDR.VehicleCode), "", new { @class = "form-control select2", @placeholder = "Select Vehicle Code" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field" id="lblVehicleNo">@(Model.VehicleHDR.VehicleCode == "T" ? "Trailer No." : "Vehicle No.")</label>
+                                @if (Model.EditFlag == "true")
+                                {
+                                    @Html.TextBoxFor(m => m.VehicleHDR.VehicleNo, new { @class = "form-control disabled-field", @placeholder = (Model.VehicleHDR.VehicleCode == "T" ? "Trailer No" : "Vehicle No"), @readonly = "readonly" })
+                                }
+                                else
+                                {
+                                    @Html.TextBoxFor(m => m.VehicleHDR.VehicleNo, new { @class = "required form-control text-uppercase", @placeholder = (Model.VehicleHDR.VehicleCode == "T" ? "Trailer No" : "Vehicle No"), @minlength = 4, @maxlength = 11 })
+                                }
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Vehicle Type</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.VehicleType, new SelectList(ViewBag.VehicleTypeList, "CodeId", "CodeDesc"), "", new { @class = "form-control required select2", @placeholder = "Select Vehicle Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Vehicle Group</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.VehicleGroup, new SelectList(ViewBag.VehicleGroupList, "Value", "Text", Model.VehicleHDR.VehicleGroup), "", new { @class = "form-control required select2", @placeholder = "Select Vehicle Group" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Vendor Type</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.VendorType, new SelectList(ViewBag.VendorTypeList, "CodeId", "CodeDesc"), "", new { @class = "select2 required form-control", @placeholder = "Select Vendor Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Vendor / Owner Name</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.VendorCode, new SelectList(ViewBag.ListVendor, "VENDORCODE", "VENDORNAME"), "", new { @class = "form-control required select2", @placeholder = "Select Vendor" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Make</label>
+                                @*@Html.TextBoxFor(m => m.VehicleHDR.ManufacturerName, new { @class = "form-control required", @placeholder = "Enter Make" })*@
+                                @Html.DropDownListFor(m => m.VehicleHDR.ManufacturerName, new SelectList(ViewBag.ManufactureList, "CodeId", "CodeDesc", Model.VehicleHDR.ManufacturerName), "", new { @class = "select2 required form-control", @placeholder = "Select Make" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field" id="lblVehicleModel">Model</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.VehicleModel, new SelectList(ViewBag.ListVehicleModel, "Type_Code", "Type_Name", Model.VehicleHDR.VehicleModel), "", new { @class = "select2 required form-control", @placeholder = "Select Model" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Permit State</label>
+                                @Html.DropDownList("VEHPERMIT", new SelectList(ViewBag.StatePermitList, "stcd", "stnm", Model.VehicleHDR.PermitState), "", new { @class = "form-control select2", @placeholder = "Select Permit States", @multiple = "multiple" })
+                                @Html.HiddenFor(m => m.VehicleHDR.PermitState)
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Insurance Type</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.InsuranceType, new SelectList(ViewBag.InsuranceTypeList, "CodeId", "CodeDesc"), "", new { @class = "form-control required select2", @placeholder = "Select Insurance Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 @(Model.VehicleHDR.IsRegistered && Model.EditFlag != "true" ? "d-none" : "")" id="status-col">
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.VehicleStatus, new SelectList(ViewBag.StatusList, "Value", "Text", Model.VehicleHDR.VehicleStatus), "", new { @class = "form-control select2", @placeholder = "Select Status" })
+                            </div>
+                        </div>
+
+                        @if (Model.EditFlag == "true")
+                        {
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Status</label>
+                                    <div class="form-check form-switch mt-1">
+                                        @Html.CheckBoxFor(m => m.VehicleHDR.IsActive, new { @class = "form-check-input", @id = "IsActive" })
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            @Html.HiddenFor(m => m.VehicleHDR.IsActive)
+                        }
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">No. of Tyres</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.TyreCount, new { @class = "form-control", @placeholder = "0", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))", @MaxLength = "2" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Location</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.Location, new { placeholder = "Select Location", @class = "form-control required" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Stepney Tyre</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.StepneyTyreCount, new { @class = "form-control", @placeholder = "0", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))", @MaxLength = "1" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Tracking Id</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.TrackingId, new { @class = "form-control", @placeholder = "Enter Tracking Id" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ri-file-list-3-line align-middle me-1"></i> Warranty and AMC </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label d-block">Vehicle Warranty</label>
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-auto">
+                                        <div class="form-check form-switch pt-1">
+                                            @Html.CheckBoxFor(m => m.VehicleHDR.IsWarranty, new { @class = "form-check-input", @id = "IsWarranty" })
+                                        </div>
+                                    </div>
+                                    <div class="col CHECKWARRANTY d-none">
+                                        <div class="d-flex gap-2">
+                                            <div class="flex-fill">
+                                                @Html.TextBoxFor(m => m.VehicleHDR.WarrantyFrom, (Model.VehicleHDR.WarrantyFrom == null || Convert.ToDateTime(Model.VehicleHDR.WarrantyFrom).Year < 1900) ? "" : String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.VehicleHDR.WarrantyFrom)), new { @class = "form-control form-control-sm date-picker", @placeholder = "From" })
+                                            </div>
+                                            <div class="flex-fill">
+                                                @Html.TextBoxFor(m => m.VehicleHDR.WarrantyTo, (Model.VehicleHDR.WarrantyTo == null || Convert.ToDateTime(Model.VehicleHDR.WarrantyTo).Year < 1900) ? "" : String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.VehicleHDR.WarrantyTo)), new { @class = "form-control form-control-sm date-picker", @placeholder = "To" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label d-block">Vehicle Under AMC</label>
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-auto">
+                                        <div class="form-check form-switch pt-1">
+                                            @Html.CheckBoxFor(m => m.VehicleHDR.IsAMC, new { @class = "form-check-input", @id = "IsAMC" })
+                                            <label class="form-check-label ms-1" for="IsAMC"></label>
+                                        </div>
+                                    </div>
+                                    <div class="col CHECKAMC d-none">
+                                        <div class="d-flex gap-2">
+                                            <div class="flex-fill">
+                                                @Html.TextBoxFor(m => m.VehicleHDR.AMCFrom, (Model.VehicleHDR.AMCFrom == null || Convert.ToDateTime(Model.VehicleHDR.AMCFrom).Year < 1900) ? "" : String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.VehicleHDR.AMCFrom)), new { @class = "form-control form-control-sm date-picker", @placeholder = "From" })
+                                            </div>
+                                            <div class="flex-fill">
+                                                @Html.TextBoxFor(m => m.VehicleHDR.AMCTo, (Model.VehicleHDR.AMCTo == null || Convert.ToDateTime(Model.VehicleHDR.AMCTo).Year < 1900) ? "" : String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.VehicleHDR.AMCTo)), new { @class = "form-control form-control-sm date-picker", @placeholder = "To" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="registration-details-card">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ri-shield-check-line align-middle me-1"></i> Registration Details </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">RC Book No.</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.RCBookNo, new { @class = "form-control required disabled-field", @placeholder = "Enter RC No", @disabled = "disabled" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Registration Date</label>
+                                <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+                                    @Html.TextBoxFor(m => m.VehicleHDR.RegistrationDate, (Model.VehicleHDR.RegistrationDate == null || Convert.ToDateTime(Model.VehicleHDR.RegistrationDate).Year < 1900) ? "" : String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.VehicleHDR.RegistrationDate)), new { @class = "form-control required", @placeholder = "dd MMM yyyy" })
+                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Chassis No.</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.ChassisNo, new { @class = "required form-control", @placeholder = "Enter Chassis No" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 engine-col">
+                            <div class="form-group">
+                                <label class="form-label required-field">Engine No.</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.EngineNo, new { @class = "required form-control", @placeholder = "Enter Engine No" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Manufacture Year and Month</label>
+                                <div class="input-group date date-picker-month" data-date-format="M yyyy">
+                                    @Html.TextBoxFor(m => m.VehicleHDR.ManufactureYearAndMonth, new { @class = "required form-control", @placeholder = "MMM yyyy" })
+                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Body Type</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.BodyType, new { @class = "form-control required", @placeholder = "Enter Body Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">UnLaden Weight(ULW)</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.ULW, new { @class = "form-control required", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Registered Laden Weight (RLW)</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.RLW, new { @class = "form-control required", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Permitted Laden Weight (PLW)</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.PLW, new { @class = "form-control required", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="fuel-details-card">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ri-settings-4-line align-middle me-1"></i> Fuel Details </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6 fuel-col">
+                            <div class="form-group">
+                                <label class="form-label required-field">Fuel Type</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.FuelType, new SelectList(ViewBag.FuelTypeList, "CodeId", "CodeDesc"), "", new { @class = "form-control required select2", @placeholder = "Select Fuel Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 fuel-col">
+                            <div class="form-group">
+                                <label class="form-label required-field">Fuel UOM</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.FuelUOM, new SelectList(ViewBag.FuelUOMList, "CodeId", "CodeDesc"), "", new { @class = "form-control required select2", @placeholder = "Select Fuel UOM" })
+                            </div>
+                        </div>
+    
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Fuel Tank Capacity</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.FuelTankCapacity, new { @class = "required form-control", @placeholder = "Enter Capacity" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Average (Empty)</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.AvgEmpty, new { @class = "form-control required", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field" id="Less_Than_Half">Average (Less Than Half Loaded)</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.AvgLessHalf, new { @class = "form-control required", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field" id="More_Than_Half">Average (More Than Half Loaded)</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.AvgMoreHalf, new { @class = "form-control required", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Average (Loaded)</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.AvgLoad, new { @class = "form-control required", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ri-money-dollar-circle-line align-middle me-1"></i> Financial Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Purchase Value</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.PurchaseValue, new { @class = "required form-control clsAmount", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @maxlength = "15" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Purchase Date</label>
+                                <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+                                    @Html.TextBoxFor(m => m.VehicleHDR.PurchaseDate, (Model.VehicleHDR.PurchaseDate == null || Convert.ToDateTime(Model.VehicleHDR.PurchaseDate).Year < 1900) ? "" : String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.VehicleHDR.PurchaseDate)), new { @class = "form-control required", @placeholder = "Select Purchase Date" })
+                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Lessor/Hypothecation</label>
+                                @Html.DropDownListFor(m => m.VehicleHDR.EMIPaymentType, new SelectList(ViewBag.LESSHYPOList, "CodeId", "CodeDesc", Model.VehicleHDR.EMIPaymentType), "", new { @class = "form-control select2", placeholder="Select Type" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Down Payment</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.DownPayAmt, new { @class = "required form-control clsAmount", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">EMI Amount</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.EmiAmt, new { @class = "required form-control clsAmount", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @maxlength = "15" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">EMI Day</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.EmiDay, new { @class = "required form-control", @placeholder = "Day", @onkeypress = "javascript:return validInt(event)", @maxlength = "2", @min = 1, @max = 30 })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Total EMIs</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.TotalEmi, new { @class = "required form-control", @placeholder = "0", @onkeypress = "javascript:return validInt(event)", @maxlength = "2" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Sale Value</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.SaleAmt, new { @class = "required form-control clsAmount", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @maxlength = "15" })
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Sale Date</label>
+                                <div class="input-group date date-picker" data-date-format="dd MMM yyyy">
+                                    @Html.TextBox("VehicleHDR.SaleDate", (Model.VehicleHDR.SaleDate == null || Convert.ToDateTime(Model.VehicleHDR.SaleDate).Year <= 1900) ? "" : String.Format("{0:dd MMM yyyy}", Convert.ToDateTime(Model.VehicleHDR.SaleDate)), new { @class = "form-control", @placeholder = "Select Sale Date" })
+                                    <button class="btn btn-light border date-set" type="button"><i class="ri-calendar-line"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required-field">Scrap Value</label>
+                                @Html.TextBoxFor(m => m.VehicleHDR.ScrapValue, new { @class = "required form-control clsAmount", @placeholder = "0.00", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'));", @maxlength = "15" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row @(Model.VehicleHDR.IsRegistered ? "" : "d-none")" id="vehicle-documents-card">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ri-file-upload-line align-middle me-1"></i> Vehicle Documents </h5>
+                </div>
+                <div class="card-body">
+                    <div id="vehicle-documents-container" class="row g-3">
+                        <!-- Dynamic document fields will be loaded here via AJAX -->
+                        <div class="col-12 text-center p-4 text-muted">
+                            <i class="ri-information-line fs-24 mb-2 d-block"></i>
+                            Select Vehicle Type and Vendor Type to see required documents.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-0">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ri-camera-line align-middle me-1"></i> Vehicle Photos </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-start">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Upload Photos</label>
+                                <input id="VehiclePhotos" type="file" name="photos" multiple class="form-control" accept="image/*" />
+                                @Html.HiddenFor(m => m.VehicleHDR.VehiclePhoto)
+                                <p class="text-muted small mt-1 mb-0">Upload clear photos of the vehicle (Front, Side, Rear).</p>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.VehicleHDR.VehiclePhoto))
+                        {
+                            <div class="col-lg-9 col-md-6 pt-3">
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var photo in Model.VehicleHDR.VehiclePhoto.Split(','))
+                                    {
+                                        if (!string.IsNullOrEmpty(photo))
+                                        {
+                                            <a href="@Url.Content("~/UploadedDocuments/VehicleUpload" + photo)" target="_blank" class="btn btn-sm btn-outline-success">
+                                                <i class="ri-image-line align-bottom me-1"></i> View Photo
+                                            </a>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a class="@ViewBag.UI.Buttons.Cancel.CssClass" href="@Url.Content("~/Master/VehicleList")">
+            <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i>@ViewBag.UI.Buttons.Cancel.Label
+        </a>
+        <button type="button" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass ClsbtnSave">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>@ViewBag.UI.Buttons.Submit.Label 
+        </button>
+    </div>
+}
+
+<script type="text/javascript">
+    var FormComponents = function () {
+        var DomainName = '';
+
+        var Formvalidate = function () {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                rules: {
+                    "VehicleHDR.VehicleNo": {
+                        required: true,
+                        minlength: 4
+                    }
+                },
+                messages: {
+                    "VehicleHDR.VehicleNo": {
+                        minlength: "Vehicle Number must be at least 4 characters long"
+                    }
+                },
+                highlight: function (element) { // highlight error inputs
+                    $(element).closest('.form-group').addClass('has-error'); // set error class to the control group
+                },
+                unhighlight: function (element) { // revert the change done by highlight
+                    $(element).closest('.form-group').removeClass('has-error'); // set error class to the control group
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error'); // set success class to the control group
+                },
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible")) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                invalidHandler: function (event, validator) {
+                    success1.hide();
+                    error1.show();
+                    App.scrollTo(error1, -200);
+                }
+            });
+        }
+
+        var Events = function () {
+            if ('@Model.EditFlag' == "false") {
+                $('input.date-picker, .date-picker input, .date-picker-month input').val('');
+            }
+
+            $('#VehicleHDR_VehicleNo').change(function () {
+                var vehNo = $(this).val();
+                //console.log("Vehicle Number Changed:", vehNo);
+                
+                if (vehNo && vehNo.trim() !== "") {
+                    if ($('#VehicleHDR_RCBookNo').val().trim() == "") {
+                        $('#VehicleHDR_RCBookNo').val($('#VehicleHDR_VehicleNo').val());
+                    }
+                    if (vehNo.trim().length < 4) {
+                        TosterNotification("warning", "Vehicle Number must be at least 4 characters long", "Validation");
+                        return false;
+                    }
+                    App.blockUI({ boxed: true, message: 'Processing vehicle...' });
+
+                    // 1. Check Duplicate
+                    $.ajax({
+                        type: "POST",
+                        url: DomainName + "/Master/CheckDuplicateVehicle/" + encodeURIComponent(vehNo.trim()),
+                        success: function (data) {
+                            //console.log("Duplicate Check Response:", data);
+                            if (data == "1" || data == "True") {
+                                TosterNotification("error", "Vehicle Number already exists", "Duplicate");
+                                $('#VehicleHDR_VehicleNo').val('');
+                                $('#VehicleHDR_RCBookNo').val('');
+                                App.unblockUI();
+                            } else {
+                                // 2. Get API Data (if enabled AND vehicle is registered)
+                                if ('@ViewBag.VehicalAPIEnable' == "Y" && $('#IsRegistered').is(':checked')) {
+                                    $.ajax({
+                                        url: DomainName + '/Master/GetVehicleDetailsFromAPINew?VEHNO=' + vehNo.trim(),
+                                        type: 'POST',
+                                        success: function (result) {
+                                            App.unblockUI();
+                                            //console.log("Vahan API Response:", result);
+
+                                            // The old code used 'result.status == 0' for failure
+                                            if (result && result.status != 0) {
+                                                var resp = result;
+                                                var formatAPIDate = function (d) {
+                                                    if (!d || d.indexOf('0001') !== -1) return '';
+                                                    return d;
+                                                };
+
+                                                // Map API response to modernized property IDs
+                                                if (resp.rc_regn_dt) $('#VehicleHDR_RegistrationDate').val(formatAPIDate(resp.rc_regn_dt));
+                                                if (resp.rc_chasi_no) $('#VehicleHDR_ChassisNo').val(resp.rc_chasi_no);
+                                                if (resp.rc_eng_no) $('#VehicleHDR_EngineNo').val(resp.rc_eng_no);
+                                                if (resp.rc_unld_wt) $('#VehicleHDR_ULW').val(resp.rc_unld_wt).trigger('change');
+                                                if (resp.rc_gvw) $('#VehicleHDR_RLW').val(resp.rc_gvw).trigger('change');
+                                                if (resp.rc_maker_model) {
+                                                    var makerModel = resp.rc_maker_model.toUpperCase();
+                                                    var matchedVal = "";
+                                                    $('#VehicleHDR_ManufacturerName option').each(function () {
+                                                        var optionText = $(this).text().toUpperCase();
+                                                        var optionVal = $(this).val();
+                                                        if (optionVal && optionText && (makerModel.indexOf(optionText) !== -1 || optionText.indexOf(makerModel) !== -1)) {
+                                                            matchedVal = optionVal;
+                                                            return false;
+                                                        }
+                                                    });
+                                                    if (matchedVal) {
+                                                        $('#VehicleHDR_ManufacturerName').val(matchedVal).trigger('change');
+                                                    } else {
+                                                        $('#VehicleHDR_ManufacturerName').val('').trigger('change');
+                                                    }
+                                                }
+                                                if (resp.rc_regn_no) $('#VehicleHDR_RCBookNo').val(resp.rc_regn_no);
+
+                                                // Handle Fuel Type mapping
+                                                if (resp.rc_fuel_desc) {
+                                                    var fuelVal = "";
+                                                    if (resp.rc_fuel_desc.toUpperCase() == "CNG") fuelVal = "03";
+                                                    else if (resp.rc_fuel_desc.toUpperCase() == "DIESEL") fuelVal = "02";
+                                                    else if (resp.rc_fuel_desc.toUpperCase() == "PETROL") fuelVal = "01";
+
+                                                    if (fuelVal) $("#VehicleHDR_FuelType").val(fuelVal).trigger('change');
+                                                }
+                                            } else {
+                                                console.warn("API Note: " + (result.message || "Could not fetch details for this vehicle."));
+                                            }
+                                        },
+                                        error: function (xhr) {
+                                            console.error("API Error:", xhr);
+                                            App.unblockUI();
+                                        }
+                                    });
+                                } else {
+                                    App.unblockUI();
+                                }
+                            }
+                        },
+                        error: function () { App.unblockUI(); }
+                    });
+                } else {
+                    $('#VehicleHDR_RCBookNo').val('');
+                }
+            });
+
+            $('#IsWarranty, #IsAMC, #IsRegistered').change(function () {
+                toggleConditionalFields(false); // Pass false to indicate this is a user change, not initial load
+            });
+
+            $('#VehicleHDR_RLW, #VehicleHDR_ULW').on('input change', function () {
+                var rlw = parseFloat($('#VehicleHDR_RLW').val()) || 0;
+                var ulw = parseFloat($('#VehicleHDR_ULW').val()) || 0;
+                var plw = rlw - ulw;
+                if (plw < 0) plw = 0;
+                $('#VehicleHDR_PLW').val(plw.toFixed(2));
+            });
+
+            if ($('#VehicleHDR_RLW').val() || $('#VehicleHDR_ULW').val()) {
+                $('#VehicleHDR_RLW').trigger('change');
+            }
+
+            $('#VehicleHDR_VehicleType, #VehicleHDR_VendorType').change(function () {
+                LoadVehicleDocuments();
+            });
+
+            $('#VehicleHDR_VehicleCode').change(function () {
+                toggleConditionalFields(false);
+                LoadVehicleModels(); // Explicitly load models when category changes
+
+                var selectedText = $(this).find('option:selected').text();
+                $('#VehicleHDR_BodyType').val(selectedText);
+                if ($('#VehicleHDR_BodyType').val()) {
+                    $('#VehicleHDR_BodyType').valid();
+                }
+            });
+
+            $('#VehicleHDR_VehicleStatus').change(function () {
+                handleStatusChange();
+            });
+
+            $('#VehicleHDR_VendorType').change(function () {
+                if ($(this).val()) {
+                    App.blockUI({ boxed: true });
+                    var str = DomainName + '/Master/GetFillVendorListJson?Verndortype=' + $(this).val();
+                    FillDropDownfromOther('VehicleHDR_VendorCode', str, 'Vendor');
+                } else {
+                    $('#VehicleHDR_VendorCode').empty().trigger('change');
+                }
+            });
+
+            // Sync Multi-select Permit
+            $('#VEHPERMIT').on('change', function() {
+                var selectedValues = $(this).val();
+                if (selectedValues && selectedValues.length > 0) {
+                    $('#VehicleHDR_PermitState').val(selectedValues.join(','));
+                } else {
+                    $('#VehicleHDR_PermitState').val('');
+                }
+            });
+
+            // Modern Submit Logic
+            $('#btnSubmit').click(function (e) {
+                e.preventDefault();
+                if (!$('#form_sample').valid()) {
+                    return false;
+                }
+
+                // Ensure disabled fields are included if needed
+                $('#VehicleHDR_VehicleStatus').prop('disabled', false);
+                $('#VehicleHDR_VehicleType').prop('disabled', false);
+                $('#VehicleHDR_RCBookNo').prop('disabled', false);
+
+                App.blockUI({ boxed: true, message: 'Saving Vehicle...' });
+                
+                var form = document.getElementById('form_sample');
+                var formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.Status) {
+                        TosterNotification("success", result.Message || "Vehicle saved successfully!", "Success");
+                        setTimeout(function () {
+                            window.location = DomainName + "/Master/VehicleList";
+                        }, 1500);
+                    } else {
+                        TosterNotification("error", result.Message || "Failed to save vehicle details.", "Error");
+                        App.unblockUI();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    TosterNotification("error", "An unexpected error occurred. Please try again.", "Error");
+                    App.unblockUI();
+                });
+            });
+        }
+
+        function LoadVehicleDocuments() {
+            var isRegistered = $("#IsRegistered").is(':checked');
+            if (!isRegistered) {
+                $('#vehicle-documents-container').empty();
+                return;
+            }
+
+            var vehicleType = $('#VehicleHDR_VehicleType').val();
+            var vendorType = $('#VehicleHDR_VendorType').val();
+            var vehicleId = $('#VehicleHDR_ID').val();
+
+            if (vehicleType && vendorType) {
+                App.blockUI({ target: '#vehicle-documents-container', boxed: true });
+                $.ajax({
+                    type: "POST",
+                    url: DomainName + "/Master/GetVehicleDocuments",
+                    data: { VehicleType: vehicleType, VendorType: vendorType, VehicleId: vehicleId },
+                    dataType: "json",
+                    success: function (data) {
+                        var container = $('#vehicle-documents-container');
+                        container.empty();
+                        if (data && data.length > 0) {
+                            $.each(data, function (i, doc) {
+                                // Format dates if present
+                                var formatJSONDate = function (jsonDate) {
+                                    if (!jsonDate) return '';
+                                    var date;
+                                    if (jsonDate.indexOf('/Date(') !== -1) {
+                                        date = new Date(parseInt(jsonDate.substr(6)));
+                                    } else {
+                                        date = new Date(jsonDate);
+                                    }
+                                    if (date.getFullYear() < 1910) return ''; // ignore 1900-01-01 or similar empty dates
+                                    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    var day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+                                    return day + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
+                                };
+
+                                var fromDateStr = formatJSONDate(doc.FromDate);
+                                var toDateStr = formatJSONDate(doc.ToDate);
+                                
+                                var fileDisplay = doc.DocPath ? `<a href="${DomainName}/UploadedDocuments/VehicleUpload${doc.DocPath}" target="_blank" class="text-success small ms-2"><i class="ri-file-text-line"></i> View Saved</a>` : '';
+
+                                var html = `
+                                    <div class="col-lg-6">
+                                        <div class="row g-3 align-items-center">
+                                            <div class="col-lg-6 col-md-12">
+                                                <div class="form-group">
+                                                    <label class="form-label">${doc.Document_Name} ${fileDisplay}</label>
+                                                    <input type="file" name="doc_file_${doc.Document_Id}" class="form-control" accept="image/*,application/pdf" />
+                                                    <input type="hidden" name="VehicleHDR.DocumentList[${i}].Document_Id" value="${doc.Document_Id}" />
+                                                    <input type="hidden" name="VehicleHDR.DocumentList[${i}].DocPath" value="${doc.DocPath || ''}" />
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6 col-md-12">
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <label class="form-label">Validity</label>
+                                                        <input type="text" name="VehicleHDR.DocumentList[${i}].FromDate" class="form-control date-picker" placeholder="From" value="${fromDateStr}" />
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label">&nbsp;</label>
+                                                        <input type="text" name="VehicleHDR.DocumentList[${i}].ToDate" class="form-control date-picker" placeholder="To" value="${toDateStr}" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                container.append(html);
+                            });
+                            // Re-initialize datepickers for new elements
+                            $('.date-picker').datepicker({ format: "dd M yyyy", autoclose: true, todayBtn: true }).on('changeDate', function (e) {
+                                var el = $(this);
+                                if (el.is('input')) {
+                                    el.valid();
+                                } else {
+                                    el.find('input').valid();
+                                }
+                            });
+                        } else {
+                            container.append('<div class="col-12 text-center text-muted p-4">No specific documents required.</div>');
+                        }
+                        App.unblockUI('#vehicle-documents-container');
+                    },
+                    error: function() { App.unblockUI('#vehicle-documents-container'); }
+                });
+            }
+        }
+
+        function toggleConditionalFields(isInitial) {
+            var vehicleCode = $("#VehicleHDR_VehicleCode").val();
+            var isRegistered = $("#IsRegistered").is(':checked');
+            var isWarranty = $("#IsWarranty").is(':checked');
+            var isAMC = $("#IsAMC").is(':checked');
+
+            var isEdit = '@Model.EditFlag' === 'true';
+
+            // 1. Registration Logic
+            if (isRegistered) {
+                $('#registration-details-card, #vehicle-documents-card').removeClass('d-none');
+                if (isEdit) {
+                    $('#status-col').removeClass('d-none');
+                    $('#VehicleHDR_VehicleStatus').prop('disabled', false).removeClass('disabled-field');
+                    $('#IsActive').prop('disabled', false).removeClass('disabled-field');
+                } else {
+                    $('#status-col').addClass('d-none');
+                }
+                
+                // Add required class to registration fields (EngineNo is handled conditionally below)
+                $('#VehicleHDR_RCBookNo, #VehicleHDR_RegistrationDate, #VehicleHDR_ChassisNo, #VehicleHDR_BodyType, #VehicleHDR_ULW, #VehicleHDR_RLW, #VehicleHDR_PLW').addClass('required');
+                if (vehicleCode !== "T") {
+                    $('#VehicleHDR_EngineNo').addClass('required');
+                } else {
+                    $('#VehicleHDR_EngineNo').removeClass('required');
+                }
+                
+                $('#lblVehicleNo').addClass('required-field');
+                
+                // Load documents if not already loaded
+                if ($('#vehicle-documents-container').is(':empty')) {
+                    LoadVehicleDocuments();
+                }
+            } else {
+                $('#registration-details-card, #vehicle-documents-card').addClass('d-none');
+                $('#status-col').removeClass('d-none');
+                $('#VehicleHDR_RCBookNo, #VehicleHDR_RegistrationDate, #VehicleHDR_ChassisNo, #VehicleHDR_EngineNo, #VehicleHDR_BodyType, #VehicleHDR_ULW, #VehicleHDR_RLW, #VehicleHDR_PLW').removeClass('required');
+                $('#lblVehicleNo').removeClass('required-field');
+                
+                // Clean validation states for registration card
+                $('#registration-details-card .form-group').removeClass('has-error');
+                $('#registration-details-card span.help-block').remove();
+                
+                // Force "New Vehicle" and IsActive = false for unregistered
+                $('#VehicleHDR_VehicleStatus').val('NewVehicle').trigger('change').prop('disabled', true).addClass('disabled-field');
+                if ($('#IsActive').length > 0) {
+                    $('#IsActive').prop('checked', false).prop('disabled', true).addClass('disabled-field');
+                }
+                // Also update hidden field if exists
+                if ($('input[name="VehicleHDR.IsActive"]').length > 0) {
+                    $('input[name="VehicleHDR.IsActive"]').val('false');
+                }
+
+                $('#vehicle-documents-container').empty();
+            }
+
+            handleStatusChange();
+
+            // 2. Warranty/AMC Visibility & Required Toggles
+            $('.CHECKWARRANTY').toggleClass('d-none', !isWarranty);
+            $('#IsWarranty').closest('.form-group').find('label.d-block').toggleClass('required-field', isWarranty);
+            if (isWarranty) {
+                $('#VehicleHDR_WarrantyFrom, #VehicleHDR_WarrantyTo').addClass('required');
+            } else {
+                $('#VehicleHDR_WarrantyFrom, #VehicleHDR_WarrantyTo').removeClass('required');
+                $('.CHECKWARRANTY .form-group').removeClass('has-error');
+                $('.CHECKWARRANTY span.help-block').remove();
+            }
+
+            $('.CHECKAMC').toggleClass('d-none', !isAMC);
+            $('#IsAMC').closest('.form-group').find('label.d-block').toggleClass('required-field', isAMC);
+            if (isAMC) {
+                $('#VehicleHDR_AMCFrom, #VehicleHDR_AMCTo').addClass('required');
+            } else {
+                $('#VehicleHDR_AMCFrom, #VehicleHDR_AMCTo').removeClass('required');
+                $('.CHECKAMC .form-group').removeClass('has-error');
+                $('.CHECKAMC span.help-block').remove();
+            }
+
+            // 3. Trailer Specific Logic (Fuel details & Engine validation)
+            var fuelFields = $('#VehicleHDR_FuelType, #VehicleHDR_FuelUOM, #VehicleHDR_FuelTankCapacity, #VehicleHDR_AvgEmpty, #VehicleHDR_AvgLessHalf, #VehicleHDR_AvgMoreHalf, #VehicleHDR_AvgLoad');
+            if (vehicleCode === "T") {
+                $('#fuel-details-card').addClass('d-none');
+                $(".fuel-col, .engine-col").addClass("d-none");
+                $("#lblVehicleModel").text("Trailer Model");
+                $("#lblVehicleNo").text("Trailer No.");
+                $("#VehicleHDR_VehicleNo").attr("placeholder", "Trailer No");
+                
+                fuelFields.removeClass("required");
+                $("#VehicleHDR_EngineNo").removeClass("required");
+                
+                // Clean validation states for fuel card and engine column
+                $('#fuel-details-card .form-group, .engine-col .form-group').removeClass('has-error');
+                $('#fuel-details-card span.help-block, .engine-col span.help-block').remove();
+            } else {
+                $('#fuel-details-card').removeClass('d-none');
+                $(".fuel-col, .engine-col").removeClass("d-none");
+                $("#lblVehicleModel").text("Vehicle Model");
+                $("#lblVehicleNo").text("Vehicle No.");
+                $("#VehicleHDR_VehicleNo").attr("placeholder", "Vehicle No");
+                
+                fuelFields.addClass("required");
+                if (isRegistered) {
+                    $("#VehicleHDR_EngineNo").addClass("required");
+                }
+            }
+
+            // 4. Puller Specific Logic
+            if (vehicleCode === "P") {
+                var pullerVal = $('#VehicleHDR_VehicleType option').filter(function() { return $(this).text().trim().toLowerCase() === 'puller'; }).val();
+                if (pullerVal) {
+                    if ($('#VehicleHDR_VehicleType').val() !== pullerVal) {
+                        $('#VehicleHDR_VehicleType').val(pullerVal).trigger('change.select2');
+                    }
+                }
+                $('#VehicleHDR_VehicleType').prop('disabled', true).addClass('disabled-field');
+            } else {
+                if (!isInitial) {
+                    var pullerVal = $('#VehicleHDR_VehicleType option').filter(function() { return $(this).text().trim().toLowerCase() === 'puller'; }).val();
+                    if ($('#VehicleHDR_VehicleType').val() === pullerVal) {
+                        $('#VehicleHDR_VehicleType').val('').trigger('change.select2');
+                    }
+                }
+                $('#VehicleHDR_VehicleType').prop('disabled', false).removeClass('disabled-field');
+            }
+
+            // 5. Blank out hidden fields when not initial load
+            if (!isInitial) {
+                if (!isRegistered) {
+                    $('#VehicleHDR_RCBookNo').val('');
+                    $('#VehicleHDR_RegistrationDate').val('');
+                    $('#VehicleHDR_ChassisNo').val('');
+                    $('#VehicleHDR_EngineNo').val('');
+                    $('#VehicleHDR_ManufactureYearAndMonth').val('');
+                    $('#VehicleHDR_BodyType').val('');
+                    $('#VehicleHDR_ULW').val('');
+                    $('#VehicleHDR_RLW').val('');
+                    $('#VehicleHDR_PLW').val('');
+                }
+                if (!isWarranty) {
+                    $('#VehicleHDR_WarrantyFrom').val('');
+                    $('#VehicleHDR_WarrantyTo').val('');
+                }
+                if (!isAMC) {
+                    $('#VehicleHDR_AMCFrom').val('');
+                    $('#VehicleHDR_AMCTo').val('');
+                }
+                if (vehicleCode === "T") {
+                    $('#VehicleHDR_FuelType').val('').trigger('change');
+                    $('#VehicleHDR_FuelUOM').val('').trigger('change');
+                    $('#VehicleHDR_FuelTankCapacity').val('');
+                    $('#VehicleHDR_AvgEmpty').val('');
+                    $('#VehicleHDR_AvgLessHalf').val('');
+                    $('#VehicleHDR_AvgMoreHalf').val('');
+                    $('#VehicleHDR_AvgLoad').val('');
+                    $('#VehicleHDR_EngineNo').val('');
+                }
+            }
+        }
+
+        function handleStatusChange() {
+            var status = $('#VehicleHDR_VehicleStatus').val();
+            var inactiveStatuses = ["Scrap", "TotalLoss", "NewVehicle"];
+            
+            if (inactiveStatuses.indexOf(status) !== -1) {
+                if ($('#IsActive').length > 0) {
+                    $('#IsActive').prop('checked', false).prop('disabled', true);
+                }
+                if ($('input[name="VehicleHDR.IsActive"]').length > 0) {
+                    $('input[name="VehicleHDR.IsActive"]').val('false');
+                }
+            } else {
+                // Only enable if it wasn't already disabled by other logic (like Registered=false)
+                var isRegistered = $("#IsRegistered").is(':checked');
+                if (isRegistered) {
+                    $('#IsActive').prop('disabled', false);
+                    if (!status) { // status is empty
+                        $('#IsActive').prop('checked', true);
+                        if ($('input[name="VehicleHDR.IsActive"]').length > 0) {
+                            $('input[name="VehicleHDR.IsActive"]').val('true');
+                        }
+                    }
+                }
+            }
+        }
+
+        function LoadVehicleModels() {
+            var vehicleCode = $("#VehicleHDR_VehicleCode").val();
+            $("#VehicleHDR_VehicleModel").empty().val('').trigger('change');
+            if (vehicleCode) {
+                var url = DomainName + "/Master/GetVehicleModelByType?vehicleCode=" + vehicleCode;
+                FillDropDownfromOther("VehicleHDR_VehicleModel", url, "Model");
+            }
+        }
+        
+        return {
+            init: function (domain) {
+                DomainName = domain;
+                Formvalidate();
+                Events();
+                
+                $('.date-picker').datepicker({ format: "dd M yyyy", autoclose: true, todayBtn: true }).on('changeDate', function (e) {
+                    var el = $(this);
+                    if (el.is('input')) {
+                        el.valid();
+                    } else {
+                        el.find('input').valid();
+                    }
+                });
+                $('.date-picker-month').datepicker({ format: "M yyyy", viewMode: "months", minViewMode: "months", autoclose: true }).on('changeDate', function (e) {
+                    var el = $(this);
+                    if (el.is('input')) {
+                        el.valid();
+                    } else {
+                        el.find('input').valid();
+                    }
+                });
+                StrURL = DomainName + "/Master/GetDestinationLocationsWithHQTR";
+                JsonDDLSelectCode("VehicleHDR_Location ", StrURL);
+                toggleConditionalFields(true);
+                // We do NOT call LoadVehicleModels here because the backend already populated it for editing.
+                LoadVehicleDocuments();
+
+                // Initialize Permit values if editing
+                var permits = $('#VehicleHDR_PermitState').val();
+                if (permits) {
+                    $('#VEHPERMIT').val(permits.split(',')).trigger('change');
+                }
+            }
+        };
+    }();
+</script>

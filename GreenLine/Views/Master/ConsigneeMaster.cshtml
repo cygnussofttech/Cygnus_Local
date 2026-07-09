@@ -1,0 +1,997 @@
+@model GreenLineDataService.Models.Cygnus_Consignee_Master
+@using GreenLineDataService.Models;
+
+@{
+    ViewBag.Title = Model.Id > 0 ? "Edit Consignee" : "Add Consignee";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var type = Model.Id > 0 ? "Edit" : "Add";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0 text-uppercase fw-bold">@type Consignee</h4>
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 fs-11">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="text-muted">Master</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("ConsigneeList", "Master")" class="text-muted">Consignee List</a></li>
+                    <li class="breadcrumb-item active fw-medium">@type</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.BeginForm("AddEditConsigneeMaster", "Master", FormMethod.Post, new { id = "form_sample", @class = "form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.Latitude)
+    @Html.HiddenFor(m => m.Longitude)
+    @Html.HiddenFor(m => m.GeoFenceLatitude)
+    @Html.HiddenFor(m => m.GeoFenceLongitude)
+    @Html.HiddenFor(m => m.Radius)
+    @Html.HiddenFor(m => m.Consignee_Code)
+    @Html.HiddenFor(m => m.ShapeType)
+    @Html.HiddenFor(m => m.Geom)
+    @Html.HiddenFor(m => m.Unloading_Lat)
+    @Html.HiddenFor(m => m.Unloading_Long)
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-0">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 flex-grow-1">
+                        <i class="ri-user-shared-line align-middle me-1 text-primary"></i> Consignee Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- Left Side: Fields -->
+
+                        <div class="col-lg-6 col-md-12">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">GST No</label>
+                                        @Html.TextBoxFor(m => m.Consignee_GST, new { @class = "form-control required", @placeholder = "Enter Consignee GST" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">PAN No</label>
+                                        @Html.TextBoxFor(m => m.Consignee_PANNo, new { @class = "form-control required", @placeholder = "Enter Consignee PANNo" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">Consignee Name</label>
+                                        @Html.TextBoxFor(m => m.Consignee_Name, new { @class = "form-control required", @placeholder = "Enter Consignee Name" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">Address</label>
+                                        @Html.TextAreaFor(m => m.Consignee_Address, new { @class = "form-control required", @placeholder = "Enter Consignee Address", @rows = "1" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">Pincode</label>
+                                        @Html.DropDownListFor(m => m.Consignee_Pincode, new SelectList(ViewBag.PincodeList, "pincode", "pincode", Model.Consignee_Pincode), "", new { @class = "form-control select2 required", @placeholder = "Select Consignee Pincode" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">Country</label>
+                                        @Html.DropDownListFor(m => m.Consignee_Country, new SelectList(ViewBag.CountryList, "Id", "CountryName", Model.Consignee_Country), "", new { @class = "form-control select2 required", @placeholder = "Select Consignee Country" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">State</label>
+                                        @Html.DropDownListFor(m => m.Consignee_State, new SelectList(ViewBag.Liststate, "stcd", "stnm", Model.Consignee_State), "", new { @class = "form-control select2 required", @placeholder = "Select Consignee State" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">City</label>
+                                        @Html.DropDownListFor(m => m.Consignee_City, new SelectList(ViewBag.CityList, "city_code", "Location", Model.Consignee_City), "", new { @class = "form-control select2 required", @placeholder = "Select Consignee City" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">Unloading Location</label>
+                                        @Html.TextBoxFor(m => m.Consignee_Location, new { @class = "form-control required", @placeholder = "Enter Consignee Location" })
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-label">Lane</label>
+                                        @Html.DropDownListFor(c => c.Consignee_Lane, new SelectList(ViewBag.ListLane, "Lane_ID", "Lane_Name", Model.Consignee_Lane), "", new { @class = "form-control select2 required", @placeholder = "Select Consignee Lane" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-12">
+                            <div class="border rounded p-1">
+                                <div id="googleMap" style="min-height: 400px; width: 100%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a class="@ViewBag.UI.Buttons.Cancel.CssClass me-2" href="@Url.Action("ConsigneeList", "Master")">
+            <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i>@ViewBag.UI.Buttons.Cancel.Label
+        </a>
+        <button type="button" id="btnSave" class="@ViewBag.UI.Buttons.Submit.CssClass">
+            <i class="@ViewBag.UI.Buttons.Submit.Icon"></i>@ViewBag.UI.Buttons.Submit.Label
+        </button>
+    </div>
+}
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.64&key=@(ViewBag.GoogleMapsApiKey)&libraries=drawing,geometry,places"></script>
+
+<script type="text/javascript">
+
+    var FormComponents = function (DomainName) {
+        function isValidGST(gst) {
+            if (!gst) return true;
+            return /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gst.toUpperCase());
+        }
+        var Formvalidate = function () {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+            var success1 = $('.alert-success', form1);
+
+            $.validator.addMethod('checkGSTNo', function (value) {
+                return isValidGST(value);
+            }, "Invalid GST Number (Format: 22AAAAA0000A1Z5)");
+
+            form1.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                rules: {
+                    'Consignee_GST': {
+                        checkGSTNo: true
+                    },
+                },
+                messages: {},
+                errorPlacement: function (error, element) {
+                    error.addClass('text-danger small mt-1 d-block');
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible") || element.nextAll(".select2-container").length > 0) {
+                        error.insertAfter(element.nextAll(".select2-container").first());
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                invalidHandler: function (event, validator) {
+                    success1.hide();
+                    error1.show();
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                },
+                submitHandler: function (form) {
+                    success1.show();
+                    error1.hide();
+                }
+            });
+        };
+
+        var map;
+        var directionsService;
+        var directionsRenderer;
+        var geocoder;
+        var pinpointMarker = null;
+        var polygon = null;
+        var circle = null;
+        var drawingManager = null;
+        var autocomplete = null;
+        var controlUI = null;
+
+        function updateClearButtonVisibility() {
+            if (!controlUI) return;
+            if (polygon || circle) {
+                controlUI.style.display = 'block';
+            } else {
+                controlUI.style.display = 'none';
+            }
+        }
+
+        function loadmapOnCreate() {
+            var defaultLat = 20.5937;
+            var defaultLong = 78.9629;
+
+            var myCenter = new google.maps.LatLng(defaultLat, defaultLong);
+            var mapProp = {
+                center: myCenter,
+                zoom: 5
+            };
+
+            var mapDiv = document.getElementById("googleMap");
+            if (!mapDiv) return;
+
+            map = new google.maps.Map(mapDiv, mapProp);
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map
+            });
+            geocoder = new google.maps.Geocoder();
+
+            // Resize map trigger function to prevent map collapsing on hidden/fade-in containers
+            function triggerMapResize() {
+                if (map) {
+                    google.maps.event.trigger(map, 'resize');
+                    if (circle) {
+                        map.fitBounds(circle.getBounds());
+                    } else if (polygon) {
+                        var bounds = new google.maps.LatLngBounds();
+                        polygon.getPath().forEach(function (vertex) {
+                            bounds.extend(vertex);
+                        });
+                        map.fitBounds(bounds);
+                    } else {
+                        var latVal = $("#Latitude").val();
+                        var lngVal = $("#Longitude").val();
+                        if (latVal && lngVal && !isNaN(parseFloat(latVal)) && !isNaN(parseFloat(lngVal))) {
+                            var markerLatLng = new google.maps.LatLng(parseFloat(latVal), parseFloat(lngVal));
+                            map.setCenter(markerLatLng);
+                        } else {
+                            map.setCenter(myCenter);
+                        }
+                    }
+                }
+            }
+
+            setTimeout(triggerMapResize, 500);
+            setTimeout(triggerMapResize, 1200);
+
+            var latVal = $("#Latitude").val();
+            var lngVal = $("#Longitude").val();
+            if (latVal && lngVal && !isNaN(parseFloat(latVal)) && !isNaN(parseFloat(lngVal))) {
+                var markerLatLng = new google.maps.LatLng(parseFloat(latVal), parseFloat(lngVal));
+                pinpointMarker = new google.maps.Marker({
+                    position: markerLatLng,
+                    draggable: false,
+                    map: map
+                });
+                map.setCenter(markerLatLng);
+                map.setZoom(15);
+            }
+
+            drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: null,
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: ['circle', 'polygon']
+                },
+                polygonOptions: {
+                    editable: true,
+                    draggable: true,
+                    fillColor: '#FF6F59',
+                    fillOpacity: 0.2,
+                    strokeColor: '#FF3B30',
+                    strokeOpacity: 0.7,
+                    strokeWeight: 2
+                },
+                circleOptions: {
+                    editable: true,
+                    draggable: true,
+                    fillColor: '#FF6F59',
+                    fillOpacity: 0.2,
+                    strokeColor: '#FF3B30',
+                    strokeOpacity: 0.7,
+                    strokeWeight: 2
+                }
+            });
+            drawingManager.setMap(map);
+
+            google.maps.event.addListener(drawingManager, 'polygoncomplete', function (newPolygon) {
+                clearExistingGeofence();
+                polygon = newPolygon;
+                $("#Radius").val('');
+                attachPolygonListeners(polygon);
+                updatePolygonData();
+                if (polygon) {
+                    drawingManager.setDrawingMode(null);
+                    drawingManager.setOptions({ drawingControl: false });
+                    updateClearButtonVisibility();
+                    checkAndValidatePinpointContainment();
+                }
+            });
+
+            google.maps.event.addListener(drawingManager, 'circlecomplete', function (newCircle) {
+                clearExistingGeofence();
+                circle = newCircle;
+                attachCircleListeners(circle);
+                updateCircleData();
+                if (circle) {
+                    drawingManager.setDrawingMode(null);
+                    drawingManager.setOptions({ drawingControl: false });
+                    updateClearButtonVisibility();
+                    checkAndValidatePinpointContainment();
+                }
+            });
+
+            var geoLatVal = $("#GeoFenceLatitude").val();
+            var geoLngVal = $("#GeoFenceLongitude").val();
+            var radiusVal = $("#Radius").val();
+
+            if (geoLatVal && geoLngVal) {
+                if (geoLatVal.indexOf(',') > -1) {
+                    var coordinates = parseCoordinates(geoLatVal, geoLngVal);
+                    polygon = new google.maps.Polygon({
+                        paths: coordinates,
+                        editable: true,
+                        draggable: true,
+                        fillColor: '#FF6F59',
+                        fillOpacity: 0.2,
+                        strokeColor: '#FF3B30',
+                        strokeOpacity: 0.7,
+                        strokeWeight: 2,
+                        map: map
+                    });
+                    attachPolygonListeners(polygon);
+                    drawingManager.setOptions({ drawingControl: false });
+
+                    // Populate client-side ShapeType and Geom hidden inputs
+                    updatePolygonData();
+
+                    // Auto-fit to show the polygon perfectly centered and zoomed
+                    var bounds = new google.maps.LatLngBounds();
+                    coordinates.forEach(function (coord) {
+                        bounds.extend(coord);
+                    });
+                    map.fitBounds(bounds);
+                } else {
+                    var radiusFloat = parseFloat(radiusVal);
+                    if (!isNaN(radiusFloat) && radiusFloat > 0) {
+                        circle = new google.maps.Circle({
+                            strokeColor: '#FF3B30',
+                            strokeOpacity: 0.7,
+                            strokeWeight: 2,
+                            fillColor: '#FF6F59',
+                            fillOpacity: 0.2,
+                            map: map,
+                            center: new google.maps.LatLng(parseFloat(geoLatVal), parseFloat(geoLngVal)),
+                            radius: radiusFloat,
+                            editable: true,
+                            draggable: true
+                        });
+                        attachCircleListeners(circle);
+                        drawingManager.setOptions({ drawingControl: false });
+
+                        // Populate client-side ShapeType and Geom hidden inputs
+                        updateCircleData();
+
+                        // Auto-fit to show the circle perfectly centered and zoomed
+                        map.fitBounds(circle.getBounds());
+                    }
+                }
+            }
+
+            createRemoveGeofenceControl();
+            updateClearButtonVisibility();
+        }
+
+        function parseCoordinates(latitudeString, longitudeString) {
+            var latitudes = latitudeString.split(',');
+            var longitudes = longitudeString.split(',');
+            var coordinates = [];
+            for (var i = 0; i < latitudes.length; i++) {
+                coordinates.push(new google.maps.LatLng(parseFloat(latitudes[i]), parseFloat(longitudes[i])));
+            }
+            return coordinates;
+        }
+
+        function attachPolygonListeners(poly) {
+            var path = poly.getPath();
+            var onPolygonChange = function () {
+                updatePolygonData();
+                checkContainmentDebounced();
+            };
+            google.maps.event.addListener(path, 'set_at', onPolygonChange);
+            google.maps.event.addListener(path, 'insert_at', onPolygonChange);
+            google.maps.event.addListener(path, 'remove_at', onPolygonChange);
+            google.maps.event.addListener(poly, 'dragend', onPolygonChange);
+        }
+
+        var lastToastTime = 0;
+        function showGeofenceToast(type, message, title, force) {
+            var now = Date.now();
+            if (force || (now - lastToastTime > 2000)) {
+                if (window.toastr) {
+                    toastr.clear();
+                }
+                TosterNotification(type, message, title);
+                lastToastTime = now;
+            }
+        }
+        
+        function attachCircleListeners(circ) {
+            var onCircleChange = function () {
+                updateCircleData();
+                checkContainmentDebounced();
+            };
+            google.maps.event.addListener(circ, 'radius_changed', onCircleChange);
+            google.maps.event.addListener(circ, 'center_changed', onCircleChange);
+            google.maps.event.addListener(circ, 'dragend', onCircleChange);
+        }
+
+        function updatePolygonData() {
+            if (!polygon) return;
+            var path = polygon.getPath();
+            var latitudes = [];
+            var longitudes = [];
+            var points = [];
+            path.forEach(function (vertex) {
+                latitudes.push(vertex.lat());
+                longitudes.push(vertex.lng());
+                points.push(vertex.lat().toFixed(6) + "," + vertex.lng().toFixed(6));
+            });
+            $("#GeoFenceLatitude").val(latitudes.join(','));
+            $("#GeoFenceLongitude").val(longitudes.join(','));
+            $("#Radius").val('');
+            $("#ShapeType").val('Polygon');
+            $("#Geom").val(points.join('|'));
+            checkAndClearGeofenceError();
+        }
+
+        function updateCircleData() {
+            if (!circle) return;
+            var center = circle.getCenter();
+            var radius = circle.getRadius();
+            if (radius > 5000) {
+                clearExistingGeofence();
+                $("#GeoFenceLatitude").val('');
+                $("#GeoFenceLongitude").val('');
+                $("#Radius").val('');
+                $("#ShapeType").val('');
+                $("#Geom").val('');
+                if (drawingManager) {
+                    drawingManager.setMap(map);
+                    drawingManager.setOptions({ drawingControl: true });
+                }
+                GLModal.showError("Limit Exceeded", "Geofence radius cannot exceed 5000 meters.");
+                return;
+            }
+
+            // Calculate outer 4 points of the circle (N, E, S, W) using geometry library
+            $("#GeoFenceLatitude").val(center.lat());
+            $("#GeoFenceLongitude").val(center.lng());
+            $("#Radius").val(radius.toFixed(2));
+            $("#ShapeType").val('Circle');
+            var topPoint = google.maps.geometry.spherical.computeOffset(center, radius, 0);
+            var rightPoint = google.maps.geometry.spherical.computeOffset(center, radius, 90);
+            var bottomPoint = google.maps.geometry.spherical.computeOffset(center, radius, 180);
+            var leftPoint = google.maps.geometry.spherical.computeOffset(center, radius, 270);
+
+            var geomString =
+                center.lat().toFixed(6) + "," + center.lng().toFixed(6) + "|" +
+                topPoint.lat().toFixed(6) + "," + topPoint.lng().toFixed(6) + "|" +
+                rightPoint.lat().toFixed(6) + "," + rightPoint.lng().toFixed(6) + "|" +
+                bottomPoint.lat().toFixed(6) + "," + bottomPoint.lng().toFixed(6) + "|" +
+                leftPoint.lat().toFixed(6) + "," + leftPoint.lng().toFixed(6);
+            $("#Geom").val(geomString);
+            checkAndClearGeofenceError();
+        }
+
+        function clearExistingGeofence() {
+            if (polygon) {
+                polygon.setMap(null);
+                polygon = null;
+            }
+            if (circle) {
+                circle.setMap(null);
+                circle = null;
+            }
+            $("#ShapeType").val('');
+            $("#Geom").val('');
+            updateClearButtonVisibility();
+        }
+
+        function createRemoveGeofenceControl() {
+            var controlDiv = document.createElement('div');
+            controlDiv.style.margin = '10px';
+
+            controlUI = document.createElement('button');
+            controlUI.type = 'button';
+            controlUI.style.backgroundColor = '#fff';
+            controlUI.style.border = '2px solid #fff';
+            controlUI.style.borderRadius = '3px';
+            controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+            controlUI.style.cursor = 'pointer';
+            controlUI.style.textAlign = 'center';
+            controlUI.style.padding = '0 8px';
+            controlUI.style.height = '40px';
+            controlUI.style.display = 'none'; // Hide by default
+            controlUI.title = 'Click to clear geofence';
+            controlDiv.appendChild(controlUI);
+
+            var controlText = document.createElement('div');
+            controlText.style.color = 'rgb(25,25,25)';
+            controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+            controlText.style.fontSize = '12px';
+            controlText.style.fontWeight = '500';
+            controlText.style.lineHeight = '36px';
+            controlText.innerHTML = 'Clear Geofence';
+            controlUI.appendChild(controlText);
+
+            controlUI.addEventListener('click', function () {
+                clearExistingGeofence();
+                $("#GeoFenceLatitude").val('');
+                $("#GeoFenceLongitude").val('');
+                $("#Radius").val('');
+                if (drawingManager) {
+                    drawingManager.setMap(map);
+                    drawingManager.setOptions({ drawingControl: true });
+                }
+                checkAndClearGeofenceError();
+            });
+
+            map.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
+        }
+
+        function isCoordinateInsideGeofence(latVal, lngVal, geoLatVal, geoLngVal, radiusVal) {
+            if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                return true;
+            }
+            if (!latVal || !lngVal || !geoLatVal || !geoLngVal) {
+                return true;
+            }
+            var pLat = parseFloat(latVal);
+            var pLng = parseFloat(lngVal);
+            if (isNaN(pLat) || isNaN(pLng)) {
+                return true;
+            }
+
+            var pinpoint = new google.maps.LatLng(pLat, pLng);
+            var isInside = true;
+
+            if (geoLatVal.indexOf(',') > -1) {
+                var lats = geoLatVal.split(',');
+                var lngs = geoLngVal.split(',');
+                var coords = [];
+                for (var i = 0; i < lats.length; i++) {
+                    var flat = parseFloat(lats[i]);
+                    var flng = parseFloat(lngs[i]);
+                    if (!isNaN(flat) && !isNaN(flng)) {
+                        coords.push(new google.maps.LatLng(flat, flng));
+                    }
+                }
+
+                if (coords.length > 0) {
+                    var poly = new google.maps.Polygon({ paths: coords });
+                    if (google.maps.geometry && google.maps.geometry.poly) {
+                        isInside = google.maps.geometry.poly.containsLocation(pinpoint, poly);
+                    } else {
+                        var x = pLng, y = pLat;
+                        isInside = false;
+                        for (var i = 0, j = coords.length - 1; i < coords.length; j = i++) {
+                            var xi = coords[i].lng(), yi = coords[i].lat();
+                            var xj = coords[j].lng(), yj = coords[j].lat();
+                            var intersect = ((yi > y) !== (yj > y))
+                                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                            if (intersect) isInside = !isInside;
+                        }
+                    }
+                }
+            } else {
+                var cLat = parseFloat(geoLatVal);
+                var cLng = parseFloat(geoLngVal);
+                var radius = parseFloat(radiusVal);
+
+                if (!isNaN(cLat) && !isNaN(cLng) && !isNaN(radius)) {
+                    var center = new google.maps.LatLng(cLat, cLng);
+                    var distance = 0;
+                    if (google.maps.geometry && google.maps.geometry.spherical) {
+                        distance = google.maps.geometry.spherical.computeDistanceBetween(center, pinpoint);
+                    } else {
+                        var R = 6371000;
+                        var dLat = (pLat - cLat) * Math.PI / 180;
+                        var dLon = (pLng - cLng) * Math.PI / 180;
+                        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                            Math.cos(cLat * Math.PI / 180) * Math.cos(pLat * Math.PI / 180) *
+                            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                        distance = R * c;
+                    }
+                    isInside = (distance <= radius);
+                }
+            }
+
+            return isInside;
+        }
+
+        function checkAndClearGeofenceError() {
+            var latVal = $("#Latitude").val();
+            var lngVal = $("#Longitude").val();
+            var geoLatVal = $("#GeoFenceLatitude").val();
+            var geoLngVal = $("#GeoFenceLongitude").val();
+            var radiusVal = $("#Radius").val();
+
+            if (!geoLatVal || !geoLngVal || isCoordinateInsideGeofence(latVal, lngVal, geoLatVal, geoLngVal, radiusVal)) {
+                $("#Consignee_Location").closest('.form-group').removeClass('has-error');
+                $("#Consignee_Location").nextAll('.validation-error-msg').remove();
+                $("#googleMap").parent().css("border", "1px solid #e9ebec");
+            } else {
+                $("#Consignee_Location").closest('.form-group').addClass('has-error');
+                if ($("#Consignee_Location").nextAll('.validation-error-msg').length === 0) {
+                    $("#Consignee_Location").after('<span class="validation-error-msg text-danger small mt-1 d-block">Unloading location pinpoint marker must be inside the geofence area.</span>');
+                }
+                $("#googleMap").parent().css("border", "2px solid #ea5f5f");
+            }
+        }
+
+        var containmentAlertTimeout = null;
+
+        function clearInvalidGeofenceShape() {
+            clearExistingGeofence();
+            $("#GeoFenceLatitude").val('');
+            $("#GeoFenceLongitude").val('');
+            $("#Radius").val('');
+            $("#ShapeType").val('');
+            $("#Geom").val('');
+            if (drawingManager) {
+                drawingManager.setMap(map);
+                drawingManager.setOptions({ drawingControl: true });
+            }
+            $("#Consignee_Location").closest('.form-group').addClass('has-error');
+            if ($("#Consignee_Location").nextAll('.validation-error-msg').length === 0) {
+                $("#Consignee_Location").after('<span class="validation-error-msg text-danger small mt-1 d-block">Unloading location pinpoint marker must be inside the geofence area.</span>');
+            }
+            $("#googleMap").parent().css("border", "2px solid #ea5f5f");
+        }
+
+        function checkAndValidatePinpointContainment() {
+            var latVal = $("#Latitude").val();
+            var lngVal = $("#Longitude").val();
+            var locationText = $("#Consignee_Location").val() || "";
+
+            // If Unloading Location is empty, require it first
+            if (locationText.trim() === "" || !latVal || !lngVal) {
+                GLModal.showError("Validation Error", "Please search for and select Unloading Location first before drawing a geofence shape.");
+                clearExistingGeofence();
+                if (drawingManager) {
+                    drawingManager.setMap(map);
+                    drawingManager.setOptions({ drawingControl: true });
+                }
+                return false;
+            }
+
+            var geoLatVal = $("#GeoFenceLatitude").val();
+            var geoLngVal = $("#GeoFenceLongitude").val();
+            var radiusVal = $("#Radius").val();
+
+            if (geoLatVal && geoLngVal) {
+                var isInside = isCoordinateInsideGeofence(latVal, lngVal, geoLatVal, geoLngVal, radiusVal);
+                if (!isInside) {
+                    GLModal.showError("Validation Warning", "The drawn Geofence shape must cover the selected Unloading Location / Pinpoint coordinates.");
+                    clearInvalidGeofenceShape();
+                    return false;
+                }
+            }
+            checkAndClearGeofenceError();
+            return true;
+        }
+
+        function checkContainmentDebounced() {
+            if (containmentAlertTimeout) {
+                clearTimeout(containmentAlertTimeout);
+            }
+            containmentAlertTimeout = setTimeout(function () {
+                checkAndValidatePinpointContainment();
+            }, 600);
+        }
+
+        function checkDuplicateGST(DomainName, gstVal, callback) {
+            if (!gstVal) {
+                $("#Consignee_GST").removeClass('is-invalid').closest('.form-group').removeClass('has-error');
+                $("#Consignee_GST").nextAll('.validation-error-msg').remove();
+                if (callback) callback(false);
+                return;
+            }
+            var excludeId = $("#Id").val() || 0;
+            var excludeCode = $("#Consignee_Code").val() || "";
+            $.ajax({
+                url: DomainName + '/Master/CheckDuplicateGST',
+                type: 'POST',
+                data: { GSTNo: gstVal, ExcludeId: excludeId, ExcludeCode: excludeCode },
+                success: function (response) {
+                    if (response.isDuplicate) {
+                        if (window.toastr) {
+                            toastr.clear();
+                        }
+                        TosterNotification("error", 'Consignee GST No. <b>"' + gstVal + '"</b> already exists!!!', "Duplicate GST Error");
+                        $("#Consignee_GST").addClass('is-invalid').closest('.form-group').addClass('has-error');
+                        $("#Consignee_GST").nextAll('.validation-error-msg').remove();
+                        $("#Consignee_GST").after('<span class="validation-error-msg text-danger small mt-1 d-block">Consignee GST No. already exists!</span>');
+
+                        if (callback) callback(true);
+                    } else {
+                        $("#Consignee_GST").removeClass('is-invalid').closest('.form-group').removeClass('has-error');
+                        $("#Consignee_GST").nextAll('.validation-error-msg').remove();
+                        if (callback) callback(false);
+                    }
+                },
+                error: function () {
+                    if (callback) callback(false);
+                }
+            });
+        }
+
+        var initMapIfGoogleLoaded = function () {
+            if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                loadmapOnCreate();
+
+                // Autocomplete
+                var dropLocationInput = $('#Consignee_Location')[0] || document.getElementById('Consignee_Location');
+                if (dropLocationInput) {
+                    autocomplete = new google.maps.places.Autocomplete(dropLocationInput);
+                    autocomplete.addListener('place_changed', function () {
+                        var place = autocomplete.getPlace();
+                        if (!place.geometry || !place.geometry.location) {
+                            $("#Unloading_Lat").val('');
+                            $("#Unloading_Long").val('');
+                            return;
+                        }
+
+                        var lat = place.geometry.location.lat();
+                        var lng = place.geometry.location.lng();
+
+                        $("#Latitude").val(lat);
+                        $("#Longitude").val(lng);
+                        $("#Unloading_Lat").val(lat);
+                        $("#Unloading_Long").val(lng);
+
+                        if (pinpointMarker) {
+                            pinpointMarker.setPosition(place.geometry.location);
+                        } else {
+                            pinpointMarker = new google.maps.Marker({
+                                position: place.geometry.location,
+                                draggable: false,
+                                map: map
+                            });
+                        }
+
+                        // Clear active drawn circle or polygon shapes when location is changed
+                        clearExistingGeofence();
+                        $("#GeoFenceLatitude").val('');
+                        $("#GeoFenceLongitude").val('');
+                        $("#Radius").val('');
+                        if (drawingManager) {
+                            drawingManager.setMap(map);
+                            drawingManager.setOptions({ drawingControl: true });
+                        }
+
+                        map.setCenter(place.geometry.location);
+                        map.setZoom(18);
+
+                        checkAndClearGeofenceError();
+                    });
+
+                    $('#Consignee_Location').on('keydown', function (e) {
+                        if (e.keyCode === 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                    $('#Consignee_Location').on('change', function () {
+                        if (!$(this).val()) {
+                            $("#Unloading_Lat").val('');
+                            $("#Unloading_Long").val('');
+                        }
+                    });
+                }
+            }
+        };
+
+        return {
+            init: function (DomainName) {
+                Formvalidate();
+
+                // Initialize select2 with change validation binder
+                $(".select2").select2({
+                    placeholder: "Select",
+                    allowClear: true,
+                    width: '100%'
+                }).on("change", function () {
+                    $(this).valid();
+                });
+                initMapIfGoogleLoaded();
+
+                $("#Consignee_GST").on("input", function () {
+                    $(this).removeClass('is-invalid').closest('.form-group').removeClass('has-error');
+                    $(this).nextAll('.validation-error-msg').remove();
+                });
+                $("#Consignee_GST").on('change', function (e) {
+                    var gstVal = $(this).val();
+                    if (!gstVal) {
+                        $("#Consignee_GST").removeClass('is-invalid').closest('.form-group').removeClass('has-error');
+                        $("#Consignee_GST").nextAll('.validation-error-msg').remove();
+                        return;
+                    }
+
+                    App.blockUI({ boxed: true });
+                    checkDuplicateGST(DomainName, gstVal, function (isDuplicate) {
+                        if (isDuplicate) {
+                            App.unblockUI();
+                            $("#Consignee_GST").val("");
+                            $("#Consignee_PANNo").val("");
+                            $("#Consignee_Name").val("");
+                            $("#Consignee_Address").val("");
+                            $("#Consignee_Pincode").val(null).trigger("change");
+                        } else {
+                            $.ajax({
+                                url: DomainName + '/Master/GetGSTDetails?GSTNO=' + gstVal,
+                                type: 'POST',
+                                success: function (response) {
+                                    App.unblockUI();
+                                    if (response && response.Data && response.Data.length > 0) {
+                                        $("#Consignee_PANNo").val(response.Data[0].PanNo);
+                                        $("#Consignee_Name").val(response.Data[0].TradeName);
+                                        $("#Consignee_Address").val(response.Data[0].CSGEAddress);
+                                        $("#Consignee_Pincode").select2("data", { id: response.Data[0].PinCode, text: response.Data[0].PinCode });
+                                        var pinCodeVal = response.Data[0].PinCode;
+                                        if (pinCodeVal) {
+                                            if ($("#Consignee_Pincode").find("option[value='" + pinCodeVal + "']").length === 0) {
+                                                $("#Consignee_Pincode").append(new Option(pinCodeVal, pinCodeVal, true, true));
+                                            }
+                                            $("#Consignee_Pincode").val(pinCodeVal).trigger('change');
+                                        }
+                                    }
+                                },
+                                error: function (req, status, error) {
+                                    TosterNotification("error", 'Operation fail..!! There is some issue please try again or Contact your administrator for more detail.', "Opps..!!");
+                                    App.unblockUI();
+                                }
+                            });
+                        }
+                    });
+                });
+                // Disable the dropdowns using CSS class and pointer-events so they remain enabled in DOM but not interactable
+                $('#Consignee_State,#Consignee_City,#Consignee_Country').prop('disabled', true).addClass('disabled-field');
+
+                $("#Consignee_Pincode").on('change', function (e) {
+                //$("#Consignee_Pincode").on("change", function () {
+                    var Consignee_Pincode = $(this).val();
+                    if (!Consignee_Pincode) {
+                        $("#Consignee_State").val(null).trigger("change");
+                        $("#Consignee_City").val(null).trigger("change");
+                        $("#Consignee_Country").val(null).trigger("change");
+                        return;
+                    }
+
+                    $.ajax({
+                        url: DomainName + '/Master/Get_Country_State_City_Zone_on_Pincode?Code=' + Consignee_Pincode + '&Type=P',
+                        type: 'GET',
+                        dataType: "json",
+                        success: function (response) {
+                            if (response && response.length > 0) {
+                                $("#Consignee_State").val(response[0].StateCode).trigger('change');
+                                $("#Consignee_City").val(response[0].CityCode).trigger('change');
+                                $("#Consignee_Country").val(response[0].CountryId).trigger('change');
+                            }
+                            App.unblockUI();
+                        },
+                        error: function (jqXHR, exception) {
+                            result = { Status: false, Message: "Error occurred while contacting database or API." };
+                        }
+                    });
+                });
+
+                $("#btnSave").off('click').on('click', function (e) {
+                    if (window.toastr) {
+                        toastr.clear();
+                    }
+                    App.blockUI({ boxed: true });
+                    if (!$('#form_sample').valid()) {
+                        App.unblockUI();
+                        return;
+                    }
+
+                    var gstVal = $("#Consignee_GST").val();
+                    checkDuplicateGST(DomainName, gstVal, function (isDuplicate) {
+                        if (isDuplicate) {
+                            App.unblockUI();
+                            return;
+                        }
+
+                        $("#Consignee_Location").closest('.form-group').removeClass('has-error');
+                        $("#Consignee_Location").nextAll('.validation-error-msg').remove();
+                        $("#googleMap").parent().css("border", "1px solid #e9ebec");
+
+                        var latVal = $("#Latitude").val();
+                        var lngVal = $("#Longitude").val();
+                        var geoLatVal = $("#GeoFenceLatitude").val();
+                        var geoLngVal = $("#GeoFenceLongitude").val();
+                        var radiusVal = $("#Radius").val();
+
+                        // Skip maps/geofence validations if Google Maps API failed to load (offline/blocked)
+                        if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                            if (!latVal || !lngVal) {
+                                App.unblockUI();
+                                $("#Consignee_Location").closest('.form-group').addClass('has-error');
+                                $("#Consignee_Location").after('<span class="validation-error-msg text-danger small mt-1 d-block">Please search and select unloading location from Google search results to place the pinpoint marker.</span>');
+                                showGeofenceToast("error", "Please select location from Google autocomplete to place pinpoint marker.", "Validation Error", true);
+                                return;
+                            }
+
+                            if (!geoLatVal || !geoLngVal) {
+                                // Automatically generate a 5km circle centered at the pinpoint if no geofence is drawn
+                                geoLatVal = latVal;
+                                geoLngVal = lngVal;
+                                radiusVal = "5000";
+                                $("#GeoFenceLatitude").val(geoLatVal);
+                                $("#GeoFenceLongitude").val(geoLngVal);
+                                $("#Radius").val(radiusVal);
+                                $("#ShapeType").val('Circle');
+                                var center = new google.maps.LatLng(parseFloat(geoLatVal), parseFloat(geoLngVal));
+                                var radius = parseFloat(radiusVal);
+                                var topPoint = google.maps.geometry.spherical.computeOffset(center, radius, 0);
+                                var rightPoint = google.maps.geometry.spherical.computeOffset(center, radius, 90);
+                                var bottomPoint = google.maps.geometry.spherical.computeOffset(center, radius, 180);
+                                var leftPoint = google.maps.geometry.spherical.computeOffset(center, radius, 270);
+
+                                var geomString =
+                                    center.lat().toFixed(6) + "," + center.lng().toFixed(6) + "|" +
+                                    topPoint.lat().toFixed(6) + "," + topPoint.lng().toFixed(6) + "|" +
+                                    rightPoint.lat().toFixed(6) + "," + rightPoint.lng().toFixed(6) + "|" +
+                                    bottomPoint.lat().toFixed(6) + "," + bottomPoint.lng().toFixed(6) + "|" +
+                                    leftPoint.lat().toFixed(6) + "," + leftPoint.lng().toFixed(6);
+                                $("#Geom").val(geomString);
+                                showGeofenceToast("info", "A 5 km circular geofence was automatically created.", "Auto Geofence", false);
+                            }
+
+                            var isInside = isCoordinateInsideGeofence(latVal, lngVal, geoLatVal, geoLngVal, radiusVal);
+                            if (!isInside) {
+                                App.unblockUI();
+                                $("#Consignee_Location").closest('.form-group').addClass('has-error');
+                                if ($("#Consignee_Location").nextAll('.validation-error-msg').length === 0) {
+                                    $("#Consignee_Location").after('<span class="validation-error-msg text-danger small mt-1 d-block">Unloading location pinpoint marker must be inside the geofence area.</span>');
+                                }
+                                $("#googleMap").parent().css("border", "2px solid #ea5f5f");
+                                GLModal.showError("Validation Error", "The drawn Geofence shape must cover the selected Unloading Location / Pinpoint coordinates.");
+                                return;
+                            }
+                        }
+
+                        // Re-enable disabled fields so their values are successfully posted in the request
+                        $('#Consignee_State').prop('disabled', false);
+                        $('#Consignee_City').prop('disabled', false);
+                        $('#Consignee_Country').prop('disabled', false);
+
+                        // Submit form natively so C# backend can handle RedirectToAction
+                        $('#form_sample')[0].submit();
+                    });
+                });
+            }
+        }
+    }();
+
+</script>

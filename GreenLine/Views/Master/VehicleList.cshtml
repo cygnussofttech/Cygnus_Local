@@ -1,0 +1,175 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_Vehicle_Master>
+@{
+    ViewBag.Title = "Vehicle Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">@ViewBag.Title</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Vehicle List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Vehicles</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a class="@ViewBag.UI.Buttons.Excel.CssClass" id="btnDownload">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon"></i>
+                    </a>
+                    @if (ViewBag.BaseUserReadWrite == "W" || ViewBag.BaseUserReadWrite == null)
+                    {
+                        <a class="@ViewBag.UI.Buttons.Add.CssClass" href="@Url.Content("~/Master/AddEditVehicle")">
+                            <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="VehicleList">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="center">Vehicle ID</th>
+                            <th class="center">Vehicle No.</th>
+                            <th class="center">Vehicle Code</th>
+                            <th class="center">Registered</th>
+                            <th class="center">Status</th>
+                            <th class="center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var UI = {
+        editBtn: '@ViewBag.UI.Buttons.Edit.CssClass',
+        editIcon: '@ViewBag.UI.Buttons.Edit.Icon'
+    };
+
+    var FormComponents = function (DomainName) {
+
+        var loadData = function (DomainName, tblId) {
+            App.blockUI({ boxed: true });
+            var strUrl = DomainName + '/Master/GetVehicleListJson'
+            $.ajax({
+                url: strUrl,
+                type: 'POST',
+                success: function (result) {
+                    GlDataTable.refresh(tblId, {
+                        data: result,
+                        statusFilter: [3, 4],
+                        columns: [
+                            { data: "ID" },
+                            { data: "VehicleNo" },
+                            { data: "VehicleCode" },
+                            { data: "IsRegistered" },
+                            { data: "IsActive" },
+                            { data: "ID" }
+                        ],
+                        columnDefs: [
+                            { orderable: false, targets: [3, 4, 5] },
+                            {
+                                targets: [3],
+                                render: function (data) {
+                                    var isChecked = data ? "checked" : "";
+                                    return '<label class="switch"><input type="checkbox" ' + isChecked + ' disabled><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [4],
+                                render: function (data, type, full) {
+                                    var isChecked = data ? "checked" : "";
+                                    return '<label class="switch"><input class="btnToggleStatus" type="checkbox" ' + isChecked + ' data-id="' + full.ID + '" data-name="' + full.VehicleNo + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [5],
+                                render: function (data) {
+                                    var val = data ? data.toString().trim() : "";
+                                    return '<a href="' + DomainName + '/Master/AddEditVehicle/' + encodeURIComponent(val) + '" class="' + UI.editBtn + ' me-1"><i class="' + UI.editIcon + '"></i></a>';
+                                }
+                            }
+                        ],
+                        createdRow: function (row) {
+                            $('td', row).addClass('text-center align-middle');
+                        }
+                    });
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function (req, status, error) {
+                    TosterNotification("error", 'Operation failed. There is some issue please try again or contact your administrator.', "Oops!");
+                    App.unblockUI();
+                }
+            });
+        }
+
+        var Events = function (DomainName) {
+            $(document).on("click", "#VehicleList a.btnAddEdit", function (e) {
+                App.blockUI({ boxed: true });
+            });
+
+            $(document).on('click', '#btnDownload', function (e) {
+                e.preventDefault();
+                DownloadMasterReport(DomainName, "Vehicle", "Vehicle Master List");
+            });
+
+            // Toggle Status Handler
+            $(document).on("click", ".btnToggleStatus", function (e) {
+                e.preventDefault();
+                var checkbox = $(this);
+                var id = checkbox.data("id");
+                var name = checkbox.data("name");
+                var isChecked = checkbox.is(':checked');
+
+                var action = isChecked ? "Activate" : "Deactivate";
+                var type = isChecked ? "success" : "info";
+
+                showConfirm({
+                    title: action + " Vehicle",
+                    message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for vehicle <strong class="text-primary">' + name + '</strong>?',
+                    type: type,
+                    confirmText: "Yes, Confirm",
+                    onConfirm: function () {
+                        App.blockUI({ boxed: true });
+                        $.post(DomainName + '/Master/ActiveInActive_Vehicle', { id: id }, function (res) {
+                            App.unblockUI();
+                            if (res) {
+                                TosterNotification("success", "Status updated successfully!", "Success");
+                                loadData(DomainName, "VehicleList");
+                            } else {
+                                TosterNotification("error", "Failed to update status.", "Error");
+                            }
+                        }).fail(function () {
+                            App.unblockUI();
+                            TosterNotification("error", "A server-side error occurred.", "Error");
+                        });
+                    }
+                });
+            });
+        }
+
+        return {
+            init: function (DomainName) {
+                loadData(DomainName, 'VehicleList');
+                Events(DomainName);
+            }
+        }
+    }();
+</script>

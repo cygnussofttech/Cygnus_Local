@@ -1,0 +1,314 @@
+@model GreenLineDataService.ViewModel.CYGNUS_citymasterViewModel
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "City Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    GreenLineDataService.Helper.Interface.IMasterService MS = new GreenLineDataService.Helper.MasterService();
+    List<CYGNUS_State> stateList = MS.GetStateMaster().Where(c => c.activeflag == null ? c.activeflag == null : c.activeflag == "Y").ToList();
+}
+
+<div id="AddEditCityMaster"></div>
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">City Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">City Master</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="pt-3 pb-3">       
+        <div class="card">
+            <div class="card-header border-bottom-dashed d-flex align-items-center">
+                <h4 class="card-title mb-0 flex-grow-1"> List of City </h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button type="button" class="@ViewBag.UI.Buttons.Excel.CssClass" id="btnDownloadCityMasterReport">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon"></i>
+                    </button>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass" id="addEdit">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                    </button>
+                </div>
+            </div>
+       
+            <div class="card-body p-0">
+                <div class="row align-items-center g-3 px-3 pt-3 mb-3">
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="form-label fw-bold text-dark mb-0" style="white-space: nowrap;">State:</label>
+                            <div style="min-width: 220px;">
+                                @Html.DropDownListFor(m => m.WCM.state, new SelectList(stateList, "stcd", "stnm", Model.WCM.state), "", new { @class = "select2 form-control", @id = "WCM_state" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tblData" style="display:none;" class="p-0">
+                    @{
+                        Html.RenderPartial("_CityList", Model.listWCM.ToList());
+                    }
+                </div>
+            </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            var error1 = $('.alert-danger', form1);
+
+            form1.validate({
+                errorElement: 'span',
+                errorClass: 'help-block text-danger small',
+                focusInvalid: true,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                    $(element).addClass('is-invalid');
+                },
+
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                    $(element).removeClass('is-invalid');
+                },
+
+                errorPlacement: function (error, element) {
+                    var errorId = (element.attr('id') || element.attr('name')) + "-error";
+                    var existingError = $('#' + errorId);
+                    
+                    if (existingError.length) {
+                        existingError.html(error.html());
+                        existingError.show();
+                    } else {
+                        error.attr("id", errorId);
+                        error.addClass('invalid-feedback text-danger');
+                        if (element.hasClass('select2-hidden-accessible')) {
+                            var container = element.next('.select2-container');
+                            error.insertAfter(container.length > 0 ? container : element);
+                        } else {
+                            error.insertAfter(element);
+                        }
+                        error.show();
+                    }
+                }
+            });
+        }
+        var GetObjectDet = function (id, DomainName) {
+            GLModal.showForm({
+                title: id > 0 ? "Edit City" : "Add City",
+                icon: 'ri-edit-box-line',
+                url: DomainName + '/Master/GetCityDetails?city_code=' + id,
+                onLoaded: function () {
+                    $("#state, #Region").select2({
+                        placeholder: "Select an option",
+                        allowClear: true,
+                        dropdownParent: $('#glFormModal')
+                    });
+
+
+                },
+                onSave: function () {
+                    if (!$('#form_sample').valid()) return false;
+                    return $.ajax({
+                        url: DomainName + '/Master/GetCityByState/' + (id || "0"),
+                        data: $("#form_sample").serialize(),
+                        type: 'GET',
+                        success: function (data) {
+                            if (data) {
+                                //TosterNotification("success", "Record has been updated successfully..!", "Success");
+                                bindTable($("#WCM_state").val(), DomainName);
+                            } else {
+                                TosterNotification("error", 'Operation fail..!! There is some issue please try again.', "Oops..!!");
+                            }
+                        }
+                    });
+                }
+            });
+        };
+        var CallSubmitClick = function (DomainName) {
+            $("#glFormSaveBtn").click(function (e) {
+                if (e.handled !== true) {
+                    e.handled = true;
+                    // Formvalidate(DomainName); // Removed redundant call
+                    if (!$('#form_sample').valid()) {
+                        e.handled = false; // Reset so user can try again
+                        return;
+                    }
+
+                    App.blockUI({ boxed: true });
+                    var CityMaster = {
+                        "city_code": $("#city_code").val(),
+                        "Location": $("#Location").val(),
+                        "state": $("#state").val(),
+                        "Region": $("#Region").val(),
+                        "activeflag": $("#activeflag").length > 0 ? ($("#activeflag").prop('checked') ? "Y" : "N") : "Y",
+                        "Locations": ($("#Locations").val() || "").toString()
+                    };
+
+                    $.ajax({
+                        url: DomainName + '/Master/AddEditCity',
+                        cache: false,
+                        data: JSON.stringify(CityMaster),
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data.Status) {
+                                TosterNotification("success", "City record updated!", "Success");
+                                var modalInstance = bootstrap.Modal.getInstance(document.getElementById('glFormModal'));
+                                if (modalInstance) {
+                                    modalInstance.hide();
+                                }
+                                bindTable($("#WCM_state").val(), DomainName);
+                            } else {
+                                TosterNotification("error", data.Message || 'Operation failed.', "Error");
+                            }
+                            App.unblockUI();
+                        },
+                        error: function () {
+                            TosterNotification("error", 'Post failed.', "Error");
+                            App.unblockUI();
+                        }
+                    });
+                }
+            });
+        }
+
+        var CheckDuplicateCity = function (DomainName) {
+            var state = $("#state").val();
+            var City = $("#Location").val();
+            if (!state || !City) return;
+
+            if ($("#oldstate").val() != state || $("#oldcity_code").val() != City) {
+                var strurl = DomainName + '/Master/CheckDuplicateCity_New?City=' + encodeURIComponent(City) + '&state=' + encodeURIComponent(state);
+                $.ajax({
+                    url: strurl,
+                    type: 'POST',
+                    success: function (data) {
+                        if (data.Count > 0) {
+                            TosterNotification("error", 'City Name already exists!', "Duplicate");
+                            $("#Location").val('').focus();
+                        }
+                    }
+                });
+            }
+        }
+
+        var bindTable = function (id, DomainName) {
+            App.blockUI({ boxed: true });
+            var strUrl = DomainName + '/Master/GetCityByState/' + (id || "0");
+          
+            $.ajax({
+                url: strUrl,
+                type: 'POST',
+                success: function (data) {
+                    $('#CityList').DataTable().destroy();
+                    $("#tblData").html(data);
+                    GlDataTable.init("CityList", {
+                        searching: true,
+                        statusFilter: 3,
+                        columnDefs: [
+                            { orderable: false, targets: [3,4] },
+                        ]
+                    });
+                    $("#tblData").show();
+                    App.unblockUI();
+                },
+                error: function () {
+                    App.unblockUI();
+                }
+            });
+        }
+
+        function DownloadStateMasterReport(DomainName) {
+            var strURL = DomainName + '/Master/ExportCityMasterReport';
+            // Navigate to report URL to trigger download. block UI while navigation starts.
+            App.blockUI({ boxed: true });
+            // Use a short timeout to allow the blocker to show before navigation
+            setTimeout(function () {
+                window.location.href = strURL;
+                // Unblock after a small delay so the browser has time to start the download
+                setTimeout(function () { App.unblockUI(); }, 1500);
+            }, 200);
+        }
+
+        return {
+            init: function (DomainName) {
+                $('#WCM_state').select2({
+                    placeholder: "Select State",
+                    allowClear: true,
+                    width: '100%'
+                });
+                CallSubmitClick(DomainName);
+                Formvalidate(DomainName);
+
+                $("#addEdit").click(function () {
+                    GetObjectDet("0", DomainName);
+                });
+
+                $(document).on('click', ".btnMasterEdit", function () {
+                    var id = $(this).data('id');
+                    GetObjectDet(id, DomainName);
+                });
+
+                $('#WCM_state').change(function () {
+                    bindTable($(this).val(), DomainName);
+                    
+                });
+
+               
+
+                $(document).on('blur', "#Location", function () {
+                    CheckDuplicateCity(DomainName);
+                });
+
+                $(document).on('click', '#btnDownloadCityMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadStateMasterReport(DomainName);
+                });
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    e.preventDefault();
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked'); // Note: jsGrid checkbox status on click
+
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    showConfirm({
+                        title: action + " City",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActive_City', { id: id }, function (res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Status updated successfully!");
+                                    var stateid = $("#WCM_state").val();
+                                    bindTable(stateid, DomainName);
+                                } else {
+                                    GLModal.showError("Failed to update status.");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                if ($('#WCM_state').val()) {
+                    bindTable($('#WCM_state').val(), DomainName);
+                }
+            }
+        }
+    }();
+</script>

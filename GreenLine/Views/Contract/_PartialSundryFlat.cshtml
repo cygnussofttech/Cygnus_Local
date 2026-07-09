@@ -1,0 +1,169 @@
+@model GreenLineDataService.Models.CYGNUS_CUSTCONTRACT_FRTMATRIX_FTLSLABHDR
+@using GreenLineDataService.Models
+@using GreenLine.Classes
+@using GreenLine.Helpers
+@{
+    GreenLineDataService.Helper.Interface.IContractService _contractService = new GreenLineDataService.Helper.ContractService();
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    List<CYGNUS_Master_General> ProductList = _masterService.GetGeneralMasterWithParam("PROD").ToList();
+    List<CYGNUS_Master_General> UOMList = _masterService.GetGeneralMasterWithParam("UOM").ToList();
+
+    List<CYGNUS_LaneMaster> GetStartLaneDetails = _contractService.GetCustomerLaneId(Model.Custcode);
+    List<CYGNUS_LaneMaster> GetEndLaneDetails = _masterService.GetLaneDetails();
+
+    // Fetch Customer Wise Bill Details using CustCode
+    var dtBill = _masterService.Get_Customerwise_BillDetails(Model.Custcode);
+    var stateDetails = DataRowToObject.CreateListFromTable<CYGNUS_Customer_Bill_Details>(dtBill);
+
+    List<SelectListItem> ChargeableList = new List<SelectListItem>();
+    ChargeableList.Add(new SelectListItem { Text = "Gross Qty", Value = "1", Selected = true });
+    ChargeableList.Add(new SelectListItem { Text = "Net Qty", Value = "2", Selected = true });
+    ChargeableList.Add(new SelectListItem { Text = "Delivered Qty", Value = "3", Selected = true });
+}
+
+<tr class="editorRow @(Model.IsEffective == 0 ? "effective-to-highlight" : "")" data-is-future-date="@Model.IsFuturedDate">
+    @Html.Hidden("hdnblnk1", Model.Id, new { @class = "iHidden" })
+    @using (Html.BeginCollectionItem("FTLList", Model.Id.ToString()))
+    {
+        <td class="center" style="text-align: center; vertical-align: middle;">
+            <input type="checkbox" class="row-checkbox" style="transform: scale(1.2); cursor: pointer;" />
+        </td>
+        <td class="center">
+            <div class="form-group">
+                <div class="col-md-1">
+                    <span class="row-id-display">@Model.Id</span>
+                    @Html.HiddenFor(m => m.srno, new { @class = "row-srno" })
+                    @Html.HiddenFor(m => m.ContractId)
+                    @Html.HiddenFor(m => m.Custcode)
+                    @Html.HiddenFor(m => m.chargecode)
+                    @Html.HiddenFor(m => m.chargetype)
+                    @Html.HiddenFor(m => m.trans_type)
+                    @Html.HiddenFor(m => m.Matrixtype)
+                    @Html.HiddenFor(m => m.ftltype)
+                    @Html.HiddenFor(m => m.Attachment)
+                    @Html.HiddenFor(m => m.ftl1_trip_ratetype)
+                    @*@Html.HiddenFor(m => m.EffectiveTo)*@
+                </div>
+            </div>
+        </td>
+        if (stateDetails != null && stateDetails.Count == 1)
+        {
+            <td>
+                @Html.DropDownListFor(m => m.FromLane, new SelectList(GetStartLaneDetails, "Lane_ID", "Lane_Name"), new { placeholder = "Select From Lane", @class = "form-control select2 required " })
+                @Html.HiddenFor(m => m.FromLane)
+            </td>
+        }
+        else
+        {
+            <td>
+                @Html.DropDownListFor(m => m.FromLane, new SelectList(GetStartLaneDetails, "Lane_ID", "Lane_Name"), "", new { placeholder = "Select From Lane", @class = "form-control select2 required " })
+            </td>
+        }
+        <td>
+            @{
+                string selectedLaneNameFTL = "";
+                if (!string.IsNullOrEmpty(Model.ToLane))
+                {
+                    var selectedLane = GetEndLaneDetails.FirstOrDefault(x => x.Lane_ID.ToString() == Model.ToLane);
+                    if (selectedLane != null)
+                    {
+                        selectedLaneNameFTL = selectedLane.Lane_Name;
+                    }
+                }
+            }
+            @Html.TextBoxFor(m => m.ToLane, new { @class = "form-control to-lane-ajax required", placeholder = "Select To Lane", data_option = selectedLaneNameFTL })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.LaneCode, new { placeholder = "LaneCode", @class = "form-control" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.MapDistance, new { placeholder = "Map Distannce (km)", @class = "form-control required", @readonly = true })
+        </td>
+
+        <td>
+            @Html.TextBoxFor(m => m.ContractualDistance, new { placeholder = "Contractual Distance (km)", @class = "form-control required", @onkeypress = "javascript:return validDigits(event,this)" })
+        </td>
+        if (Model.IsDatePicker)
+        {
+            <td>
+                @Html.TextBoxFor(m => m.EffectiveFrom, Convert.ToDateTime(Model.EffectiveFrom).Year < 1900 ? DateTime.Now.ToString("dd MMM yyyy") : Convert.ToDateTime(Model.EffectiveFrom).ToString("dd MMM yyyy"), new { placeholder = "Select Start Date", @class = "form-control date-picker effective-date required", autocomplete = "off" })
+            </td>
+        }
+        else
+        {
+            <td>
+                @Html.TextBoxFor(m => m.EffectiveFrom,
+                    "{0:dd MMM yyyy}",
+                    new { @class = "form-control", @readonly = "true" })
+            </td>
+        }
+        <td>
+            @Html.TextBoxFor(m => m.EffectiveTo, Convert.ToDateTime(Model.EffectiveTo).Year < 1900 ? DateTime.Now.ToString("dd MMM yyyy") : Convert.ToDateTime(Model.EffectiveTo).ToString("dd MMM yyyy"), new { placeholder = "Select End Date", @class = "form-control date-picker required", autocomplete = "off" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.EstVolume, new { placeholder = "Volume", @class = "form-control required", type = "number", min = "0.00" })
+        </td>
+        <td style="overflow-x:auto;">
+            @Html.TextBoxFor(m => m.ProductGroup, new { placeholder = "Select Product", @class = "form-control required" })
+        </td>
+
+        <td>
+            @Html.DropDownListFor(m => m.UOM, new SelectList(UOMList, "CodeId", "CodeDesc"), "", new { placeholder = "Select UOM", @class = "form-control select2 required" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.FTL1_TRIP_RATE, new { placeholder = "Rate", @class = "form-control required", type = "number" })
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.FTL1_TRDAYS, new { placeholder = "Select From Location", @class = "form-control required", @onkeypress = "javascript:return validDigits(event,this)" })
+        </td>
+        <td>
+            @if (stateDetails != null && stateDetails.Count == 1)
+            {
+                @Html.DropDownListFor(CR => CR.BillingState, new SelectList(stateDetails, "Bill_State", "State"), new { @class = "form-control select2 required", @disabled = "disabled" })
+                @Html.HiddenFor(CR => CR.BillingState)
+            }
+            else
+            {
+                @Html.DropDownListFor(CR => CR.BillingState, new SelectList(stateDetails, "Bill_State", "State"), "", new { placeholder = "Select Billing State", @class = "form-control select2 required" })
+            }
+        </td>
+        <td>
+            @Html.TextBoxFor(m => m.FromQty, new { placeholder = "From Quantity", @class = "form-control required", @readonly = "true",  @onkeypress = "javascript:return validDigits(event,this)" })
+        </td>
+
+        <td>
+            @Html.TextBoxFor(m => m.ToQty, new { placeholder = "To Quantity", @class = "form-control required", @onkeypress = "javascript:return validDigits(event,this)" })
+        </td>
+
+
+        <td>
+            @Html.DropDownListFor(m => m.ChargeableOn, new SelectList(ChargeableList, "Value", "Text"), "", new { @class = "required select2 form-control required", placeholder = "Select Chargeable On" })
+        </td>
+
+        <td>
+            @Html.TextBoxFor(m => m.MinimumGuarantee, new { placeholder = "Minimum Guarantee", @class = "form-control required", @onkeypress = "javascript:return validDigits(event,this)" })
+        </td>
+        <td class="center" style="vertical-align: middle; text-align: center;">
+            @if (Model.srno > 0)
+            {
+                <div class="d-flex align-items-center justify-content-center gap-1">
+                    @if (Model.IsEffective == 1)
+                    {
+                    <a href="#" id="btnEditFreightFTLMatrixCharge" class="@ViewBag.UI.Buttons.Edit.CssClass btn-edit-row"><i class="@ViewBag.UI.Buttons.Edit.Icon"></i></a>
+                    }
+                    @if (Model.IsFuturedDate == 1)
+                    {
+                    <a href="#" id="btnDeleteFreightFTLMatrixCharge" class="@ViewBag.UI.Buttons.Delete.CssClass btn-delete-row"><i class="@ViewBag.UI.Buttons.Delete.Icon"></i></a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center justify-content-center gap-1">
+                    <a href="#" class="@ViewBag.UI.Buttons.Delete.CssClass btn-delete-row"><i class="@ViewBag.UI.Buttons.Delete.Icon"></i></a>
+                </div>
+            }
+        </td>
+    }
+</tr>

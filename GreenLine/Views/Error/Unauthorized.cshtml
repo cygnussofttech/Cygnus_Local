@@ -1,0 +1,100 @@
+@{
+    Layout = null;
+    string returnUrl = ViewBag.ReturnUrl as string;
+    string loginUrl = Url.Content("~/Account/Logout");
+    if (!string.IsNullOrEmpty(returnUrl))
+    {
+        loginUrl += "?returnUrl=" + Uri.EscapeDataString(returnUrl);
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>401 Session Expired | GreenLine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="@Url.Content("~/assets/img/logos/favicon.png")">
+    
+    <!-- Velzon Bootstrap & App Css -->
+    <link href="~/Velzon_assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Velzon_assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Velzon_assets/css/app.min.css" rel="stylesheet" type="text/css" />
+    
+    <style>
+        body {
+            background-color: #f3f3f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .error-card {
+            max-width: 500px;
+            width: 100%;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border-radius: 8px;
+        }
+        .btn-error-home {
+            transition: all 0.3s ease;
+            font-weight: 500;
+            background-color: @(ViewBag.UI?.Buttons?.Add?.BackgroundColor ?? "#0ab39c") !important;
+            border-color: @(ViewBag.UI?.Buttons?.Add?.BorderColor ?? "#0ab39c") !important;
+            color: @(ViewBag.UI?.Buttons?.Add?.TextColor ?? "#ffffff") !important;
+            padding: 12px;
+        }
+        .btn-error-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            filter: brightness(1.1);
+        }
+        .avatar-lg {
+            height: 96px;
+            width: 96px;
+        }
+        .avatar-title {
+            align-items: center;
+            display: flex;
+            font-weight: 500;
+            height: 100%;
+            justify-content: center;
+            width: 100%;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-12 text-center mb-4">
+                <img src="@Url.Content("~/assets/img/logos/logo-dark.png")" alt="Logo" height="40">
+            </div>
+            <div class="col-md-12">
+                <div class="card error-card mx-auto">
+                    <div class="card-body p-5 text-center">
+                        <div class="avatar-lg mx-auto mt-2">
+                            <div class="avatar-title bg-light text-info display-4">
+                                <i class="ri-time-line"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-2">
+                            <h3 class="fw-bold">401 - Session Expired</h3>
+                            <p class="text-muted mb-4">Your session has expired or you do not have permission to access this resource. Please log in again to continue.</p>
+                            <div class="mt-4">
+                                <a href="@loginUrl" class="btn btn-error-home w-100 fs-15">
+                                    <i class="ri-login-circle-line me-1 align-middle"></i> Login Again
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 text-center mt-4">
+                <p class="text-muted mb-0">&copy; @DateTime.Now.Year GreenLine. Developed by Cygnux Softtech.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

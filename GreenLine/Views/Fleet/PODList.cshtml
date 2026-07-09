@@ -1,0 +1,281 @@
+@{
+    ViewBag.Title = "PODList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-title-box d-sm-flex align-items-center justify-content-between">
+    <h4 class="mb-sm-0">POD List</h4>
+
+    <div class="page-title-right">
+        <ol class="breadcrumb m-0 shadow-none bg-transparent">
+            <li class="breadcrumb-item"><a href="javascript: void(0);">Fleet</a></li>
+            <li class="breadcrumb-item active">POD List</li>
+        </ol>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of POD</h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="PODList">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="display:none">Id</th>
+                                <th class="text-center">Trip No</th>
+                                <th class="text-center">Docket No</th>
+                                <th class="text-center">Front POD</th>
+                                <th class="text-center">Back POD</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden container holding the partial view for file upload form -->
+<div id="commonUploadPartialContainer" style="display: none;">
+    @Html.Partial("_Upload_DO_POD")
+</div>
+
+<script type="text/javascript">
+    var FormComponents = (function () {
+        var loadData = function (DomainName, tblId) {
+            App.blockUI({ boxed: true });
+            var strUrl = DomainName + '/Fleet/GetPODListJson';
+            $.ajax({
+                url: strUrl,
+                type: 'GET',
+                success: function (result) {
+                    var tableData = result;
+                    if (typeof result === 'object' && !Array.isArray(result)) {
+                        var tableNames = Object.keys(result);
+                        for (var i = 0; i < tableNames.length; i++) {
+                            if (Array.isArray(result[tableNames[i]])) {
+                                tableData = result[tableNames[i]];
+                                break;
+                            }
+                        }
+                    }
+
+                    GlDataTable.init(tblId, {
+                        data: tableData,
+                        columns: [
+                            { data: "Id", visible: false },
+                            { data: "TripNo" },
+                            { data: "DocketNo" },
+                            { data: "FilePath", orderable: false },
+                            { data: "FilePathBack", orderable: false },
+                            { data: "IsVerify", orderable: false, searchable: false }
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [3],
+                                render: function (data, type, full) {
+                                    if (data) {
+                                        var fileName = data.substring(data.lastIndexOf('/') + 1);
+                                        return '<a href="javascript:void(0);" class="btnViewDoc text-primary fw-medium" data-path="' + data + '">' + fileName + '</a>';
+                                    }
+                                    return '-';
+                                }
+                            },
+                            {
+                                targets: [4],
+                                render: function (data, type, full) {
+                                    if (data) {
+                                        var fileName = data.substring(data.lastIndexOf('/') + 1);
+                                        return '<a href="javascript:void(0);" class="btnViewDoc text-primary fw-medium" data-path="' + data + '">' + fileName + '</a>';
+                                    }
+                                    return '-';
+                                }
+                            },
+                            {
+                                targets: [5],
+                                render: function (data, type, full) {
+                                    var btnEdit = '<button type="button" class="@(ViewBag.UI.Buttons.Edit.CssClass) me-1 btnPODEdit" data-id="' + full.Id + '">' +
+                                        '<i class="@(ViewBag.UI.Buttons.Edit.Icon)"></i></button>';
+
+                                    if (full.IsVerify) {
+                                        return btnEdit + '<span class="badge bg-success-subtle text-success text-uppercase">Verified</span>';
+                                    } else {
+                                        return btnEdit + '<button type="button" class="btn btn-sm btn-soft-success btnVerifyPOD" title="Verify POD" data-id="' + full.Id + '" data-docket="' + full.DocketNo + '" data-trip="' + full.TripNo + '">' +
+                                            '<i class="ri-checkbox-circle-line align-middle me-1"></i>Verify</button>';
+                                    }
+                                }
+                            }
+                        ],
+                        createdRow: function (row) {
+                            $(row).find('td').addClass('text-center');
+                        }
+                    });
+                    App.unblockUI();
+                },
+                error: function (xhr, status, error) {
+                    console.log(error);
+                    App.unblockUI();
+                },
+                complete: function () {
+                    App.unblockUI();
+                }
+            });
+        };
+
+        var Events = function (DomainName) {
+            $(document).on("click", ".btnViewDoc", function (e) {
+                e.preventDefault();
+                var filePath = $(this).data("path");
+                if (filePath) {
+                    window.open(DomainName + filePath, "_blank");
+                }
+            });
+
+            $(document).on("click", ".btnVerifyPOD", function (e) {
+                e.preventDefault();
+                var btn = $(this);
+                var id = btn.data("id");
+                var docket = btn.data("docket");
+                var trip = btn.data("trip");
+
+                showConfirm({
+                    title: "Verify POD",
+                    message: "Are you sure you want to <strong>verify</strong> the POD for Trip No: <strong>" + trip + "</strong> and Docket: <strong>" + docket + "</strong>?",
+                    type: "success",
+                    onConfirm: function () {
+                        App.blockUI({ boxed: true });
+                        $.get(DomainName + '/Fleet/UpdatePODForVerify', { id: id }, function (res) {
+                            App.unblockUI();
+                            if (res) {
+                                GLModal.showSuccess("POD verified successfully!");
+                                if ($.fn.DataTable.isDataTable('#PODList')) {
+                                    $('#PODList').DataTable().clear().destroy();
+                                }
+                                loadData(DomainName, 'PODList');
+                            } else {
+                                GLModal.showError("Failed to verify POD.");
+                            }
+                        }).fail(function () {
+                            App.unblockUI();
+                            GLModal.showError("An error occurred while verifying the POD.");
+                        });
+                    }
+                });
+            });
+
+            $(document).on("click", ".btnPODEdit", function (e) {
+                e.preventDefault();
+                var id = $(this).data("id");
+
+                App.blockUI({ boxed: true });
+                $.get(DomainName + '/Fleet/EditPOD', { Id: id }, function (rowData) {
+                    App.unblockUI();
+                    if (rowData) {
+                        // Load form HTML
+                        var formHtml = $("#commonUploadPartialContainer").html();
+                        $("#glFormContent").html(formHtml);
+
+                        // Setup upload modal form (isDO = false, isPOD = true)
+                        if (typeof setupUploadModalForm === 'function') {
+                            setupUploadModalForm(false, true);
+                        }
+
+                        // Populate row data
+                        $('#glFormContent #modalEvtPieces').val(rowData.Pieces);
+                        $('#glFormContent #modalEvtQty').val(rowData.Qty);
+                        $('#glFormContent #modalEvtRemarks').val(rowData.Remarks);
+
+                        // If file already exists, make upload optional and show current filename
+                        if (rowData.FilePath) {
+                            $('#glFormContent #modalFileLabel').text('Front POD Upload');
+                            var fName = rowData.FilePath.substring(rowData.FilePath.lastIndexOf('/') + 1);
+                            $('#glFormContent #modalEvtFile').after('<div class="mt-1 small text-muted current-file">Current: <a href="javascript:void(0);" class="btnViewDoc text-primary fw-medium" data-path="' + rowData.FilePath + '">' + fName + '</a></div>');
+                        }
+                        if (rowData.FilePathBack) {
+                            var bName = rowData.FilePathBack.substring(rowData.FilePathBack.lastIndexOf('/') + 1);
+                            $('#glFormContent #modalEvtFileBack').after('<div class="mt-1 small text-muted current-file">Current: <a href="javascript:void(0);" class="btnViewDoc text-primary fw-medium" data-path="' + rowData.FilePathBack + '">' + bName + '</a></div>');
+                        }
+
+                        // Set modal title
+                        $('#glFormModalLabel').html('<i class="ri-edit-box-line align-middle me-1"></i> Edit POD - Docket ' + rowData.DocketNo);
+                        $("#glFormLoader").hide();
+                        $("#glFormSaveBtn").prop("disabled", false);
+
+                        // Show modal
+                        var bsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('glFormModal'));
+                        bsModal.show();
+
+                        // Save button handler
+                        $('#glFormSaveBtn').off('click').on('click', function () {
+                            var formUpload = $('#glFormContent #frmCommonUpload');
+                            if (!formUpload.valid()) {
+                                return false;
+                            }
+
+                            var formData = new FormData();
+                            formData.append("Id", rowData.Id);
+                            formData.append("TripNo", rowData.TripNo);
+                            formData.append("DocketNo", rowData.DocketNo);
+                            formData.append("ActivityType", "POD");
+                            formData.append("Remarks", $('#glFormContent #modalEvtRemarks').val());
+                            formData.append("Pieces", $('#glFormContent #modalEvtPieces').val());
+                            formData.append("Qty", $('#glFormContent #modalEvtQty').val());
+                            formData.append("isFromList", true);
+
+                            var fileInput = $('#glFormContent #modalEvtFile')[0];
+                            if (fileInput.files && fileInput.files.length > 0) {
+                                formData.append("evtFile", fileInput.files[0]);
+                            }
+                            var fileBackInput = $('#glFormContent #modalEvtFileBack')[0];
+                            if (fileBackInput.files && fileBackInput.files.length > 0) {
+                                formData.append("evtFileBack", fileBackInput.files[0]);
+                            }
+
+                            App.blockUI({ boxed: true });
+                            $.ajax({
+                                url: DomainName + '/Fleet/SubmitDoPodUpload',
+                                type: 'POST',
+                                data: formData,
+                                contentType: false,
+                                processData: false,
+                                success: function (res) {
+                                    App.unblockUI();
+                                    if (res && res.Status) {
+                                        GLModal.showSuccess("POD updated successfully!");
+                                        bsModal.hide();
+                                        if ($.fn.DataTable.isDataTable('#PODList')) {
+                                            $('#PODList').DataTable().clear().destroy();
+                                        }
+                                        loadData(DomainName, 'PODList');
+                                    } else {
+                                        GLModal.showError(res ? res.Message : "Failed to update POD.");
+                                    }
+                                },
+                                error: function () {
+                                    App.unblockUI();
+                                    GLModal.showError("An error occurred while saving the POD.");
+                                }
+                            });
+                        });
+                    } else {
+                        GLModal.showError("Failed to fetch POD details.");
+                    }
+                }).fail(function () {
+                    App.unblockUI();
+                    GLModal.showError("An error occurred while fetching POD details.");
+                });
+            });
+        };
+
+        return {
+            init: function (DomainName) {
+                loadData(DomainName, 'PODList');
+                Events(DomainName);
+            }
+        };
+    })();
+</script>

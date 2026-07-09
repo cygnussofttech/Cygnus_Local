@@ -1,0 +1,31 @@
+@model GreenLineDataService.Models.CYGNUS_FLEET_ENROUTE_EXP
+@using GreenLine.Helpers;
+
+<tr class="editorRow">
+    @using (Html.BeginCollectionItem("EnrtExpList", Model.SRNO.ToString()))
+    {
+        @Html.HiddenFor(m => m.SRNO)
+        @Html.HiddenFor(m => m.Polarity)
+        @Html.HiddenFor(m => m.TripsheetNo)
+
+        <td>
+            @Html.DropDownListFor(m => m.id, new SelectList(ViewBag.ExpenseMasterList, "CodeId", "CodeDesc"), "", new { @class = "form-control required select2 clsNOE" })
+        </td>
+
+        <td>
+            @Html.TextBoxFor(m => m.Amount_Spent, new { @class = "form-control totalExp required", @placeholder = "0", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))", @number = "true", @min = "1" })
+        </td>
+
+        <td class="text-center">
+            <div class="form-switch">
+                @Html.CheckBoxFor(m => m.IsBilled, new { @class = "form-check-input expense-billed", onclick = "return false;", @style = "pointer-events: none; opacity: 0.7;" })
+            </div>
+        </td>
+
+        <td class="text-center">
+            <a href="javascript:void(0);" class="deleteRow @ViewBag.UI.Buttons.Delete.CssClass">
+                <i class="@ViewBag.UI.Buttons.Delete.Icon"></i>
+            </a>
+        </td>
+    }
+</tr>

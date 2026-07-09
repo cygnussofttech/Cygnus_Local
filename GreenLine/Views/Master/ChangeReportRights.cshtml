@@ -1,0 +1,93 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_Master_Reports>
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Change " + @ViewBag.UserId + " Report Rights";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row pt-3 pb-3 justify-content-center">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0">
+            <div class="border-bottom pb-2">
+                <h4 class="mb-0 ui-page-header">
+                    <i class="ri-file-chart-line me-1"></i> Report Rights for User : <b>@ViewBag.UserId</b>
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="form-body">
+                    @using (Html.BeginForm("ChangeReportRights_Submit", "Master", FormMethod.Post, new { @id = "submit_form", @class = "form-horizontal" }))
+                    {
+                        <div class="table-responsive">
+                            <table id="sample_ven" class="table table-hover table-striped align-middle table-nowrap mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><span><input type="checkbox" class="group-checkable form-check-input" data-set="#sample_ven .checkboxes"></span></th>
+                                        <th>Report Type</th>
+                                        <th>Report Sub Type</th>
+                                        <th>Report Name</th>
+                                        <th>Desription</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @Html.Partial("_Report_Rights_Partial", Model)
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="form-actions text-center mt-4 mb-4">
+                            <a class="@ViewBag.UI.Buttons.Back.CssClass" href="@Url.Content("~/Master/UserList")"><i class="@ViewBag.UI.Buttons.Back.Icon align-middle"></i>&nbsp;@ViewBag.UI.Buttons.Back.Label</a>
+                            <button type="button" id="btnSubmit" class="@ViewBag.UI.Buttons.Submit.CssClass controls"><i class="@ViewBag.UI.Buttons.Submit.Icon align-middle"></i>&nbsp;@ViewBag.UI.Buttons.Submit.Label</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var FormComponents = function (DomainName) {
+
+        return {
+            init: function (DomainName) {
+                $(".clsCheckBox").click(function () {
+                    var id = $(this).attr("id").replace("Report_", "").replace("__HasAccess", "");
+                    var checked = jQuery(this).is(":checked");
+                    if (checked) {
+                        $("#Report_" + id + "__HasAccess").val("true");
+                    }
+                    else {
+                        $("#Report_" + id + "__HasAccess").val("false");
+                    }
+                });
+
+                jQuery('#sample_ven .group-checkable').change(function () {
+                    var set = jQuery(this).attr("data-set");
+                    var checked = jQuery(this).is(":checked");
+
+                    jQuery(set).each(function () {
+                        if (checked) {
+                            $(this).attr("checked", true);
+                            $(this).parents('tr').addClass("active");
+                        } else {
+                            $(this).attr("checked", false);
+                            $(this).parents('tr').removeClass("active");
+                        }
+                    });
+                    jQuery.uniform.update(set);
+                });
+
+                jQuery('#sample_ven').on('change', 'tbody tr .checkboxes', function () {
+                    $(this).parents('tr').toggleClass("active");
+                });
+
+                $("#btnSubmit").click(function () {
+                    App.blockUI({ boxed: true });
+                    document.forms["submit_form"].submit()
+                });
+            }
+        };
+    }();
+
+</script>

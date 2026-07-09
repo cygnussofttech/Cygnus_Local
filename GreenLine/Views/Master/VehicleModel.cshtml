@@ -1,0 +1,155 @@
+@model IEnumerable<GreenLineDataService.Models.CYGNUS_Vehicle_Model>
+@{
+    ViewBag.Title = "Vehicle Model Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Vehicle Model Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Vehicle Model</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Vehicle Models</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a class="@ViewBag.UI.Buttons.Excel.CssClass" id="btnDownload">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon"></i>
+                    </a>
+                    <a href="@Url.Content("~/Master/AddEditVehicleModel/0")" class="@ViewBag.UI.Buttons.Add.CssClass">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="VehicleModelList">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Code</th>
+                            <th class="text-center">Vehicle Name</th>
+                            <th class="text-center">Manufacturer Name</th>
+                            <th class="text-center no-cc">Status</th>
+                            <th class="text-center no-cc">Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var UI = {
+        editBtn:  '@ViewBag.UI.Buttons.Edit.CssClass',
+        editIcon: '@ViewBag.UI.Buttons.Edit.Icon'
+    };
+
+    var FormComponents = function (DomainName) {
+
+        var loadData = function (DomainName, tblId) {
+            App.blockUI({ boxed: true });
+
+            $.ajax({
+                url: DomainName + '/Master/GetVehicleModelListJson',
+                type: 'GET',
+                success: function (result) {
+                    GlDataTable.refresh(tblId, {
+                        data: result,
+                        statusFilter: 3,
+                        columns: [
+                            { data: "Type_Code", visible: false },
+                            { data: "Type_Name" },
+                            { data: "Made_By" },
+                            { data: "ActiveFlag" },
+                            { data: "Type_Code" }
+                        ],
+                        columnDefs: [
+                            {
+                                targets: [3],
+                                render: function (data, type, full) {
+                                    var isChecked = (data === "Y") ? "checked" : "";
+                                    return '<label class="switch"><input class="btnToggleStatus" type="checkbox" ' + isChecked + ' data-id="' + full.Type_Code + '" data-name="' + full.Type_Name + '"><span class="slider round"></span></label>';
+                                }
+                            },
+                            {
+                                targets: [4],
+                                render: function (data) {
+                                    return '<a href="' + DomainName + '/Master/AddEditVehicleModel/' + data + '" class="' + UI.editBtn + '">' +
+                                           '<i class="' + UI.editIcon + '"></i></a>';
+                                }
+                            },
+                            { orderable: false, targets: [3, 4] },
+                            { className: "text-center", targets: [1,2,3,4] }
+                        ],
+                    });
+
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function () {
+                    GLModal.showError("Error", "Failed to fetch vehicle type list.");
+                    App.unblockUI();
+                }
+            });
+        }
+
+        return {
+            init: function (DomainName) {
+                loadData(DomainName, 'VehicleModelList');
+
+                $(document).on('click', '#btnDownload', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "VehicleModel_Master", "VehicleModel_Master_List");
+                });
+
+                // Toggle Status Handler
+                $(document).on("click", ".btnToggleStatus", function (e) {
+                    e.preventDefault();
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+                    
+                    var action = isChecked ? "Activate" : "Deactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    showConfirm({
+                        title: action + " Vehicle Model",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for vehicle model <strong class="text-primary">' + name + '</strong>?',
+                        type: type,
+                        confirmText: "Yes, Confirm",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActive_VehicleModel', { id: id }, function(res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Success", "Status updated successfully!");
+                                    loadData(DomainName, "VehicleModelList");
+                                } else {
+                                    GLModal.showError("Error", "Failed to update status.");
+                                }
+                            }).fail(function() {
+                                App.unblockUI();
+                                GLModal.showError("Error", "A server-side error occurred.");
+                            });
+                        }
+                    });
+                });
+            }
+        }
+    }();
+</script>

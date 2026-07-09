@@ -1,0 +1,1114 @@
+@model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
+@using GreenLineDataService.Models;
+
+@{
+    var Event = Model.VehicleEvent;
+
+    GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
+
+    var EventStatus = new List<SelectListItem> {
+    new SelectListItem { Text = "Open", Value = "OPEN", Selected = true },
+    new SelectListItem { Text = "Close", Value = "CLOSE" }
+};
+
+    var VehicleType = new List<SelectListItem> {
+    new SelectListItem { Text = "Pullar", Value = "P"},
+    new SelectListItem { Text = "Trailer", Value = "T" }
+};
+
+    var VehicleBreakDownType = new List<SelectListItem> {
+    new SelectListItem { Text = "Pullar", Value = "P"},
+    new SelectListItem { Text = "Trailer", Value = "T" },
+    new SelectListItem { Text = "Both", Value = "B" }
+};
+
+
+    var LNGLocation = new List<SelectListItem> {
+    new SelectListItem { Text = "At Pump", Value = "Pump"},
+    new SelectListItem { Text = "On Road", Value = "Road" },
+};
+
+    List<CYGNUS_Master_General> JobOrderType = _masterService.GetGeneralMasterWithParam("JOBCARDTYP").ToList();
+
+    var BreakdownType = new List<SelectListItem> {
+        new SelectListItem { Text = "Accident", Value = "Accident" },
+        new SelectListItem { Text = "Minor", Value = "Minor" },
+        new SelectListItem { Text = "Major", Value = "Major" }
+    };
+
+    var YesNoList = new List<SelectListItem> {
+        new SelectListItem { Text = "Yes", Value = "Y" },
+        new SelectListItem { Text = "No", Value = "N" }
+    };
+
+}
+<style>
+    /* ── Vehicle Event incident type buttons ───────────────── */
+    .vevt-incident-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 20px;
+        border: 1px solid transparent;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s;
+    }
+
+        .vevt-incident-btn.t-danger {
+            background: rgba(240,101,72,.1);
+            color: #e0432a;
+            border-color: rgba(240,101,72,.2);
+        }
+
+        .vevt-incident-btn.t-warning {
+            background: rgba(247,184,75,.1);
+            color: #c98a00;
+            border-color: rgba(247,184,75,.25);
+        }
+
+        .vevt-incident-btn.t-info {
+            background: rgba(41,156,219,.1);
+            color: #1478a6;
+            border-color: rgba(41,156,219,.2);
+        }
+
+        .vevt-incident-btn.t-primary {
+            background: rgba(64,81,137,.1);
+            color: #405189;
+            border-color: rgba(64,81,137,.2);
+        }
+
+        .vevt-incident-btn.t-secondary {
+            background: rgba(135,138,153,.1);
+            color: #565a75;
+            border-color: rgba(135,138,153,.2);
+        }
+
+        .vevt-incident-btn.active {
+            box-shadow: 0 0 0 2px currentColor;
+            font-weight: 700;
+        }
+
+        .vevt-incident-btn:hover {
+            filter: brightness(.92);
+        }
+
+    /* ── KPI stat mini card ─────────────────────────────────── */
+    .vevt-kpi-card {
+        background: var(--vz-card-bg,#fff);
+        border: 1px solid var(--vz-border-color,#e9ebec);
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .vevt-kpi-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.2rem;
+    }
+
+    /* ── Report form card ──────────────────────────────────── */
+    .vevt-form-card {
+        background: var(--vz-card-bg,#fff);
+        border: 1px solid var(--vz-border-color,#e9ebec);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .vevt-form-header {
+        background: var(--vz-light,#f3f6f9);
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--vz-border-color,#e9ebec);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .vevt-submit-btn {
+        background: linear-gradient(135deg,var(--vz-primary,#405189) 0%,#2c3a6e 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 11px;
+        width: 100%;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .vevt-submit-btn:hover {
+            opacity: .92;
+        }
+
+    /* ── Recent incidents panel ────────────────────────────── */
+    .vevt-recent-panel {
+        background: var(--vz-card-bg,#fff);
+        border: 1px solid var(--vz-border-color,#e9ebec);
+        border-radius: 12px;
+        padding: 16px;
+        height: 100%;
+    }
+
+    .help-block-error {
+        display: block;
+        color: #f06548;
+        font-size: 11px;
+        margin-top: 4px;
+    }
+
+    /* ── Timeline Styles (from _Trip_Timeline) ──────────────── */
+    .timeline-container {
+        position: relative;
+        padding-left: 30px;
+    }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 20px;
+            bottom: 20px;
+            width: 2px;
+            background: #e2e8f0;
+        }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 0px;
+        padding: 0 0 10px 0px !important;
+        width: 100% !important;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        left: -27px;
+        top: 18px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        border: 3px solid #adb5bd;
+        z-index: 2;
+        box-shadow: 0 0 0 3px rgba(173, 181, 189, 0.15);
+        transition: all 0.2s ease;
+    }
+
+        .timeline-dot.dot-success {
+            border-color: #0ab39c;
+            box-shadow: 0 0 0 3px rgba(10, 179, 156, 0.15);
+        }
+
+        .timeline-dot.dot-info {
+            border-color: #299cdb;
+            box-shadow: 0 0 0 3px rgba(41, 156, 219, 0.15);
+        }
+
+        .timeline-dot.dot-primary {
+            border-color: #405189;
+            box-shadow: 0 0 0 3px rgba(64, 81, 137, 0.15);
+        }
+
+        .timeline-dot.dot-warning {
+            border-color: #f7b84b;
+            box-shadow: 0 0 0 3px rgba(247, 184, 75, 0.15);
+        }
+
+        .timeline-dot.dot-danger {
+            border-color: #f06548;
+            box-shadow: 0 0 0 3px rgba(240, 101, 72, 0.15);
+        }
+
+        .timeline-dot.dot-secondary {
+            border-color: #878a99;
+            box-shadow: 0 0 0 3px rgba(135, 138, 153, 0.15);
+        }
+
+    .timeline-card {
+        border: 1px solid #e2e8f0 !important;
+        border-left: 4px solid #adb5bd !important;
+        border-radius: 12px !important;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(56, 65, 74, 0.05);
+        transition: all 0.2s ease;
+    }
+
+        .timeline-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(56, 65, 74, 0.08) !important;
+        }
+
+        .timeline-card.border-left-success {
+            border-left-color: #0ab39c !important;
+        }
+
+        .timeline-card.border-left-info {
+            border-left-color: #299cdb !important;
+        }
+
+        .timeline-card.border-left-primary {
+            border-left-color: #405189 !important;
+        }
+
+        .timeline-card.border-left-warning {
+            border-left-color: #f7b84b !important;
+        }
+
+        .timeline-card.border-left-danger {
+            border-left-color: #f06548 !important;
+        }
+
+        .timeline-card.border-left-secondary {
+            border-left-color: #878a99 !important;
+        }
+
+    .vevt-recent-panel .timeline-scroll-container {
+        flex: 1 1 0%;
+        min-height: 0;
+        overflow-y: auto !important;
+        padding-right: 8px;
+    }
+
+        .vevt-recent-panel .timeline-scroll-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .vevt-recent-panel .timeline-scroll-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 4px;
+        }
+
+        .vevt-recent-panel .timeline-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+        }
+
+            .vevt-recent-panel .timeline-scroll-container::-webkit-scrollbar-thumb:hover {
+                background: rgba(0, 0, 0, 0.3);
+            }
+
+    @@media (max-width: 767px) {
+        .remarks-short, .notes-short {
+            display: -webkit-box !important;
+            -webkit-line-clamp: 3 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+        }
+    }
+</style>
+
+<!-- ── KPI Stats Row ────────────────────────────────────── -->
+<div class="row g-2 mb-4">
+    @{
+        var kpiStats = new[] {
+            new { Label = "Fueling",        Icon = "ri-oil-line",      Bg = "bg-soft-success",  Text = "text-success",  Id = "kpiFueling" },
+            new { Label = "Stoppage",       Icon = "ri-stop-circle-line", Bg = "bg-soft-warning", Text = "text-warning", Id = "kpiStoppage" },
+            new { Label = "Over-Speeding",  Icon = "ri-speed-fill",    Bg = "bg-soft-danger",   Text = "text-danger",   Id = "kpiOverspeeding" },
+            new { Label = "Breakdown",      Icon = "ri-tools-line",    Bg = "bg-soft-danger",   Text = "text-danger",   Id = "kpiBreakdown" },
+            new { Label = "Total Incidents",Icon = "ri-file-warning-line", Bg = "bg-soft-primary",Text = "text-primary",Id = "kpiTotal" }
+        };
+    }
+    @foreach (var k in kpiStats)
+    {
+        <div class="col">
+            <div class="vevt-kpi-card">
+                <div class="vevt-kpi-icon @k.Bg">
+                    <i class="@k.Icon @k.Text"></i>
+                </div>
+                <div>
+                    <div class="@k.Text fw-bold fs-18 lh-1" id="@k.Id">—</div>
+                    <div class="fs-11 text-muted mt-1">@k.Label</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- ── Incident Type Selector ───────────────────────────── -->
+<div class="mb-4">
+    <div class="fs-12 fw-semibold text-uppercase letter-spacing-1 mb-3">Select Vehicle Event</div>
+    <div class="d-flex flex-wrap gap-2" id="incidentTypes">
+        @if (Model.listVehicleEvents != null)
+        {
+            foreach (var inc in Model.listVehicleEvents.Where(e => e.IsActive))
+            {
+                <button type="button" class="vevt-incident-btn @inc.Class" data-code="@inc.EventType" data-id="@inc.EventId">
+                    <i class="@inc.Icon"></i>@inc.EventName
+                </button>
+            }
+        }
+    </div>
+</div>
+
+<!-- ── Report Form + Recent Incidents ───────────────────── -->
+<div class="row g-3">
+
+    <!-- Left: Report Form -->
+    <div class="col-md-7">
+        <form id="AddVehicleEvent" onsubmit="return false;" class="form-modern-ui">
+            @Html.HiddenFor(c => c.VehicleEvent.PRNo, new { id = "vevtPRNo" })
+            @Html.HiddenFor(c => c.VehicleEvent.TripNo, new { id = "vevtTripNo" })
+            @Html.HiddenFor(c => c.VehicleEvent.VehicleId, new { id = "vevtVehicleId" })
+            @Html.HiddenFor(c => c.VehicleEvent.EventId, new { id = "vevtEventId" })
+            @Html.HiddenFor(c => c.VehicleEvent.VehicleType, new { id = "hiddenVehicleType" })
+            @Html.HiddenFor(c => c.VehicleEvent.VehicleBreakDownType, new { id = "hiddenVehicleBreakDownType" })
+            @Html.HiddenFor(c => c.VehicleEvent.FromDate, new { id = "hiddenFromDate" })
+            @Html.HiddenFor(c => c.VehicleEvent.IsVehicleReplaceRequired, new { id = "hiddenIsVehicleReplaceRequired" })
+            @Html.HiddenFor(c => c.VehicleEvent.Location, new { id = "hiddenLocation" })
+            @Html.HiddenFor(c => c.VehicleEvent.NoOfTyers, new { id = "hiddenNoOfTyers" })
+            <div class="vevt-form-card">
+                <div class="vevt-form-header">
+                    <span class="d-flex align-items-center justify-content-center rounded" style="width:34px;height:34px;background:var(--vz-primary,#405189)">
+                        <i class="ri-edit-box-line text-white fs-15"></i>
+                    </span>
+                    <div>
+                        <div class="fw-bold text-dark fs-14">Report an Incident</div>
+                        <div class="fs-11 text-muted">Provide accurate details to help us take immediate action.</div>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <div id="maintenanceFieldsDiv" style="display: none;">
+                        <div class="mb-3">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Breakdown (Puller / Trailer)</label>
+                                        <select id="vevtVehicleType" class="form-control required select2" data-placeholder="Select Breakdown">
+                                            <option value=""></option>
+                                            @foreach (var item in VehicleType)
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Breakdown Type</label>
+                                        <select id="vevtBreakdownType" class="form-control required select2" data-placeholder="Select Breakdown Type">
+                                            <option value=""></option>
+                                            @foreach (var item in BreakdownType)
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">From Datetime</label>
+                                        <input type="datetime-local" id="vevtMaintFromDate" class="form-control required vevt-from-date-input" />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Replacement Vehicle Required</label>
+                                        <select id="vevtIsReplaceRequired" class="form-control required select2" data-placeholder="Select Option">
+                                            <option value=""></option>
+                                            @foreach (var item in YesNoList)
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tyreFieldsDiv" style="display: none;">
+                        <div class="mb-3">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Asset (Puller / Trailer / Both)</label>
+                                        <select id="vevtAssetType" class="form-control required select2" data-placeholder="Select Asset">
+                                            <option value=""></option>
+                                            @foreach (var item in VehicleBreakDownType)
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">No. of Tyres</label>
+                                        <input type="text" id="vevtNoOfTyers" class="form-control required" placeholder="No Of Tyres" onkeypress="javascript:return validDigits(event,this)" />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">From Datetime</label>
+                                        <input type="datetime-local" id="vevtTyreFromDate" class="form-control required vevt-from-date-input" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="lngFieldsDiv" style="display: none;">
+                        <div class="mb-3">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Location (At Pump / On Road)</label>
+                                        <select id="vevtLNGLocationType" class="form-control required select2" data-placeholder="Select Location">
+                                            <option value=""></option>
+                                            @foreach (var item in LNGLocation)
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Pump Name / Location</label>
+                                        <input type="text" id="vevtLocationText" class="form-control required" placeholder="Enter Pump Name / Location" />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">From Datetime</label>
+                                        <input type="datetime-local" id="vevtLNGFromDate" class="form-control required vevt-from-date-input" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="vevtVehicleDocsDiv" style="display: none;">
+                        <div class="mb-3">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Vehicle Document</label>
+                                        @Html.DropDownListFor(m => m.VehicleEvent.VehicleDocs, new List<SelectListItem>(), "", new { @class = "form-control required select2", @placeholder = "Select Vehicle Document" })
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">From Datetime</label>
+                                        <input type="datetime-local" id="vevtDocFromDate" class="form-control required vevt-from-date-input" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="attachmentFieldsDiv" style="display: none;">
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label class="form-label required-field">Attachment (Image/PDF)</label>
+                                <div class="input-group">
+                                    <input type="file" id="UploadFile" name="UploadFile" class="form-control required" accept="image/*,application/pdf" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="vevtStatusDiv" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label required-field">Status</label>
+                            @Html.DropDownListFor(c => c.VehicleEvent.Status, new SelectList(EventStatus, "Value", "Text"), new { @class = "form-control required select2", @id = "vevtStatus" })
+                        </div>
+                    </div>
+                    <div class="mb-3" id="vevtRemarksDiv">
+                        <label class="form-label required-field">Incident Reason</label>
+                        @Html.TextAreaFor(c => c.VehicleEvent.Remarks, new { @class = "form-control required fs-13", placeholder = "Provide incident details, fueling details capacity, toll amount or challan...", rows = "4", maxlength = "1000" })
+                        <div class="text-end fs-10 text-muted mt-1"><span id="vevtReasonCount">0</span> / 1000</div>
+                    </div>
+                    <button type="button" class="vevt-submit-btn" id="btnDispatchIncident">
+                        <i class="ri-send-plane-fill"></i> Submit Incident Report &rarr;
+                    </button>
+                    <div class="text-center text-muted fs-11 mt-2">
+                        <i class="ri-information-line me-1"></i> Please ensure all details are accurate before submitting.
+                    </div>
+                </div>
+                    </div>
+</form>
+    </div>
+
+    <!-- Right: Recent Incidents -->
+    <div class="col-md-5">
+        <div class="vevt-recent-panel d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2" style="width:50% !important;">
+                    <i class="ri-history-line text-primary fs-16"></i>
+                    <span class="fw-semibold text-dark fs-14">Recent Incidents</span>
+                </div>
+                <select id="vevtFilter" class="select2" style="width:60% !important;">
+                    <option value=""></option>
+                    @if (Model.listVehicleEvents != null)
+                    {
+                        foreach (var inc in Model.listVehicleEvents)
+                        {
+                            <option value="@inc.EventId">@inc.EventName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="timeline-scroll-container flex-grow-1 mt-2">
+                <div class="timeline-container" id="recentIncidents">
+                    <!-- Dynamic timeline entries will be loaded here via AJAX -->
+                    <div class="text-center text-muted py-4 fs-13" id="noIncidentsMsg">
+                        <i class="ri-truck-line fs-1 opacity-50 d-block mb-2"></i> No incidents reported yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var selectedIncident = '';
+    var rawVehicleEventsData = [];
+
+    function loadRecentVehicleEvents() {
+        var tripNo = '@Event.TripNo';
+        var vehicleId = '@Event.VehicleId';
+        $.ajax({
+            url: DomainName + '/Account/GetDataWithoutAlias',
+            type: 'POST', dataType: 'json',
+            data: { Method: 'USP_GetVehicleEventList', parameters: { TripNo: tripNo, VehicleId : vehicleId } },
+            success: function (data) {
+                var filterVal = $('#vevtFilter').val();
+                renderVehicleEvents(data, filterVal);
+                loadVehicleEventCounts();
+            },
+            error: function () {
+                TosterNotification('error', 'Failed to fetch vehicle events', 'Error');
+            }
+        });
+    }
+
+    function loadVehicleEventCounts() {
+        var tripNo = '@Event.TripNo';
+        var vehicleId = '@Event.VehicleId';
+        $.ajax({
+            url: DomainName + '/Account/GetDataWithoutAlias',
+            type: 'POST', dataType: 'json',
+            data: { Method: 'USP_GetVehicleEventListCount', parameters: { TripNo: tripNo, VehicleId : vehicleId } },
+            success: function (data) {
+                if (data && data.length > 0) {
+                    var counts = data[0];
+                    $('#kpiFueling').text(counts.Fueling || 0);
+                    $('#kpiStoppage').text(counts.Stoppage || 0);
+                    $('#kpiOverspeeding').text(counts.OverSpeeding || 0);
+                    $('#kpiBreakdown').text(counts.Breakdown || 0);
+                    $('#kpiTotal').text(counts.TotalCount || 0);
+                } else {
+                    $('#kpiFueling').text(0);
+                    $('#kpiStoppage').text(0);
+                    $('#kpiOverspeeding').text(0);
+                    $('#kpiBreakdown').text(0);
+                    $('#kpiTotal').text(0);
+                }
+            },
+            error: function () {
+                $('#kpiFueling').text(0);
+                $('#kpiStoppage').text(0);
+                $('#kpiOverspeeding').text(0);
+                $('#kpiBreakdown').text(0);
+                $('#kpiTotal').text(0);
+            }
+        });
+    }
+
+    function renderVehicleEvents(data, filterVal) {
+        if (!data) data = [];
+        rawVehicleEventsData = data;
+
+        var filteredData = data;
+        if (filterVal) {
+            filteredData = data.filter(function (ev) {
+                return ev.RefId == filterVal;
+            });
+        }
+
+        if (!filteredData || !filteredData.length) {
+            $('#recentIncidents').html('<div class="text-center text-muted py-4 fs-13"><i class="ri-truck-line fs-1 opacity-50 d-block mb-2"></i> No incidents reported yet.</div>');
+            return;
+        }
+
+        $("#vehicleEventCount").text(filteredData.length);
+
+        console.log(filteredData);
+
+        var html = '';
+        $.each(filteredData, function (i, ev) {
+            var color = 'primary';
+            if (ev.Class) {
+                color = ev.Class.replace(/^t-/, '');
+            }
+            var statusBadge = '';
+            if (ev.Status) {
+                var badgeClass = ev.Status.toUpperCase() === 'OPEN' ? 'badge-soft-danger' : 'badge-soft-success';
+                statusBadge = '<span class="badge ' + badgeClass + ' fs-10 ms-2">' + ev.Status + '</span>';
+            }
+
+            var remarks = (ev.Remarks || ev.Reason || '').trim();
+            var remarksHtml = '';
+            var headerClass = 'd-flex justify-content-between align-items-start';
+            var bodyHtml = '';
+
+            if (remarks) {
+                headerClass += ' mb-2 pb-2 border-bottom border-light';
+                if (remarks.length > 120) {
+                    var shortRemarks = remarks.substring(0, 120);
+                    remarksHtml = '<span class="remarks-text remarks-short">' + shortRemarks + '...</span>'
+                        + '<span class="remarks-text remarks-full" style="display:none;">' + remarks + '</span>'
+                        + '<a href="javascript:void(0);" class="text-primary fw-semibold fs-11 ms-1 read-more-btn" onclick="$(this).hide().siblings(\'.remarks-full\').show().siblings(\'.remarks-short\').hide().siblings(\'.view-less-btn\').show();">Read more</a>'
+                        + '<a href="javascript:void(0);" class="text-primary fw-semibold fs-11 ms-1 view-less-btn" style="display:none;" onclick="$(this).hide().siblings(\'.remarks-short\').show().siblings(\'.remarks-full\').hide().siblings(\'.read-more-btn\').show();">View less</a>';
+                } else {
+                    remarksHtml = '<span class="remarks-text">' + remarks + '</span>';
+                }
+                bodyHtml = '<div class="fs-12 text-dark mb-1 text-break" style="white-space: pre-wrap; word-break: break-word;">' + remarksHtml + '</div>';
+            }
+
+            var extraDetailsHtml = '';
+            var refId = parseInt(ev.RefId || ev.refId || 0, 10);
+            var activityNameLower = (ev.ActivityName || '').toLowerCase();
+
+            if (refId === 3 || activityNameLower.indexOf('maintenance') >= 0 || activityNameLower.indexOf('breakdown') >= 0) {
+                // Maintenance extra details
+                var vType = ev.VehicleType || ev.vehicleType || '';
+                var vTypeLabel = vType === 'P' ? 'Puller' : (vType === 'T' ? 'Trailer' : vType);
+                var bdType = ev.VehicleBreakDownType || ev.vehicleBreakDownType || '';
+                var fromDt = ev.FromDate || ev.fromDate || '';
+                var replaceReq = ev.IsVehicleReplaceRequired || ev.isVehicleReplaceRequired;
+
+                extraDetailsHtml += '<div class="mt-2 d-flex flex-wrap gap-2 align-items-center">';
+                if (vTypeLabel) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-truck-line"></i> Breakdown: </span> <span class="fs-12 text-dark font-semibold">' + vTypeLabel + '</span></div>';
+                }
+                if (bdType) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-error-warning-line"></i> Breakdown Type: </span> <span class="fs-12 text-dark font-semibold">' + bdType + '</span></div>';
+                }
+                if (fromDt) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-calendar-event-line"></i> From: </span> <span class="fs-12 text-dark font-semibold">' + TripformatDate(fromDt) + '</span></div>';
+                }
+                if (replaceReq !== undefined && replaceReq !== null && replaceReq !== '') {
+                    var replaceLabel = (replaceReq === true || replaceReq === 'true' || replaceReq === 1 || replaceReq === '1') ? 'Yes' : 'No';
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-repeat-line"></i> Replacement Required: </span> <span class="fs-12 text-dark font-semibold">' + replaceLabel + '</span></div>';
+                }
+                extraDetailsHtml += '</div>';
+            } else if (refId === 5 || activityNameLower.indexOf('tyre') >= 0) {
+                // Tyre Not Available extra details
+                var assetVal = ev.VehicleBreakDownType || ev.vehicleBreakDownType || '';
+                var assetLabel = assetVal === 'P' ? 'Puller' : (assetVal === 'T' ? 'Trailer' : (assetVal === 'B' ? 'Both' : assetVal));
+                var noOfTyers = ev.NoOfTyers || ev.noOfTyers || 0;
+                var fromDt = ev.FromDate || ev.fromDate || '';
+
+                extraDetailsHtml += '<div class="mt-2 d-flex flex-wrap gap-2 align-items-center">';
+                if (assetLabel) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-truck-line"></i> Asset: </span> <span class="fs-12 text-dark font-semibold">' + assetLabel + '</span></div>';
+                }
+                if (noOfTyers) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-disc-line"></i> No Of Tyres: </span> <span class="fs-12 text-dark font-semibold">' + noOfTyers + '</span></div>';
+                }
+                if (fromDt) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-calendar-event-line"></i> From: </span> <span class="fs-12 text-dark font-semibold">' + TripformatDate(fromDt) + '</span></div>';
+                }
+                extraDetailsHtml += '</div>';
+            } else if (refId === 4 || activityNameLower.indexOf('lng') >= 0) {
+                // LNG Not Available extra details
+                var lngLocVal = ev.VehicleType || ev.vehicleType || '';
+                var lngLocLabel = lngLocVal === 'Pump' ? 'At Pump' : (lngLocVal === 'Road' ? 'On Road' : lngLocVal);
+                var pumpLoc = ev.Location || ev.location || '';
+                var fromDt = ev.FromDate || ev.fromDate || '';
+
+                extraDetailsHtml += '<div class="mt-2 d-flex flex-wrap gap-2 align-items-center">';
+                if (lngLocLabel) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-map-pin-line"></i> Location: </span> <span class="fs-12 text-dark font-semibold">' + lngLocLabel + '</span></div>';
+                }
+                if (pumpLoc) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-road-map-line"></i> Pump / Location: </span> <span class="fs-12 text-dark font-semibold">' + pumpLoc + '</span></div>';
+                }
+                if (fromDt) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-calendar-event-line"></i> From: </span> <span class="fs-12 text-dark font-semibold">' + TripformatDate(fromDt) + '</span></div>';
+                }
+                extraDetailsHtml += '</div>';
+            }
+
+            var attachmentHtml = '';
+            var attachment = ev.Attachment || ev.attachment;
+            if (attachment && attachment.trim() !== '') {
+                var fileUrl = DomainName + '/UploadedDocuments/VehicleEvent/' + attachment;
+                attachmentHtml = '<div class="mt-2"><a href="' + fileUrl + '" target="_blank" class="btn btn-soft-primary btn-sm py-1 px-2 fs-11"><i class="ri-attachment-line me-1"></i>View Attachment</a></div>';
+            }
+
+            html += '<div class="timeline-item">'
+                + '<div class="timeline-dot dot-' + color + '"></div>'
+                + '<div class="timeline-content timeline-card p-3 border-left-' + color + '">'
+                + '<div class="' + headerClass + '">'
+                + '<span class="fw-bold text-dark fs-13">' + (ev.ActivityName || '') + statusBadge + '</span>'
+                + '<div class="text-end" style="min-width: 140px;">'
+                + '<span class="fs-11 text-muted d-block">' + TripformatDate(ev.EntryDate || ev.CreatedDate) + '</span>'
+                + '<span class="fs-11 text-muted d-block">' + (ev.EntryBy || ev.CreatedBy || '') + '</span>'
+                + '</div>'
+                + '</div>'
+                + bodyHtml
+                + extraDetailsHtml
+                + attachmentHtml
+                + '</div></div>';
+        });
+
+        $('#recentIncidents').html(html);
+    }
+
+    function TripformatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+    }
+
+    function initVehicleEventsTab() {
+        var $form = $('#AddVehicleEvent');
+
+        // Destroy any existing unobtrusive validation instances
+        $form.removeData("validator");
+        $form.removeData("unobtrusiveValidation");
+
+        $form.validate({
+            errorElement: 'span',
+            errorClass: 'help-block-error',
+            ignore: ":hidden",
+            highlight: function (element) {
+                $(element).closest('.mb-3').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.mb-3').removeClass('has-error');
+            },
+            errorPlacement: function (error, element) {
+                if (element.parent(".input-group").length) {
+                    error.insertAfter(element.parent(".input-group"));
+                } else if (element.hasClass("select2-hidden-accessible")) {
+                    error.insertAfter(element.next(".select2-container"));
+                } else {
+                    error.insertAfter(element);
+                }
+            }
+        });
+
+        $('#AddVehicleEvent').on('change', '#UploadFile', function () {
+            var file = this.files[0];
+            if (file) {
+                validateImageFile(file, this);
+            }
+        });
+
+        // Initialize Vehicle Document Select2
+        $('#VehicleEvent_VehicleDocs').select2({
+            placeholder: "Select Vehicle Document",
+            allowClear: true,
+            width: '100%'
+        }).on('change', function () {
+            $(this).valid();
+        });
+
+        function toggleRemarksField() {
+            var eventId = parseInt($('#vevtEventId').val(), 10);
+            var status = $('#vevtStatus').val();
+            if (eventId >= 2 && eventId <= 5 && status === 'CLOSE') {
+                $('#vevtRemarksDiv').hide();
+                $('#VehicleEvent_Remarks').val('');
+                $('#vevtReasonCount').text('0');
+                $('#VehicleEvent_Remarks').closest('.mb-3').removeClass('has-error');
+                $('#vevtRemarksDiv').find('.help-block-error').remove();
+            } else {
+                $('#vevtRemarksDiv').show();
+            }
+        }
+
+        // Initialize Status Select2
+        $('#vevtStatus').select2({
+            placeholder: "Select Status",
+            allowClear: false,
+            width: '100%'
+        }).on('change', function () {
+            $(this).valid();
+            toggleRemarksField();
+        });
+
+        // Initialize Vehicle Type Select2
+        $('#vevtVehicleType').select2({
+            placeholder: "Select Breakdown Asset",
+            allowClear: true,
+            width: '100%'
+        }).on('change', function () {
+            $(this).valid();
+        });
+
+        // Initialize Breakdown Type Select2
+        $('#vevtBreakdownType').select2({
+            placeholder: "Select Breakdown Type",
+            allowClear: true,
+            width: '100%'
+        }).on('change', function () {
+            $(this).valid();
+        });
+
+        // Initialize Replacement Required Select2
+        $('#vevtIsReplaceRequired').select2({
+            placeholder: "Select Option",
+            allowClear: true,
+            width: '100%'
+        }).on('change', function () {
+            $(this).valid();
+        });
+
+        // Initialize Asset Select2
+        $('#vevtAssetType').select2({
+            placeholder: "Select Asset",
+            allowClear: true,
+            width: '100%'
+        }).on('change', function () {
+            $(this).valid();
+        });
+
+        // Initialize LNG Location Select2
+        $('#vevtLNGLocationType').select2({
+            placeholder: "Select LNG Location",
+            allowClear: true,
+            width: '100%'
+        }).on('change', function () {
+            $(this).valid();
+        });
+
+        // ── Incident button select ─────────────────────────
+        $(document).on('click', '.vevt-incident-btn', function () {
+            $('.vevt-incident-btn').removeClass('active');
+            $(this).addClass('active');
+            selectedIncident = $(this).data('code');
+
+            var eventId = parseInt($(this).data('id'), 10);
+            $('#vevtEventId').val(eventId);
+
+            // Reset form fields, char counter and validation errors when incident type changes
+            $('#VehicleEvent_Remarks').val('');
+            $('#vevtReasonCount').text('0');
+
+            // Hide custom fields and clear values
+            $('#maintenanceFieldsDiv').hide();
+            $('#tyreFieldsDiv').hide();
+            $('#lngFieldsDiv').hide();
+            $('#vevtVehicleDocsDiv').hide();
+            $('#attachmentFieldsDiv').hide();
+
+            $('#vevtVehicleType').val('').trigger('change');
+            $('#vevtBreakdownType').val('').trigger('change');
+            $('#vevtIsReplaceRequired').val('').trigger('change');
+            $('#vevtAssetType').val('').trigger('change');
+            $('#vevtNoOfTyers').val('');
+            $('#vevtLNGLocationType').val('').trigger('change');
+            $('#vevtLocationText').val('');
+            $('#VehicleEvent_VehicleDocs').val('').trigger('change');
+            $('#UploadFile').val('');
+
+            // Set current local time to datetime-local inputs
+            var tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            var localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
+            $('.vevt-from-date-input').val(localISOTime);
+
+            var validator = $form.validate();
+            validator.resetForm();
+            $form.find('.has-error').removeClass('has-error');
+            $form.find('.help-block-error').remove();
+
+            // Check if there is an existing OPEN event for this eventId in rawVehicleEventsData
+            var hasOpenEvent = false;
+            if (rawVehicleEventsData && rawVehicleEventsData.length > 0) {
+                hasOpenEvent = rawVehicleEventsData.some(function (ev) {
+                    var refIdVal = parseInt(ev.RefId || ev.refId || 0, 10);
+                    var statusVal = (ev.Status || ev.status || '').toUpperCase();
+                    return refIdVal === eventId && statusVal === 'OPEN';
+                });
+            }
+
+            var eventText = $(this).text().trim().toLowerCase();
+            if (!hasOpenEvent) {
+                if (eventId === 3 || eventText.indexOf('maintenance') >= 0 || eventText.indexOf('breakdown') >= 0) {
+                    $('#maintenanceFieldsDiv').show();
+                    $('#attachmentFieldsDiv').show();
+                } else if (eventId === 5 || eventText.indexOf('tyre') >= 0) {
+                    $('#tyreFieldsDiv').show();
+                    $('#attachmentFieldsDiv').show();
+                } else if (eventId === 4 || eventText.indexOf('lng') >= 0) {
+                    $('#lngFieldsDiv').show();
+                    $('#attachmentFieldsDiv').show();
+                } else if (eventText.indexOf('document') >= 0) {
+                    $('#vevtVehicleDocsDiv').show();
+                    $('#attachmentFieldsDiv').show();
+                    var vehicleId = $('#vevtVehicleId').val();
+                    var str = DomainName + '/Master/GetVehicleDocumentListForEventWithJson';
+                    FillDropDownfromOther('VehicleEvent_VehicleDocs', str, 'Vehicle Document');
+                }
+            }
+
+            if (eventId >= 2 && eventId <= 5) {
+                $('#vevtStatusDiv').show();
+                if (hasOpenEvent) {
+                    $('#vevtStatus').val('CLOSE').trigger('change');
+                } else {
+                    $('#vevtStatus').val('OPEN').trigger('change');
+                }
+            } else {
+                $('#vevtStatusDiv').hide();
+                $('#vevtStatus').val('OPEN').trigger('change');
+            }
+            toggleRemarksField();
+        });
+
+        // ── Reason char counter ────────────────────────────
+        $('#VehicleEvent_Remarks').on('input', function () {
+            $('#vevtReasonCount').text($(this).val().length);
+        });
+
+        // Initialize Filter Select2
+        // ── Filter Change ──────────────────────────────────
+        $('#vevtFilter').select2({
+            placeholder: "All Types",
+            allowClear: true,
+            width: '140px'
+        }).on('change', function () {
+            renderVehicleEvents(rawVehicleEventsData, $(this).val());
+        });
+
+        // Load recent events
+        loadRecentVehicleEvents();
+
+        // ── Submit ─────────────────────────────────────────
+        $('#btnDispatchIncident').on('click', function () {
+            if (!selectedIncident) { TosterNotification('warning', 'Please select an incident type', ''); return; }
+            if (!$form.valid()) {
+                TosterNotification('error', 'Please fill all required fields.', 'Validation Error');
+                return false;
+            }
+
+            // Clear hidden values first
+            $('#hiddenVehicleType').val('');
+            $('#hiddenVehicleBreakDownType').val('');
+            $('#hiddenFromDate').val('');
+            $('#hiddenIsVehicleReplaceRequired').val('false');
+            $('#hiddenLocation').val('');
+            $('#hiddenNoOfTyers').val(0);
+
+            // Copy active fields to hidden inputs
+            if ($('#maintenanceFieldsDiv').is(':visible')) {
+                $('#hiddenVehicleType').val($('#vevtVehicleType').val());
+                $('#hiddenVehicleBreakDownType').val($('#vevtBreakdownType').val());
+                $('#hiddenFromDate').val($('#vevtMaintFromDate').val());
+                
+                var replaceVal = $('#vevtIsReplaceRequired').val();
+                $('#hiddenIsVehicleReplaceRequired').val(replaceVal === 'true');
+            } else if ($('#tyreFieldsDiv').is(':visible')) {
+                $('#hiddenVehicleBreakDownType').val($('#vevtAssetType').val());
+                $('#hiddenFromDate').val($('#vevtTyreFromDate').val());
+                
+                var tyresVal = $('#vevtNoOfTyers').val();
+                $('#hiddenNoOfTyers').val(tyresVal ? parseInt(tyresVal, 10) : 0);
+            } else if ($('#lngFieldsDiv').is(':visible')) {
+                $('#hiddenVehicleType').val($('#vevtLNGLocationType').val());
+                $('#hiddenLocation').val($('#vevtLocationText').val());
+                $('#hiddenFromDate').val($('#vevtLNGFromDate').val());
+            } else if ($('#vevtVehicleDocsDiv').is(':visible')) {
+                $('#hiddenFromDate').val($('#vevtDocFromDate').val());
+            }
+
+            // If status dropdown is not visible, clear its value before serializing
+            if (!$('#vevtStatusDiv').is(':visible')) {
+                $('#vevtStatus').val('');
+            }
+
+            var formData = new FormData($form[0]);
+
+            $.ajax({
+                url: DomainName + '/Fleet/SaveVehicleEvent',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    if (res.Status) {
+                        TosterNotification('success', res.Message, 'Success');
+                        selectedIncident = '';
+                        $('.vevt-incident-btn').removeClass('active');
+                        $('#VehicleEvent_Remarks').val('');
+                        $('#vevtReasonCount').text('0');
+                        $('#vevtStatusDiv').hide();
+                        $('#vevtEventId').val('');
+                        $('#vevtStatus').val('OPEN').trigger('change');
+
+                        // Clear custom fields
+                        $('#maintenanceFieldsDiv').hide();
+                        $('#tyreFieldsDiv').hide();
+                        $('#lngFieldsDiv').hide();
+                        $('#vevtVehicleDocsDiv').hide();
+                        $('#attachmentFieldsDiv').hide();
+                        
+                        $('#vevtVehicleType').val('').trigger('change');
+                        $('#vevtBreakdownType').val('').trigger('change');
+                        $('#vevtIsReplaceRequired').val('').trigger('change');
+                        $('#vevtAssetType').val('').trigger('change');
+                        $('#vevtNoOfTyers').val('');
+                        $('#vevtLNGLocationType').val('').trigger('change');
+                        $('#vevtLocationText').val('');
+                        $('#VehicleEvent_VehicleDocs').val('').trigger('change');
+                        $('#UploadFile').val('');
+
+                        // Clear hidden values
+                        $('#hiddenVehicleType').val('');
+                        $('#hiddenVehicleBreakDownType').val('');
+                        $('#hiddenFromDate').val('');
+                        $('#hiddenIsVehicleReplaceRequired').val('false');
+                        $('#hiddenLocation').val('');
+                        $('#hiddenNoOfTyers').val(0);
+
+                        // Reset validation state
+                        var validator = $form.validate();
+                        validator.resetForm();
+                        $form.find('.has-error').removeClass('has-error');
+                        $form.find('.help-block-error').remove();
+
+                        // Reload recent incidents list
+                        loadRecentVehicleEvents();
+                    } else {
+                        TosterNotification('error', res.Message || 'Failed to dispatch report', 'Error');
+                        // Restore Status value if hidden
+                        if (!$('#vevtStatusDiv').is(':visible')) {
+                            $('#vevtStatus').val('OPEN').trigger('change');
+                        }
+                    }
+                },
+                error: function () {
+                    TosterNotification('error', 'Failed to dispatch report', 'Error');
+                    // Restore Status value if hidden
+                    if (!$('#vevtStatusDiv').is(':visible')) {
+                        $('#vevtStatus').val('OPEN').trigger('change');
+                    }
+                }
+            });
+        });
+    }
+</script>

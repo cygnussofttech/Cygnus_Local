@@ -1,0 +1,239 @@
+@model GreenLineDataService.ViewModel.CYGNUS_GRPMSTViewModel
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Customer Group Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Validation Styling - Matching Pincode/Location Pattern */
+    .required-label::after {
+        content: " *";
+        color: #f06548;
+        font-weight: bold;
+    }
+
+    .help-block, .text-danger, label.error, span.error, .field-validation-error {
+        color: #f06548 !important;
+        font-size: 11px !important;
+        margin-top: 4px !important;
+        display: block !important;
+        font-weight: 500 !important;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Customer Group Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Customer Group</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row" id="mainContainer" style="display:none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-0">
+            <div class="card-header border-bottom-dashed d-flex align-items-center py-3">
+                <h4 class="card-title mb-0 flex-grow-1">List of Customer Groups</h4>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <a class="@ViewBag.UI.Buttons.Excel.CssClass waves-effect waves-light controls" id="btnDownloadStateMasterReport" title="Export to Excel">
+                        <i class="@ViewBag.UI.Buttons.Excel.Icon align-middle"></i>
+                    </a>
+                    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass waves-effect waves-light" id="addEdit" title="Add New Group">
+                        <i class="@ViewBag.UI.Buttons.Add.Icon align-middle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="tblData" class="mt-0">
+                    @{
+                        Html.RenderPartial("_CustomerGroupList", Model.listWGM.OrderBy(c => c.GRPNM).ToList());
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        
+        var Formvalidate = function () {
+            var form = $('#form_sample');
+            form.validate({
+                doNotHideMessage: true,
+                errorElement: 'span',
+                errorClass: 'help-block',
+                focusInvalid: false,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                rules: {},
+                messages: {},
+                errorPlacement: function (error, element) {
+                    if (element.parent(".input-group").length > 0) {
+                        error.insertAfter(element.parent(".input-group"));
+                    } else if (element.hasClass("select2-hidden-accessible") || element.next(".select2-container").length > 0) {
+                        error.insertAfter(element.next(".select2-container"));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function (element) {
+                    $(element).closest('.form-group').addClass('has-error');
+                },
+                unhighlight: function (element) {
+                    $(element).closest('.form-group').removeClass('has-error');
+                },
+                success: function (label) {
+                    label.closest('.form-group').removeClass('has-error');
+                }
+            });
+        }
+
+        var getDetails = function (id, DomainName) {
+            var title = (id != "0") ? "Edit Customer Group" : "Add Customer Group";
+            
+            // 1. Prepare Common Modal
+            $("#glFormLoader").show();
+            $("#glFormContent").hide();
+            $('#glFormModalLabel').text(title);
+            
+            // 2. Fetch Partial View
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: DomainName + '/Master/CustomerGroupMasters?GroupCode=' + id,
+                type: 'GET',
+                success: function (data) {
+                    $("#glFormLoader").hide();
+                    $("#glFormContent").html(data).show();
+                    
+                    // Hide the headers/footers from the partial view to use common modal's ones
+                    $("#glFormContent .modal-header, #glFormContent .modal-footer").hide();
+                    $("#glFormContent .modal-body").removeClass('p-4').addClass('p-0'); // Remove padding if redundant
+
+                    // 3. Initialize Plugins
+                    Formvalidate();
+
+                    // 4. Bind Global Save Button
+                    $('#glFormSaveBtn').off('click').on('click', function() {
+                        saveData(DomainName);
+                    });
+
+                    // 5. Show Modal
+                    $('#glFormModal').modal('show');
+                    App.unblockUI();
+                },
+                error: function () {
+                    GLModal.showError("Error", "Failed to load form.");
+                    App.unblockUI();
+                }
+            });
+        }
+
+        var saveData = function(DomainName) {
+            var form = $('#glFormContent #form_sample');
+            if (!form.valid()) return;
+
+            App.blockUI({ target: '#glFormModal', boxed: true });
+            $.ajax({
+                url: DomainName + '/Master/AddEditCustomerGroup',
+                data: form.serialize(),
+                type: 'POST',
+                success: function (res) {
+                    App.unblockUI('#glFormModal');
+                    if (res) {
+                        $('#glFormModal').modal('hide');
+                        GLModal.showSuccess("Success", "Record updated successfully!");
+                        bindTable(DomainName);
+                    } else {
+                        GLModal.showError("Error", "Operation failed.");
+                    }
+                },
+                error: function () {
+                    App.unblockUI('#glFormModal');
+                    GLModal.showError("Error", "Save failed.");
+                }
+            });
+        }
+
+        var bindTable = function (DomainName) {
+            App.blockUI({ boxed: true });
+            $.ajax({
+                url: DomainName + '/Master/CustomerGroupMastersList',
+                type: 'GET',
+                success: function (data) {
+                    $("#tblData").html(data);
+                    
+                    GlDataTable.refresh('CustomerGroupList', {
+                        statusFilter: 2,
+                        columnDefs: [{ orderable: false, targets: [2, 3] }]
+                    });
+                    
+                    $('#mainContainer').show(500);
+                    App.unblockUI();
+                },
+                error: function () { 
+                    $('#mainContainer').show(500);
+                    App.unblockUI(); 
+                }
+            });
+        }
+
+        return {
+            init: function (DomainName) {
+                bindTable(DomainName);
+
+                // Add/Edit Actions
+                $("#addEdit").click(function () { getDetails("0", DomainName); });
+                $(document).on('click', ".btnMasterEdit", function () { 
+                    getDetails($(this).data('id'), DomainName); 
+                });
+
+                // Status Toggle
+                $(document).on("click", ".btnToggleStatus", function () {
+                    var checkbox = $(this);
+                    var id = checkbox.data("id");
+                    var name = checkbox.data("name");
+                    var isChecked = checkbox.is(':checked');
+                    var action = isChecked ? "Activate" : "Inactivate";
+                    var type = isChecked ? "success" : "info";
+
+                    checkbox.prop('checked', !isChecked);
+
+                    showConfirm({
+                        title: action + " Customer Group",
+                        message: 'Are you sure you want to <strong>' + action.toLowerCase() + '</strong> status for group <strong style="color:#405189">"' + name + '"</strong>?',
+                        type: type,
+                        confirmText: "Yes",
+                        cancelText: "No",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.post(DomainName + '/Master/ActiveInActive_Customergroup', { id: id }, function (res) {
+                                App.unblockUI();
+                                if (res) {
+                                    GLModal.showSuccess("Success", "Status updated successfully");
+                                    bindTable(DomainName);
+                                } else {
+                                    GLModal.showError("Error", "Failed to update status");
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $(document).on('click', '#btnDownloadStateMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "CustomerGroup_Master", "CustomerGroup_Master_List");
+                });
+            }
+        }
+    }();
+</script>
