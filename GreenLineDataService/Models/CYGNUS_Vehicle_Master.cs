@@ -65,6 +65,7 @@ namespace GreenLineDataService.Models
         public string VehiclePhoto { get; set; }
         public string TrackingId { get; set; }
         public string Location { get; set; }
+        public string VehicleQRCode { get; set; }
 
         public List<CYGNUS_Vehicle_Document_Type> DocumentList { get; set; }
     }
@@ -133,9 +134,12 @@ namespace GreenLineDataService.Models
         public bool Is_RequireFor_Own { get; set; }
         public bool Is_RequireFor_Market { get; set; }
         public bool Is_Active { get; set; }
-        public string DocPath { get; set; } // To store the uploaded file name
+        public string DocPath { get; set; }
         public string DocumentNo { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
+        public bool Is_Date { get; set; }
+        public bool Is_Insurance { get; set; }
+        public string InsuranceVendor { get; set; }
     }
 }

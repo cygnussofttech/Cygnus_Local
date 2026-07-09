@@ -95,6 +95,8 @@ namespace GreenLineDataService.Models
         public decimal totInvValue  { get; set; }
         public decimal totalValue { get; set; }
         public string EwayBillJson { get; set; }
+        public decimal TotalKm { get; set; }
+
         public string udf1 { get; set; }
         public string udf2 { get; set; }
         public string udf3 { get; set; }

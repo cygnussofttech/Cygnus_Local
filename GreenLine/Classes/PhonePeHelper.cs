@@ -242,6 +242,34 @@ namespace GreenLine.Classes
             }
         }
 
+        public static async Task<bool> CancelPayLinkAsync(string payLinkId)
+        {
+            if (string.IsNullOrEmpty(payLinkId))
+            {
+                return false;
+            }
+
+            string token = await GetTokenAsync();
+            string cancelUrl = $"{BaseUrl}/paylinks/v1/{payLinkId}/cancel";
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("Authorization", "O-Bearer " + token);
+
+                var content = new StringContent("", Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(cancelUrl, content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonConvert.DeserializeObject<PhonePeApiResponse<object>>(responseString);
+                    return apiResponse != null && apiResponse.success;
+                }
+                return false;
+            }
+        }
+
         private static string FormatPhoneNumber(string phone)
         {
             if (string.IsNullOrWhiteSpace(phone))

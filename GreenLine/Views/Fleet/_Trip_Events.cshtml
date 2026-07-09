@@ -77,7 +77,7 @@
 
 <div class="row g-3">
     <!-- Left: Event Checklist -->
-    <div class="col-md-5">
+    <div class="col-md-4">
         <div class="card">
             <div class="card-header border-bottom-dashed">
                 <h5 class="card-title mb-0 fs-13 text-muted fw-bold letter-spacing-1">Execution Checklist</h5>
@@ -91,7 +91,7 @@
     </div>
 
     <!-- Right: Event Action Form -->
-    <div class="col-md-7">
+    <div class="col-md-8">
         <!-- Placeholder Card -->
         <div class="card border-0 shadow-sm" id="eventActionFormPlaceholder">
             <div class="card-body p-5 text-center">
@@ -243,10 +243,15 @@
                     $('#rightNormalFormActions').show();
                     $('#rightDocketListContainer').hide();
                 } else if ((isRule === true || isRule === "true") && hasNextStage) {
-                    var isPOD = eventName.toUpperCase().indexOf("POD") >= 0;
-                    var isDO = eventName.toUpperCase().indexOf("DO") >= 0;
+                    var isDO = stageId === 6 || eventName.toUpperCase().indexOf("DO") >= 0;
+                    var isPOD = stageId === 11 || eventName.toUpperCase().indexOf("POD") >= 0;
 
-                    if (isPOD) {
+                    if (isDO) {
+                        // DO Received uses the global modal directly
+                        $('#eventActionFormContainer').hide();
+                        $('#eventActionFormPlaceholder').show();
+                        openCommonUploadModal(eventName, eventName, '');                        
+                    } else if (isPOD) {                        
                         // Show the Event Action Form card on the right
                         $('#eventActionFormPlaceholder').hide();
                         $('#eventActionFormContainer').show();
@@ -271,11 +276,6 @@
                                 openCommonUploadModal(title, eventName, docket);
                             });
                         });
-                    } else if (isDO) {
-                        // DO Received uses the global modal directly
-                        $('#eventActionFormContainer').hide();
-                        $('#eventActionFormPlaceholder').show();
-                        openCommonUploadModal(eventName, eventName, '');
                     } else {
                         $('#eventActionFormContainer').hide();
                         $('#eventActionFormPlaceholder').show();
@@ -342,16 +342,8 @@
                 formUpload.find('.help-block').remove();
             }
 
-            var isPODMode = false;
-            var isDOMode = false;
-            if (eventName) {
-                var nameUpper = eventName.toUpperCase();
-                if (nameUpper.indexOf("POD") >= 0) {
-                    isPODMode = true;
-                } else if (nameUpper.indexOf("DO") >= 0) {
-                    isDOMode = true;
-                }
-            }
+            var isDOMode = selectedEventId == 6 || (eventName && eventName.toUpperCase().indexOf("DO") >= 0);
+            var isPODMode = selectedEventId == 11 || (eventName && eventName.toUpperCase().indexOf("POD") >= 0);
 
             if (typeof setupUploadModalForm === 'function') {
                 setupUploadModalForm(isDOMode, isPODMode);
@@ -534,12 +526,16 @@
                     if (isSuccess) {
                         TosterNotification('success', 'Event recorded!', 'Success');
                         
-                        // Reset active forms/placeholders
-                        $('#eventActionFormContainer').hide();
-                        $('#eventActionFormPlaceholder').show();
-                        
-                        // Refresh checklist dynamically without page reload
-                        refreshChecklist();
+                        if (parseInt(eventId, 10) === 5) {
+                            window.location.reload();
+                        } else {
+                            // Reset active forms/placeholders
+                            $('#eventActionFormContainer').hide();
+                            $('#eventActionFormPlaceholder').show();
+                            
+                            // Refresh checklist dynamically without page reload
+                            refreshChecklist();
+                        }
                     } else {
                         TosterNotification('error', errMsg, 'Error');
                     }

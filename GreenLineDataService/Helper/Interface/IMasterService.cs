@@ -146,7 +146,7 @@ namespace GreenLineDataService.Helper.Interface
         #region Vehicle
         List<CYGNUS_Vehicle_Master> GetVehicleList(string VehicleNo, string BaseUserName, string Type);
         CYGNUS_Vehicle_Master GetVehicleById(string id);
-        bool AddEditVehicle(string XML, string EditFlag, string EntryBy, string CompanyCode);
+        DataTable AddEditVehicle(string XML, string EditFlag, string EntryBy, string CompanyCode);
         List<CYGNUS_location> Getlatitude(string loccode);
         bool ActiveInActive_Vehicle(string vehNo);
         string GetVehicleAPICache(string vehNo);
@@ -186,6 +186,8 @@ namespace GreenLineDataService.Helper.Interface
         #endregion
         #region VEHICLE TYPE WISE DOCUMENT
         List<Cygnus_Master_VehicleType_wise_Document> Get_VehicleType_wise_DocumentDetails(string id);
+        DataTable GetVehicleTypeWiseDocumentDetailsDataTable(string vehicleType);
+        bool SaveVehicleType_WiseDocument(string XML, string BaseUserName);
         #endregion
 
         #region Document Type Master for Vehicle

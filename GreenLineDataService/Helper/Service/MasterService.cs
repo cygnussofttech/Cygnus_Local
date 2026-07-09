@@ -862,20 +862,12 @@ namespace GreenLineDataService.Helper
             return VehicleData;
         }
 
-        public bool AddEditVehicle(string XML, string EditFlag, string EntryBy, string CompanyCode)
+        public DataTable AddEditVehicle(string XML, string EditFlag, string EntryBy, string CompanyCode)
         {
-            bool Status = false;
             QueryString = "EXEC usp_AddEdit_VehicleMaster_WithDoc '" + XML + "','" + EntryBy + "','" + CompanyCode + "'";
             GF.SaveRequestServices(QueryString.Replace("'", "''"), "AddEditVehicle", "", "");
-            DataSet DS = GF.GetDataSetFromSP(QueryString);
-            if (DS != null && DS.Tables.Count > 0 && DS.Tables[0].Rows.Count > 0)
-            {
-                if (DS.Tables[0].Rows[0]["STATUS"].ToString() == "1")
-                {
-                    Status = true;
-                }
-            }
-            return Status;
+            DataTable Dt = GF.GetDataTableFromSP(QueryString);
+            return Dt;
         }
 
         public List<CYGNUS_location> Getlatitude(string loccode)
@@ -923,7 +915,7 @@ namespace GreenLineDataService.Helper
 
         public List<CYGNUS_Vehicle_Document_Type> GetVehicleDocument(string VehicleId)
         {
-            QueryString = "SELECT DocTypeId as Document_Id, DocPath, FromDate, ToDate , cmg.CodeDesc as Document_Name from CYGNUS_Vehicle_Master_Document VMD WITH(NOLOCK) LEFT join CYGNUS_Master_General CMG WITH(NOLOCK) ON CMG.CodeId = VMD.DocTypeId and CodeType = 'VEHDOCTYP' where VMD.VehicleId = '" + VehicleId + "'";
+            QueryString = "SELECT DocTypeId as Document_Id, DocPath, FromDate, ToDate, VMD.InsuranceVendor, cmg.CodeDesc as Document_Name from CYGNUS_Vehicle_Master_Document VMD WITH(NOLOCK) LEFT join CYGNUS_Master_General CMG WITH(NOLOCK) ON CMG.CodeId = VMD.DocTypeId and CodeType = 'VEHDOCTYP' where VMD.VehicleId = '" + VehicleId + "'";
             DataTable Dt = GF.GetDataTableFromSP(QueryString);
             return DataRowToObject.CreateListFromTable<CYGNUS_Vehicle_Document_Type>(Dt);
         }
@@ -1131,7 +1123,7 @@ namespace GreenLineDataService.Helper
         }
         public bool ActiveInActive_Driver(int id, string baseusername)
         {
-            QueryString = "EXEC USP_ActiveInActive_Driver " + id + ", '" + baseusername + "'";
+            QueryString = "EXEC USP_ActiveInActive_Driver_Test " + id + ", '" + baseusername + "'";
             DataTable dataTable = GF.GetDataTableFromSP(QueryString);
             return Convert.ToBoolean(dataTable.Rows[0]["Status"]);
         }
@@ -1146,6 +1138,25 @@ namespace GreenLineDataService.Helper
             DataTable Dt = GF.GetDataTableFromSP(QueryString);
             List<Cygnus_Master_VehicleType_wise_Document> List = DataRowToObject.CreateListFromTable<Cygnus_Master_VehicleType_wise_Document>(Dt);
             return List;
+        }
+
+        public DataTable GetVehicleTypeWiseDocumentDetailsDataTable(string vehicleType)
+        {
+            QueryString = "EXEC USP_Get_VehicleType_wise_DocumentDetails '" + (vehicleType ?? "").Replace("'", "''") + "'";
+            DataTable Dt = GF.GetDataTableFromSP(QueryString);
+            return Dt;
+        }
+
+        public bool SaveVehicleType_WiseDocument(string XML, string BaseUserName)
+        {
+            QueryString = "EXEC USP_Save_VehicleType_wise_Document '" + XML + "','" + BaseUserName + "'";
+            GF.SaveRequestServices(QueryString.Replace("'", "''"), "SaveVehicleType_WiseDocument", "", "");
+            DataTable Dt = GF.GetDataTableFromSP(QueryString);
+            if (Dt != null && Dt.Rows.Count > 0)
+            {
+                return Dt.Rows[0]["Status"].ToString() == "1";
+            }
+            return false;
         }
 
         #endregion
@@ -1570,6 +1581,7 @@ namespace GreenLineDataService.Helper
             DataSet DS = GF.GetDataSetFromSP(QueryString);
             return DS.Tables[0];
         }
+
         public List<CYGNUS_VENDOR_DET> GetVendorDetObject()
         {
             QueryString = "EXEC Sp_GetVendorDetObject";
@@ -1585,7 +1597,6 @@ namespace GreenLineDataService.Helper
             List<Cygnus_Vendor_Document> VendorDocList = DataRowToObject.CreateListFromTable<Cygnus_Vendor_Document>(Dt);
             return VendorDocList;
         }
-
 
         public DataTable GetStateWiseGSTDetails(string flag, string Code)
         {

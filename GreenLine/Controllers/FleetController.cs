@@ -192,6 +192,7 @@ namespace GreenLine.Controllers
             ViewBag.VehicleTypeList = _MS.GetGeneralMasterWithParam("FTLTYP");
             //ViewBag.ListVehicle = _FS.GetUnallocatedVehicles();
             ViewBag.ListVehicle = _MS.GetVehicleList("",BaseUserName, "Vehicle_Allocation");
+            ViewBag.GoogleMapsApiKey = System.Configuration.ConfigurationManager.AppSettings["GoogleMapsApiKey"];
 
             ViewBag.AllocationTypeList = new List<SelectListItem>
             {
@@ -942,7 +943,7 @@ namespace GreenLine.Controllers
 
                 foreach (var link in links)
                 {
-                    if (link.Status == "CREATED")
+                    if (link.Status == "CREATED" || link.Status == "ACTIVE")
                     {
                         DateTime expiryDate;
                         if (DateTime.TryParse(link.ExpiryDate, out expiryDate))
@@ -955,7 +956,7 @@ namespace GreenLine.Controllers
                             else
                             {
                                 var details = await PhonePeHelper.GetPaymentStatusDetailsAsync(link.MerchantOrderId);
-                                if (details != null && !string.IsNullOrEmpty(details.status) && details.status != "CREATED")
+                                if (details != null && !string.IsNullOrEmpty(details.status) && details.status != link.Status)
                                 {
                                     string paymentTime = (details.status == "SUCCESS" || details.status == "PAID") ? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") : null;
                                     _FS.UpdatePaymentLinkStatus(link.MerchantOrderId, details.status, details.transactionId, details.phonePeTransactionId ?? details.paymentMode, paymentTime, BaseUserName);
@@ -983,6 +984,30 @@ namespace GreenLine.Controllers
                 if (string.IsNullOrEmpty(PRNo) || Amount <= 0)
                 {
                     return Json(new { Status = false, Message = "Invalid PR Number or Amount." });
+                }
+
+                // Retrieve and cancel any existing active payment links for this PR number
+                List<CYGNUS_Payment_Links> existingLinks = _FS.GetPaymentLinks(PRNo);
+                if (existingLinks != null)
+                {
+                    foreach (var link in existingLinks)
+                    {
+                        if (link.Status == "CREATED" || link.Status == "ACTIVE")
+                        {
+                            try
+                            {
+                                if (!string.IsNullOrEmpty(link.PaymentToken))
+                                {
+                                    await PhonePeHelper.CancelPayLinkAsync(link.PaymentToken);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // Fail silently to proceed with database update even if API cancel failed (e.g. if already expired or not found on PhonePe)
+                            }
+                            _FS.UpdatePaymentLinkStatus(link.MerchantOrderId, "CANCELLED", updatedBy: BaseUserName);
+                        }
+                    }
                 }
 
                 var existingLink = _FS.CheckActivePaymentLink(PRNo, Amount);
@@ -1477,123 +1502,6 @@ namespace GreenLine.Controllers
                 return Json(null, JsonRequestBehavior.AllowGet);
             }
         }
-        #endregion
-
-        #region Approve and Edit Consignor, Consignee, Lane 
-       
-        public ActionResult Consignor_Consignee_LaneList()
-        {
-            CCLMModel CLVM = new CCLMModel();
-            try
-            {
-                CLVM.listCCCLM = new List<Cygnus_Consignor_Consignee_Lane_Mapping>();
-                CLVM.listCCCLM = _FS.GetConsignor_Consignee_LaneList().ToList();
-                CLVM.CCCLM = new Cygnus_Consignor_Consignee_Lane_Mapping();
-            }
-            catch (Exception ex)
-            {
-                ViewBag.StrError = "Error " + ex.Message.ToString().Replace('\n', '_');
-                return View("Error");
-            }
-            return View(CLVM);
-        }
-
-        public ActionResult AddEditConsignorConsigneeLaneMapping(int id)
-        {
-            Cygnus_Consignor_Consignee_Lane_Mapping CL = new Cygnus_Consignor_Consignee_Lane_Mapping();
-            try
-            {
-                if (id > 0)
-                {
-                    CL = _FS.GetConsignorConsigneeById(id);
-                }
-                //ViewBag.StateList = _masterService.GetStateMaster().ToList();
-                //ViewBag.ZoneList = _masterService.GetGeneralMaster().Where(c => c.CodeType.ToUpper() == "ZONE" && c.StatusCode == "Y").ToList();
-            }
-            catch (Exception)
-            {
-                return RedirectToAction("Consignor_Consignee_LaneList");
-            }
-            return PartialView("_Consignor_Consignee_LaneModal", CL);
-        }
-        [HttpPost]
-        public JsonResult AddEditConsignorConsigneeLaneMapping(Cygnus_Consignor_Consignee_Lane_Mapping CCCLM)
-        {
-            bool Status = false;
-            string Message = "";
-            try
-            {
-                string Query = "EXEC USP_EditConsignorConsigneeLaneMapping '" + CCCLM.ConsignorCode + "','" + CCCLM.ConsigneeCode + "','" + CCCLM.LaneId + "','" + CCCLM.Id +"','" + BaseUserName + "'";
-                DataTable dt = GF.GetDataTableFromSP(Query);
-                if (dt.Rows.Count > 0 && dt.Rows[0][0].ToString() == "Done")
-                {
-                    Status = true;
-                }
-                else
-                {
-                    Message = dt.Rows[0][0].ToString();
-                }
-            }
-            catch (Exception ex)
-            {
-                Message = ex.Message;
-            }
-            return Json(new { Status = Status, Message = Message });
-        }
-        public JsonResult GetConsignorListJson(string searchTerm)
-        {
-            try
-            {
-                searchTerm = searchTerm ?? "";
-                var list = _MS.GetConsignnorCustomerListJson()
-                              .Where(c => string.IsNullOrEmpty(searchTerm) ||
-                                          (c.CUSTCD != null && c.CUSTCD.ToUpper().Contains(searchTerm.ToUpper())) ||
-                                          (c.CUSTNM != null && c.CUSTNM.ToUpper().Contains(searchTerm.ToUpper())))
-                              .Take(50)
-                              .Select(c => new { id = c.CUSTCD, text = c.CUSTNM + " (" + c.CUSTCD + ")" })
-                              .ToList();
-                return Json(list, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(new List<object>(), JsonRequestBehavior.AllowGet);
-            }
-        }
-
-        public JsonResult GetConsigneeListJson(string searchTerm)
-        {
-            try
-            {
-                searchTerm = searchTerm ?? "";
-                var list = _MS.GetConsigneeCustomerListJson()
-                              .Where(c => string.IsNullOrEmpty(searchTerm) ||
-                                          (c.CUSTCD != null && c.CUSTCD.ToUpper().Contains(searchTerm.ToUpper())) ||
-                                          (c.CUSTNM != null && c.CUSTNM.ToUpper().Contains(searchTerm.ToUpper())))
-                              .Take(50)
-                              .Select(c => new { id = c.CUSTCD, text = c.CUSTNM + " (" + c.CUSTCD + ")" })
-                              .ToList();
-                return Json(list, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(new List<object>(), JsonRequestBehavior.AllowGet);
-            }
-        }
-
-        [HttpGet]
-        public JsonResult ApproveConsignorConsigneeMapping(string ConsignorCode, string ConsigneeCode,int LaneId, int id)
-        {
-            bool status = false;
-            try
-            {
-                status = _FS.ApproveConsignorConsigneeMapping(ConsignorCode, ConsigneeCode, LaneId, id, BaseUserName);
-            }
-            catch (Exception)
-            {
-            }
-            return Json(status, JsonRequestBehavior.AllowGet);
-        }
-        
-        #endregion
+        #endregion       
     }
 }

@@ -155,13 +155,6 @@
 
                         <div class="col-lg-3 col-md-6">
                             <div class="form-group">
-                                <label class="form-label required-field">Location</label>
-                                @Html.TextBoxFor(m => m.VehicleHDR.Location, new { placeholder = "Select Location", @class = "form-control required" })
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3 col-md-6">
-                            <div class="form-group">
                                 <label class="form-label">Stepney Tyre</label>
                                 @Html.TextBoxFor(m => m.VehicleHDR.StepneyTyreCount, new { @class = "form-control", @placeholder = "0", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))", @MaxLength = "1" })
                             </div>
@@ -538,6 +531,7 @@
 }
 
 <script type="text/javascript">
+    var insuranceVendors = @Html.Raw(Json.Encode(ViewBag.InsuranceVendorList ?? new List<GreenLineDataService.Models.CYGNUS_VENDOR_HDR>()));
     var FormComponents = function () {
         var DomainName = '';
 
@@ -831,18 +825,21 @@
                                 
                                 var fileDisplay = doc.DocPath ? `<a href="${DomainName}/UploadedDocuments/VehicleUpload${doc.DocPath}" target="_blank" class="text-success small ms-2"><i class="ri-file-text-line"></i> View Saved</a>` : '';
 
-                                var html = `
-                                    <div class="col-lg-6">
-                                        <div class="row g-3 align-items-center">
-                                            <div class="col-lg-6 col-md-12">
-                                                <div class="form-group">
-                                                    <label class="form-label">${doc.Document_Name} ${fileDisplay}</label>
-                                                    <input type="file" name="doc_file_${doc.Document_Id}" class="form-control" accept="image/*,application/pdf" />
-                                                    <input type="hidden" name="VehicleHDR.DocumentList[${i}].Document_Id" value="${doc.Document_Id}" />
-                                                    <input type="hidden" name="VehicleHDR.DocumentList[${i}].DocPath" value="${doc.DocPath || ''}" />
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-6 col-md-12">
+                                var showDate = (doc.Is_Date == 1 || doc.Is_Date === true);
+                                var isInsurance = (doc.Is_Insurance == 1 || doc.Is_Insurance === true);
+
+                                var fileColClass = "col-lg-6 col-md-12";
+                                var dateColClass = "col-lg-6 col-md-12";
+                                var insuranceColClass = "col-lg-6 col-md-12";
+
+                                if (showDate && isInsurance) {
+                                    fileColClass = "col-lg-4 col-md-12";
+                                    dateColClass = "col-lg-4 col-md-12";
+                                    insuranceColClass = "col-lg-4 col-md-12";
+                                }
+
+                                var dateHtml = showDate ? `
+                                            <div class="${dateColClass}">
                                                 <div class="row g-2">
                                                     <div class="col-6">
                                                         <label class="form-label">Validity</label>
@@ -853,12 +850,54 @@
                                                         <input type="text" name="VehicleHDR.DocumentList[${i}].ToDate" class="form-control date-picker" placeholder="To" value="${toDateStr}" />
                                                     </div>
                                                 </div>
+                                            </div>` : `
+                                            <input type="hidden" name="VehicleHDR.DocumentList[${i}].FromDate" value="" />
+                                            <input type="hidden" name="VehicleHDR.DocumentList[${i}].ToDate" value="" />`;
+
+                                var optionsHtml = '<option value="">Select Insurance Vendor</option>';
+                                if (insuranceVendors && insuranceVendors.length > 0) {
+                                    $.each(insuranceVendors, function(idx, v) {
+                                        var code = v.VENDORCODE || v.VendorCode || v.vendorCode || v.Value || v.value || '';
+                                        var name = v.VENDORNAME || v.VendorName || v.vendorName || v.Text || v.text || '';
+                                        var selected = (code === doc.InsuranceVendor) ? 'selected="selected"' : '';
+                                        optionsHtml += `<option value="${code}" ${selected}>${name}</option>`;
+                                    });
+                                }
+
+                                var insuranceHtml = isInsurance ? `
+                                            <div class="${insuranceColClass}">
+                                                <div class="form-group">
+                                                    <label class="form-label">Insurance Vendor</label>
+                                                    <select name="VehicleHDR.DocumentList[${i}].InsuranceVendor" class="form-control select2-doc" placeholder="Select Insurance Vendor">
+                                                        ${optionsHtml}
+                                                    </select>
+                                                </div>
+                                            </div>` : `
+                                            <input type="hidden" name="VehicleHDR.DocumentList[${i}].InsuranceVendor" value="" />`;
+
+                                var html = `
+                                    <div class="col-lg-6">
+                                        <div class="row g-3 align-items-center">
+                                            <div class="${fileColClass}">
+                                                <div class="form-group">
+                                                    <label class="form-label">${doc.Document_Name} ${fileDisplay}</label>
+                                                    <input type="file" name="doc_file_${doc.Document_Id}" class="form-control" accept="image/*,application/pdf" />
+                                                    <input type="hidden" name="VehicleHDR.DocumentList[${i}].Document_Id" value="${doc.Document_Id}" />
+                                                    <input type="hidden" name="VehicleHDR.DocumentList[${i}].DocPath" value="${doc.DocPath || ''}" />
+                                                </div>
                                             </div>
+                                            ${dateHtml}
+                                            ${insuranceHtml}
                                         </div>
                                     </div>`;
                                 container.append(html);
                             });
-                            // Re-initialize datepickers for new elements
+                            // Re-initialize datepickers and select2-doc for new elements
+                            $('.select2-doc').select2({
+                                placeholder: "Select Insurance Vendor",
+                                allowClear: true,
+                                placeholderOption: 'first'
+                            });
                             $('.date-picker').datepicker({ format: "dd M yyyy", autoclose: true, todayBtn: true }).on('changeDate', function (e) {
                                 var el = $(this);
                                 if (el.is('input')) {

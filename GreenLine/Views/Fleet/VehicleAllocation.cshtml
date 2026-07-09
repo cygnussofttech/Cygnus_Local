@@ -18,15 +18,13 @@
 
 @using (Html.BeginForm("AddEditVehicleAllocation", "Fleet", FormMethod.Post, new { id = "form_VehicleAllocation", @class = "form-modern-ui", enctype = "multipart/form-data" }))
 {
-    @Html.HiddenFor(m => m.PRNo)
-    
+    @Html.HiddenFor(m => m.PRNo)    
     <div class="row">
         <!-- Request List (Master) -->
         <div class="col-lg-8">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0 flex-grow-1 allocation-title"><i class="ri-list-check align-middle me-1"></i> List of PickUp Request</h5>
-
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -212,7 +210,94 @@
     </div>
 }
 
+<script src="https://maps.googleapis.com/maps/api/js?v=3.64&key=@(ViewBag.GoogleMapsApiKey)&libraries=drawing,geometry,places"></script>
 <script type="text/javascript">
+    function resolveVehicleLocation(lat, lng) {
+        if (!lat || !lng || parseFloat(lat) === 0 || parseFloat(lng) === 0) {
+            return;
+        }
+
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            console.error("Google Maps API is not loaded.");
+            return;
+        }
+
+        var myLatLng = { lat: parseFloat(lat), lng: parseFloat(lng) };
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ 'location': myLatLng }, function (results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    var components = results[0].address_components;
+                    var locality = "";
+                    var adminArea = "";
+                    var country = "";
+
+                    // Extract locality
+                    for (var i = 0; i < components.length; i++) {
+                        var c = components[i];
+                        if (c.types.indexOf("locality") > -1) {
+                            locality = c.long_name;
+                            break;
+                        }
+                    }
+
+                    // Fallback to sublocality if locality not found
+                    if (!locality) {
+                        for (var i = 0; i < components.length; i++) {
+                            var c = components[i];
+                            if (c.types.indexOf("sublocality_level_1") > -1) {
+                                locality = c.long_name;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Fallback to administrative_area_level_2 (district) if still not found
+                    if (!locality) {
+                        for (var i = 0; i < components.length; i++) {
+                            var c = components[i];
+                            if (c.types.indexOf("administrative_area_level_2") > -1) {
+                                locality = c.long_name;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Extract State and Country
+                    for (var i = 0; i < components.length; i++) {
+                        var c = components[i];
+                        if (c.types.indexOf("administrative_area_level_1") > -1) {
+                            adminArea = c.long_name;
+                        } else if (c.types.indexOf("country") > -1) {
+                            country = c.long_name;
+                        }
+                    }
+
+                    var cleanAddress = "";
+                    if (locality) {
+                        cleanAddress += locality;
+                    }
+                    if (adminArea) {
+                        if (cleanAddress) cleanAddress += ", ";
+                        cleanAddress += adminArea;
+                    }
+                    if (country) {
+                        if (cleanAddress) cleanAddress += ", ";
+                        cleanAddress += country;
+                    }
+
+                    if (cleanAddress) {
+                        $("#infoLocation").text(cleanAddress);
+                    } else {
+                        $("#infoLocation").text(results[0].formatted_address);
+                    }
+                }
+            } else {
+                console.error('Geocoder failed due to: ' + status);
+            }
+        });
+    }
+
     var FormComponents = function () {
         var Formvalidate = function (DomainName) {
             var formElement = $('#form_VehicleAllocation');
@@ -221,7 +306,7 @@
                     rules: {
                         VehicleId: { required: true },
                         PlacementDate: { required: true },
-                        FirstDriver: { required: true }
+                        FirstDriverId: { required: true }
                     },
                     highlight: function (element) { $(element).closest('.form-group').addClass('has-error'); },
                     unhighlight: function (element) { $(element).closest('.form-group').removeClass('has-error'); }
@@ -308,11 +393,8 @@
 
         return {
             init: function (DomainName) {
-                if (DomainName.endsWith('/')) DomainName = DomainName.slice(0, -1);
-                
+                if (DomainName.endsWith('/')) DomainName = DomainName.slice(0, -1);                
                 Formvalidate(DomainName);
-
-
                 var tblId = 'WCM_Vehicle_AllocationList';
                 var tableElement = $('#' + tblId);
                 if (tableElement.length > 0 && typeof GlDataTable !== 'undefined') {
@@ -337,12 +419,13 @@
 
                 $("#VehicleId").on('change', function () {
                     var val = $(this).val();
-                    if (!val) {
-                        $("#vehicleInfoBox").hide();
-                        // Reset driver dropdowns
-                        $("#FirstDriverId, #SecondDriverId").val("").prop('disabled', false).trigger('change.select2');
-                        return;
-                    }
+                     if (!val) {
+                         $("#vehicleInfoBox").hide();
+                         
+                         // Reset driver dropdowns
+                         $("#FirstDriverId, #SecondDriverId").val("").prop('disabled', false).trigger('change.select2');
+                         return;
+                     }
 
                     App.blockUI({ boxed: true });
 
@@ -360,11 +443,12 @@
                                 var reason = (readiness && readiness[0] && readiness[0].FailureReason)
                                     ? readiness[0].FailureReason
                                     : "Vehicle is not ready for allocation. Please check Driver Mapping, Trailer, and Card assignment.";
-                                TosterNotification("warning", reason, "Vehicle Not Ready");
-                                $("#FirstDriverId, #SecondDriverId").val("").prop('disabled', false).trigger('change.select2');
-                                $("#vehicleInfoBox").hide();
-                                App.unblockUI();
-                                return;
+                                 TosterNotification("warning", reason, "Vehicle Not Ready");
+                                 $("#FirstDriverId, #SecondDriverId").val("").prop('disabled', false).trigger('change.select2');
+                                 $("#vehicleInfoBox").hide();
+                                 
+                                 App.unblockUI();
+                                 return;
                             }
 
                             // ── All 3 checks passed — proceed to bind drivers ────────────────
@@ -377,24 +461,23 @@
                                 dataType: "json",
                                 data: { Method: "USP_GetAvailableDriver", parameters: AvailableDriverParams },
                                 success: function (availableDrivers) {
-
                                     // Rebuild driver dropdown options from the available drivers list
-                                    var $firstDriver  = $("#FirstDriverId");
-                                    var $secondDriver = $("#SecondDriverId");
+                                    var firstDriver  = $("#FirstDriverId");
+                                    var secondDriver = $("#SecondDriverId");
 
-                                    $firstDriver.empty().append('<option value=""></option>');
-                                    $secondDriver.empty().append('<option value=""></option>');
+                                    firstDriver.empty().append('<option value=""></option>');
+                                    secondDriver.empty().append('<option value=""></option>');
 
                                     if (availableDrivers && availableDrivers.length > 0) {
                                         $.each(availableDrivers, function (i, drv) {
                                             var opt = $('<option></option>').val(drv.Driver_Id).text(drv.Driver_Name);
-                                            $firstDriver.append(opt.clone());
-                                            $secondDriver.append(opt.clone());
+                                            firstDriver.append(opt.clone());
+                                            secondDriver.append(opt.clone());
                                         });
                                     }
 
-                                    $firstDriver.prop('disabled', false).trigger('change.select2');
-                                    $secondDriver.prop('disabled', false).trigger('change.select2');
+                                    firstDriver.prop('disabled', false).trigger('change.select2');
+                                    secondDriver.prop('disabled', false).trigger('change.select2');
 
                                     // Step 2: Fetch vehicle info (existing assigned drivers + telemetry)
                                     var VehicleParams = { "VehicleId": val };
@@ -407,11 +490,17 @@
                                             if (data[0]) {
                                                 // Pre-select and lock already-assigned drivers
                                                 if (data[0].First_Driver) {
-                                                    $firstDriver.val(data[0].First_Driver).prop('disabled', true).trigger('change.select2');
+                                                    if (firstDriver.find("option[value='" + data[0].First_Driver + "']").length === 0) {
+                                                        firstDriver.append(new Option(data[0].First_DriverName || data[0].First_Driver, data[0].First_Driver));
+                                                    }
+                                                    firstDriver.val(data[0].First_Driver).prop('disabled', true).trigger('change.select2');
                                                 }
 
                                                 if (data[0].Second_Driver) {
-                                                    $secondDriver.val(data[0].Second_Driver).prop('disabled', true).trigger('change.select2');
+                                                    if (secondDriver.find("option[value='" + data[0].Second_Driver + "']").length === 0) {
+                                                        secondDriver.append(new Option(data[0].Second_DriverName || data[0].Second_Driver, data[0].Second_Driver));
+                                                    }
+                                                    secondDriver.val(data[0].Second_Driver).prop('disabled', true).trigger('change.select2');
                                                 }
 
                                                 $("#TrailerNo").val(data[0].TrailerNo); // Auto-populate Trailer No
@@ -421,6 +510,14 @@
                                                 $("#infoOdometer").text(data[0].Odometer ? data[0].Odometer + " KM" : "-");
                                                 $("#infoFuel").text(data[0].FuelStatus ? data[0].FuelStatus + " Litres" : "-");
                                                 $("#infoTrailer").text(data[0].TrailerNo || "-");
+
+                                                // Check for Latitude and Longitude to display Google Maps link and interactive map
+                                                var lat = data[0].latitude;
+                                                var lng = data[0].longitude;
+
+                                                if (lat && lng && parseFloat(lat) !== 0 && parseFloat(lng) !== 0) {
+                                                    resolveVehicleLocation(lat, lng);
+                                                }
 
                                                 $("#vehicleInfoBox").fadeIn();
                                             } else {
@@ -512,40 +609,38 @@
                                         confirmText: 'Continue',
                                         cancelText: 'Cancel',
                                         onConfirm: function () {
-
-                                               var Str = DomainName + '/Account/SetData';
-                                                var parameters = {};
-                                                parameters['vehicleId'] = vehicleId;
-                                                parameters['DriverId'] = driverId;
-                                                parameters['BaseUsername'] = '@ViewBag.BaseUserName';
-                                                $.ajax({
-                                                    url: Str,
-                                                    cache: false,
-                                                    type: 'POST',
-                                                    data: {
-                                                        Method: 'InsertUpdate_VehicleDriver_Mapping_For_Vehicle_Allocation',
-                                                        parameters: parameters
-                                                    },
-                                                    success: function (Data) {
-                                                        var parsedData = JSON.parse(Data);
-                                                        if (parsedData.length > 0) {
-                                                            if (parsedData[0].Status == "1") {
-                                                                $('#noCrewMsg').hide();
-                                                                $('#currentCrewList').append(card);
-                                                                $('.driver-row[data-id="' + id + '"]').hide();
-                                                            }
-                                                            else {
-                                                                TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
-                                                            }
-                                                            App.unblockUI();
+                                            var Str = DomainName + '/Account/SetData';
+                                            var parameters = {};
+                                            parameters['vehicleId'] = vehicleId;
+                                            parameters['DriverId'] = driverId;
+                                            parameters['BaseUsername'] = '@ViewBag.BaseUserName';
+                                            $.ajax({
+                                                url: Str,
+                                                cache: false,
+                                                type: 'POST',
+                                                data: {
+                                                    Method: 'InsertUpdate_VehicleDriver_Mapping_For_Vehicle_Allocation',
+                                                    parameters: parameters
+                                                },
+                                                success: function (Data) {
+                                                    var parsedData = JSON.parse(Data);
+                                                    if (parsedData.length > 0) {
+                                                         if (parsedData[0].Status == "1") {
+                                                            $('#noCrewMsg').hide();
+                                                            $('#currentCrewList').append(card);
+                                                            $('.driver-row[data-id="' + id + '"]').hide();
+                                                         }
+                                                        else {
+                                                            TosterNotification("error", "Error !! There was an error during process. Please check your internet connection or contact administrator.", "Error");
                                                         }
-                                                    },
-                                                    error: function (req, status, error) {
-                                                        TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
                                                         App.unblockUI();
                                                     }
-                                                });
-
+                                                },
+                                                error: function (req, status, error) {
+                                                    TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                                    App.unblockUI();
+                                                }
+                                            });
                                         },
                                         onCancel: function () {
                                             if (Currentid) {
@@ -555,43 +650,42 @@
                                     });
                                 }
                             }
-                             else
-                                 {
-                                       var Str = DomainName + '/Account/SetData';
-                                        var parameters = {};
-                                        parameters['vehicleId'] = vehicleId;
-                                        parameters['DriverId'] = driverId;
-                                        parameters['BaseUsername'] = '@ViewBag.BaseUserName';
-                                        $.ajax({
-                                            url: Str,
-                                            cache: false,
-                                            type: 'POST',
-                                            data: {
-                                                Method: 'InsertUpdate_VehicleDriver_Mapping_For_Vehicle_Allocation',
-                                                parameters: parameters
-                                            },
-                                            success: function (Data) {
-                                                var parsedData = JSON.parse(Data);
-                                                if (parsedData.length > 0) {
-                                                    if (parsedData[0].Status == "1") {
-                                                        $('#noCrewMsg').hide();
-                                                        $('#currentCrewList').append(card);
-                                                        $('.driver-row[data-id="' + id + '"]').hide();
-                                                    }
-                                                    else {
-                                                        TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
-                                                    }
-                                                    App.unblockUI();
-                                                }
-                                            },
-                                            error: function (req, status, error) {
-                                                TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
-                                                App.unblockUI();
+                            else
+                            {
+                                var Str = DomainName + '/Account/SetData';
+                                var parameters = {};
+                                parameters['vehicleId'] = vehicleId;
+                                parameters['DriverId'] = driverId;
+                                parameters['BaseUsername'] = '@ViewBag.BaseUserName';
+                                $.ajax({
+                                    url: Str,
+                                    cache: false,
+                                    type: 'POST',
+                                    data: {
+                                        Method: 'InsertUpdate_VehicleDriver_Mapping_For_Vehicle_Allocation',
+                                        parameters: parameters
+                                    },
+                                    success: function (Data) {
+                                        var parsedData = JSON.parse(Data);
+                                        if (parsedData.length > 0) {
+                                             if (parsedData[0].Status == "1") {
+                                                $('#noCrewMsg').hide();
+                                                $('#currentCrewList').append(card);
+                                                $('.driver-row[data-id="' + id + '"]').hide();
+                                             }
+                                            else {
+                                                TosterNotification("error", "Error !! There was an error during process. Please check your internet connection or contact administrator.", "Error");
                                             }
-                                        });
-
-                                     App.unblockUI();
-                                 }
+                                            App.unblockUI();
+                                        }
+                                    },
+                                    error: function (req, status, error) {
+                                        TosterNotification("error", "Error !! There was an error druing process. Please check your internet connection or contact administrator.", "Error");
+                                        App.unblockUI();
+                                    }
+                                });
+                                App.unblockUI();
+                            }
                             App.unblockUI();
                         },
                         error: function (req, status, error) {

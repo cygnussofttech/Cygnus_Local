@@ -300,22 +300,22 @@
 
         var hideShow = function (id) {
             $('.clsCodeDesc').attr('disabled', true);
-            $('.clsCodeDesc').removeClass('required2');
+            $('.clsCodeDesc').removeClass('required');
             $('#item_' + id + '_codefor').attr('disabled', true);
             $('#item_' + id + '_noofdigits').attr('disabled', true);
-            $('#item_' + id + '_codefor').removeClass('required2');
-            $('#item_' + id + '_noofdigits').removeClass('required2');
+            $('#item_' + id + '_codefor').removeClass('required');
+            $('#item_' + id + '_noofdigits').removeClass('required');
             $('.btnMasterEdit').show();
             $('.btnMasterSave').hide();
             if (id != '0000') {
                 $('#txt_' + id).attr('disabled', false);
-                $('#txt_' + id).addClass('required2');
+                $('#txt_' + id).addClass('required');
                 $('#txt_' + id).val($('#txt_' + id).val())
                 $('#txt_' + id).focus();
                 $('#item_' + id + '_codefor').attr('disabled', false);
                 $('#item_' + id + '_noofdigits').attr('disabled', false);
-                $('#item_' + id + '_codefor').addClass('required2');
-                $('#item_' + id + '_noofdigits').addClass('required2');
+                $('#item_' + id + '_codefor').addClass('required');
+                $('#item_' + id + '_noofdigits').addClass('required');
                 $('#btnEdit_' + id).hide();
                 $('#btnSave_' + id).show();
             }

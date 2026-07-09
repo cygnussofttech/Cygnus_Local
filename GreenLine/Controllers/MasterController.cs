@@ -1570,7 +1570,6 @@ namespace GreenLine.Controllers
             ApiResponse apiResponse = new ApiResponse();
             try
             {
-
                 string url = "https://commonapi.mastersindia.co/commonapis/gstinbypan?pan=" + pan;
 
                 string SQRY = "exec USP_GetMasterIndiaEInvoiceAPIToken '" + BaseCompanyCode + "','2'";
@@ -2445,6 +2444,14 @@ namespace GreenLine.Controllers
             return View();
         }
 
+        public ActionResult PrintVehicleQRCode(string vehicleId, string vehicleNo, string qrCode)
+        {
+            ViewBag.VehicleId = vehicleId;
+            ViewBag.VehicleNo = vehicleNo;
+            ViewBag.QRCode = qrCode;
+            return View();
+        }
+
         public JsonResult GetVehicleListJson()
         {
             List<CYGNUS_Vehicle_Master> ListVehicles = _masterService.GetVehicleList("", BaseUserName, "Vehicle_List");
@@ -2456,7 +2463,8 @@ namespace GreenLine.Controllers
                                         VehicleNo = e.VehicleNo,
                                         VehicleCode = e.VehicleCode == "P" ? "Puller" : (e.VehicleCode == "T" ? "Trailer" : (e.VehicleCode == "FT" ? "Full Truck" : e.VehicleCode)),
                                         IsRegistered = e.IsRegistered,
-                                        IsActive = e.IsActive
+                                        IsActive = e.IsActive,
+                                        VehicleQRCode = e.VehicleQRCode
                                     }).ToArray();
 
             return Json(ListVehiclesdata, JsonRequestBehavior.AllowGet);
@@ -2513,6 +2521,7 @@ namespace GreenLine.Controllers
                 ViewBag.ListVendor = new List<CYGNUS_VENDOR_HDR>();
                 ViewBag.ListVehicleModel = new List<CYGNUS_Vehicle_Model>();
                 ViewBag.ListLocations = new List<CYGNUS_location>();
+                ViewBag.InsuranceVendorList = _masterService.GetVendorObject().Where(m => m.Vendor_Type == "16").ToList();
 
                 if (Id != null && Id != "")
                 {
@@ -2638,9 +2647,21 @@ namespace GreenLine.Controllers
                 }
 
                 // 4. Save to Database (SP now handles both Vehicle and Documents via XML)
-                bool status = _masterService.AddEditVehicle(xmlString, VM.EditFlag, BaseUserName, BaseCompanyCode);
+                DataTable dt = _masterService.AddEditVehicle(xmlString, VM.EditFlag, BaseUserName, BaseCompanyCode);
+                bool status = false;
+                string message = "Failed to save vehicle details.";
 
-                return Json(new { Status = status, Message = status ? "Vehicle details saved successfully." : "Failed to save vehicle details." });
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    status = dt.Rows[0]["STATUS"].ToString() == "1";
+                    message = dt.Rows[0]["TranXaction"].ToString();
+                    if (status && message == "Done")
+                    {
+                        message = "Vehicle details saved successfully.";
+                    }
+                }
+
+                return Json(new { Status = status, Message = message });
             }
             catch (Exception ex)
             {
@@ -2665,6 +2686,7 @@ namespace GreenLine.Controllers
                             doc.DocPath = saved.DocPath;
                             doc.FromDate = saved.FromDate;
                             doc.ToDate = saved.ToDate;
+                            doc.InsuranceVendor = saved.InsuranceVendor;
                         }
                     }
                 }
@@ -2731,6 +2753,7 @@ namespace GreenLine.Controllers
             int count = _masterService.GetVehicleList("", BaseUserName, "CheckDuplicate_Veh").Where(m => (m.VehicleNo ?? "").Trim().ToUpper() == (Id ?? "").Trim().ToUpper()).Count();
             return Json(count);
         }
+
         public async Task<string> GetFirstTokenAsync()
         {
             var httpClient = new HttpClient();
@@ -2842,7 +2865,6 @@ namespace GreenLine.Controllers
         //    }
         //}
 
-
         //Fill Dropdown
         public JsonResult GetVehicleMasterDocumentListWithJson(string VehicleId)
         {
@@ -2869,8 +2891,6 @@ namespace GreenLine.Controllers
                                              }).ToArray();
             return Json(ListVehicleMasterDocument, JsonRequestBehavior.AllowGet);
         }
-
-
         #endregion
 
         public JsonResult GetAllUserJson(string searchTerm)
@@ -3178,7 +3198,7 @@ namespace GreenLine.Controllers
                 if (!string.IsNullOrEmpty(id))
                 {
                     var allDocs = _masterService.GetVehicleDocumentTypeById(0).ToList();
-                    DataTable dtExisting = GF.GetDataTableFromSP("EXEC USP_Get_VehicleType_wise_DocumentDetails '" + id.Replace("'", "''") + "'");
+                    DataTable dtExisting = _masterService.GetVehicleTypeWiseDocumentDetailsDataTable(id);
                     docList = allDocs.Select(d =>
                     {
                         DataRow existing = dtExisting.AsEnumerable()
@@ -3209,17 +3229,17 @@ namespace GreenLine.Controllers
         {
             try
             {
-                var allDocs = _masterService.GetGeneralMasterWithParam("VEHDOCTYP").ToList();
-                DataTable dtEx = GF.GetDataTableFromSP("EXEC USP_Get_VehicleType_wise_DocumentDetails '" + vehicleType.Replace("'", "''") + "'");
+                //var allDocs = _masterService.GetGeneralMasterWithParam("VEHDOCTYP").ToList();
+                var allDocs = _masterService.GetVehicleDocumentTypeById(0).ToList();
+                DataTable dtEx = _masterService.GetVehicleTypeWiseDocumentDetailsDataTable(vehicleType);
                 var docList = allDocs.Select(d =>
                 {
-                    DataRow existing = dtEx.AsEnumerable()
-                        .FirstOrDefault(r => r["Document_id"].ToString() == d.CodeId);
+                    DataRow existing = dtEx.AsEnumerable().FirstOrDefault(r => r["Document_id"].ToString() == d.Id.ToString());
                     return new
                     {
                         Id = existing != null ? Convert.ToInt32(existing["Id"]) : 0,
-                        Documnet_Id = d.CodeId,
-                        Document_Name = d.CodeDesc,
+                        Documnet_Id = d.Id.ToString(),
+                        Document_Name = d.Document_Name,
                         ShortName = existing != null ? existing["ShortName"].ToString() : "",
                         Is_RequireFor_Own = existing != null && Convert.ToInt32(existing["Is_RequireFor_Own"]) == 1,
                         Is_RequireFor_Market = existing != null && Convert.ToInt32(existing["Is_RequireFor_Market"]) == 1,
@@ -3241,23 +3261,15 @@ namespace GreenLine.Controllers
             string Message = "";
             try
             {
-                var xmlBuilder = new System.Text.StringBuilder("<Root>");
-                foreach (var item in docList)
+                if (docList != null)
                 {
-                    xmlBuilder.Append("<Item>");
-                    xmlBuilder.Append("<VehicleType>" + vehicleDocumentType + "</VehicleType>");
-                    xmlBuilder.Append("<Document_id>" + item.Documnet_Id + "</Document_id>");
-                    xmlBuilder.Append("<Document_Name>" + item.Document_Name + "</Document_Name>");
-                    xmlBuilder.Append("<ShortName>" + (item.ShortName ?? "") + "</ShortName>");
-                    xmlBuilder.Append("<Is_RequireFor_Own>" + (item.Is_RequireFor_Own ? "1" : "0") + "</Is_RequireFor_Own>");
-                    xmlBuilder.Append("<Is_RequireFor_Market>" + (item.Is_RequireFor_Market ? "1" : "0") + "</Is_RequireFor_Market>");
-                    xmlBuilder.Append("<Is_Active>" + (item.Is_Active ? "1" : "0") + "</Is_Active>");
-                    xmlBuilder.Append("</Item>");
+                    foreach (var item in docList)
+                    {
+                        item.Vehicle_DocumentType = vehicleDocumentType;
+                    }
                 }
-                xmlBuilder.Append("</Root>");
-                string spQuery = "EXEC USP_Save_VehicleType_wise_Document '" + xmlBuilder.ToString().Replace("'", "''") + "','" + BaseUserName + "'";
-                GF.GetDataTableFromSP(spQuery);
-                Status = true;
+                string XML = GF.GetXmlString(docList);
+                Status = _masterService.SaveVehicleType_WiseDocument(XML, BaseUserName);
             }
             catch (Exception ex)
             {
@@ -3266,6 +3278,7 @@ namespace GreenLine.Controllers
             return Json(new { Status = Status, Message = Message });
         }
         #endregion
+
         #region  vehicle Driver Mapping 
         public ActionResult VehicleDriverMappingList()
         {
@@ -3364,6 +3377,7 @@ namespace GreenLine.Controllers
         }
 
         #endregion
+
         #region  vehicle Trailer Mapping 
         public ActionResult VehicTrailerMapping()
         {
@@ -3435,7 +3449,6 @@ namespace GreenLine.Controllers
             return RedirectToAction("VehicTrailerMapping");
         }
         #endregion
-
 
         #region Fuel Station Master
         public ActionResult FuelStation()
@@ -3715,7 +3728,6 @@ namespace GreenLine.Controllers
                     {
                         ViewBag.AssignToList = new List<SelectListItem>();
                     }
-
                 }
                 else
                 {
@@ -4632,6 +4644,7 @@ namespace GreenLine.Controllers
         }
 
         #endregion
+
         #region Vendor Master
         public ActionResult VendorMaster(string Id)
         {
@@ -4660,6 +4673,7 @@ namespace GreenLine.Controllers
             }
             return View(VVM);
         }
+
         [HttpPost]
         public ActionResult VendorMasterSubmit(VendorViewModel VM, List<CygnusVendorGSTDetails> ListVendorGSTDetails, List<Cygnus_Vendor_Document> UploadDoc)
         {
@@ -4724,7 +4738,6 @@ namespace GreenLine.Controllers
                 xmlDocGST.Load(xmlStream);
             }
 
-
             DataTable DT = MS.InsertVendor(xmlDoc.InnerXml, xmlDoc1.InnerXml, xmlDocGST.InnerXml, xmlUploadDoc.InnerXml, VM.EditFlag, BaseUserName);
 
             bool Status = false;
@@ -4742,6 +4755,7 @@ namespace GreenLine.Controllers
             string ReturnStr = Status + "," + VendorCode;
             return RedirectToAction("VendorDone", new { VendorCode = VendorCode, VendorName = VendorName });
         }
+
         [HttpPost]
         public ActionResult UploadDoc(int Id)
         {
@@ -4749,6 +4763,7 @@ namespace GreenLine.Controllers
             CVD.Id = Id;
             return PartialView("_VendorDocumentDetails", CVD);
         }
+
         public JsonResult GetVendorListJson()
         {
             List<CYGNUS_VENDOR_HDR> GetVendorlist = MS.GetVendor();
@@ -4768,6 +4783,7 @@ namespace GreenLine.Controllers
         {
             return View();
         }
+
         public ActionResult VendorDone(string VendorCode, string VendorName)
         {
             ViewBag.VendorCode = VendorCode.ToUpper();

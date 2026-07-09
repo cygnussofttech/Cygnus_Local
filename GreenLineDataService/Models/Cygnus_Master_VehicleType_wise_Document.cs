@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.PeerToPeer.Collaboration;
@@ -23,6 +23,5 @@ namespace GreenLineDataService.Models
         public Nullable<DateTime> UpdateDate { get; set; }
         public string UpdateBy { get; set; }
         public int Document_Assign {  get; set; }
-
     }
 }

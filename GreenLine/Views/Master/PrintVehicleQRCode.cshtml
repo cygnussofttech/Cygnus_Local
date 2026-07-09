@@ -1,0 +1,87 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Print Vehicle QR Code</title>
+    <style>
+        body { 
+            font-family: "Segoe UI", Arial, sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+            background-color: #fff; 
+            color: #333; 
+        }
+        .print-card { 
+            border: 1px solid #e2e8f0; 
+            padding: 30px; 
+            display: inline-block; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+            background: #fff; 
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .logo-img { 
+            height: 45px; 
+            margin-bottom: 20px; 
+            display: block; 
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+        .qr-img { 
+            width: 220px; 
+            height: 220px; 
+            display: block; 
+            margin: 0 auto 20px auto; 
+            border: 1px solid #e2e8f0; 
+            padding: 10px; 
+            border-radius: 8px; 
+        }
+        .vehicle-info { 
+            font-size: 16px; 
+            font-weight: 700; 
+            color: #099885; 
+            background-color: #f0fbf8; 
+            border: 1px solid #d1f3e9; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            display: inline-block; 
+            margin-top: 10px; 
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        @@media print {
+            @@page {
+                margin: 0;
+            }
+            body {
+                margin: 1cm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-card">
+        <img class="logo-img" src="@Url.Content("~/assets/img/logos/logo-dark.png")" alt="GreenLine Logo" />
+        <div>
+            @if (!string.IsNullOrEmpty(ViewBag.QRCode))
+            {
+                var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + HttpUtility.UrlEncode(ViewBag.QRCode);
+                <img class="qr-img" src="@qrUrl" alt="QR Code" />
+            }
+        </div>
+        <div class="vehicle-info">@ViewBag.VehicleId | @ViewBag.VehicleNo</div>
+    </div>
+    <script>
+        window.onload = function() {
+            window.print();
+            setTimeout(function() {
+                window.close();
+            }, 500);
+        };
+    </script>
+</body>
+</html>

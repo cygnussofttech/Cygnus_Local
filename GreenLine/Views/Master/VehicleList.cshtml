@@ -55,6 +55,46 @@
     </div>
 </div>
 
+<!-- QR Code Viewer Modal -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header p-3 border-bottom">
+                <h5 class="modal-title d-flex align-items-center gap-2 text-primary" id="qrCodeModalLabel" style="color: #405189 !important;">
+                    <i class="ri-qr-code-fill text-success fs-18"></i> Vehicle QR Code
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <!-- QR Code Image Container -->
+                <div class="d-inline-block p-3 bg-white rounded-3 mb-3 border shadow-sm">
+                    <img id="qrCodeImg" src="" alt="QR Code" style="width: 220px; height: 220px; border-radius: 4px;" />
+                </div>
+                
+                <!-- Vehicle ID & Vehicle No in a common alert banner -->
+                <div class="d-block w-100 mx-auto mb-2" style="max-width: 320px;">
+                    <div class="alert alert-success d-flex align-items-center justify-content-center gap-2 py-2 px-3 mb-0" role="alert">
+                        <i class="ri-car-fill fs-18"></i>
+                        <span class="fs-15 fw-semibold">
+                            <span id="qrVehicleId"></span>
+                            <span class="text-muted mx-2">|</span>
+                            <span id="qrVehicleNo"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light p-3 d-flex justify-content-end gap-2 border-top">
+                <button type="button" class="@ViewBag.UI.Buttons.Cancel.CssClass" data-bs-dismiss="modal">
+                    <i class="@ViewBag.UI.Buttons.Cancel.Icon"></i>@ViewBag.UI.Buttons.Cancel.Label
+                </button>
+                <button type="button" class="btn btn-sm btn-label btn-success" id="btnPrintQR">
+                    <i class="ri-printer-line label-icon align-middle fs-16 me-2"></i> Print QR Code
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
 
     var UI = {
@@ -100,9 +140,15 @@
                             },
                             {
                                 targets: [5],
-                                render: function (data) {
+                                render: function (data, type, row) {
                                     var val = data ? data.toString().trim() : "";
-                                    return '<a href="' + DomainName + '/Master/AddEditVehicle/' + encodeURIComponent(val) + '" class="' + UI.editBtn + ' me-1"><i class="' + UI.editIcon + '"></i></a>';
+                                    var qrCode = row.VehicleQRCode ? row.VehicleQRCode.toString().trim() : "";
+                                    var vehicleNo = row.VehicleNo ? row.VehicleNo.toString().trim() : "";
+                                    
+                                    return '<div class="d-flex justify-content-center align-items-center gap-1">' +
+                                           '  <a href="' + DomainName + '/Master/AddEditVehicle/' + encodeURIComponent(val) + '" class="' + UI.editBtn + '"><i class="' + UI.editIcon + '"></i></a>' +
+                                           '  <button type="button" class="btn btn-light btn-sm btnShowQRCode" data-qrcode="' + qrCode + '" data-vehicleno="' + vehicleNo + '" data-vehicleid="' + val + '" title="View QR Code"><i class="ri-qr-code-line"></i></button>' +
+                                           '</div>';
                                 }
                             }
                         ],
@@ -162,6 +208,43 @@
                         });
                     }
                 });
+            });
+
+            // Show QR Code Modal
+            $(document).on("click", ".btnShowQRCode", function (e) {
+                e.preventDefault();
+                var qrCode = $(this).data("qrcode");
+                var vehicleNo = $(this).data("vehicleno");
+                var vehicleId = $(this).data("vehicleid");
+                
+                if (!qrCode) {
+                    TosterNotification("warning", "No QR Code generated for this vehicle.", "Warning");
+                    return;
+                }
+                
+                $("#qrVehicleId").text(vehicleId);
+                $("#qrVehicleNo").text(vehicleNo);
+                
+                // Store on print button
+                $("#btnPrintQR").data("vehicleid", vehicleId);
+                $("#btnPrintQR").data("vehicleno", vehicleNo);
+                $("#btnPrintQR").data("qrcode", qrCode);
+                
+                var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(qrCode);
+                $("#qrCodeImg").attr("src", qrUrl);
+                
+                var myModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+                myModal.show();
+            });
+
+            // Print QR Code via new dedicated print page
+            $(document).on("click", "#btnPrintQR", function () {
+                var vehicleId = $(this).data("vehicleid");
+                var vehicleNo = $(this).data("vehicleno");
+                var qrCode = $(this).data("qrcode");
+                
+                var printUrl = DomainName + '/Master/PrintVehicleQRCode?vehicleId=' + encodeURIComponent(vehicleId) + '&vehicleNo=' + encodeURIComponent(vehicleNo) + '&qrCode=' + encodeURIComponent(qrCode);
+                window.open(printUrl, '_blank', 'width=800,height=500');
             });
         }
 

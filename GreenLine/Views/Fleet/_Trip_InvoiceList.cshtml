@@ -1,6 +1,8 @@
 @model GreenLineDataService.ViewModel.CYGNUS_TripViewModel
 @{
     var trip = Model.CTM;
+    var isReachedDestination = Model.listStageActivities != null && 
+        Model.listStageActivities.Any(s => s.StageId == 10 && s.IsCompleted);
 }
 
 <!-- Header -->
@@ -9,9 +11,12 @@
         <div class="fs-11 text-muted text-uppercase fw-semibold letter-spacing-1 mb-1">Dispatch Legals</div>
         <h5 class="fw-bold text-dark mb-0 fs-17">Consignment Listing</h5>
     </div>
-    <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass btn-label" id="btnAddLREntry">
-        <i class="@ViewBag.UI.Buttons.Add.Icon label-icon"></i> @ViewBag.UI.Buttons.Add.Label LR Entry
-    </button>
+    @if (!isReachedDestination)
+    {
+        <button type="button" class="@ViewBag.UI.Buttons.Add.CssClass btn-label" id="btnAddLREntry">
+            <i class="@ViewBag.UI.Buttons.Add.Icon label-icon"></i> @ViewBag.UI.Buttons.Add.Label LR Entry
+        </button>
+    }
 </div>
 
 <!-- LR Upload form panel (hidden by default, shown on Add LR Entry click) -->

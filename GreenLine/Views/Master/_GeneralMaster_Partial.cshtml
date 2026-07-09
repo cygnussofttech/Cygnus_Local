@@ -61,7 +61,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label required-label">Main Zone</label>
-                        @Html.DropDownListFor(m => m.WMG.codefor, new SelectList(mainZoneList, "LocCode", "LocName", Model.WMG.codefor), Model.WMG.codefor, new { @class = "select2 form-control required2 required", placeholder = "Select Main Zone" })
+                        @Html.DropDownListFor(m => m.WMG.codefor, new SelectList(mainZoneList, "LocCode", "LocName", Model.WMG.codefor), Model.WMG.codefor, new { @class = "select2 form-control required", placeholder = "Select Main Zone" })
                         @Html.ValidationMessageFor(m => m.WMG.codefor)
                     </div>
                 </div>
@@ -78,7 +78,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label required-label">GST %</label>
-                        @Html.DropDownListFor(m => m.WMG.noofdigits, new SelectList(GenearlList, "CodeId", "CodeDesc", Model.WMG.noofdigits), Model.WMG.noofdigits.ToString(), new { @class = "select2 form-control required2 required", placeholder = "Select GST %" })
+                        @Html.DropDownListFor(m => m.WMG.noofdigits, new SelectList(GenearlList, "CodeId", "CodeDesc", Model.WMG.noofdigits), Model.WMG.noofdigits.ToString(), new { @class = "select2 form-control required", placeholder = "Select GST %" })
                         @Html.ValidationMessageFor(m => m.WMG.noofdigits)
                     </div>
                 </div>
@@ -99,7 +99,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label required-label">Select Module</label>
-                        @Html.TextBoxFor(m => m.WMG.codefor, new { placeholder = "Select Module", @class = "required required2 form-control text-uppercase " })
+                        @Html.TextBoxFor(m => m.WMG.codefor, new { placeholder = "Select Module", @class = "required form-control text-uppercase " })
                         @Html.ValidationMessageFor(m => m.WMG.codefor)
                     </div>
                 </div>

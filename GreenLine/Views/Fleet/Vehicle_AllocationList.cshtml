@@ -48,57 +48,39 @@
         <div class="card-body p-0">
             <table id="WCM_Vehicle_AllocationList" class="table table-hover table-striped align-middle table-nowrap mb-0" style="overflow-x: scroll">
                 <thead class="table-light">
-        <tr>
-            <th class="center">
-                ID
-            </th>
-            <th class="center">
-                Customer Group
-            </th>
-            <th class="center">
-                Customer Code
-            </th>
-            <th class="center">
-                Address
-            </th>
-            <th class="center no-cc">Action</th>
+                    <tr>
+                        <th class="center">ID</th>
+                        <th class="center">Customer Group</th>
+                        <th class="center">Customer Code</th>
+                        <th class="center">Address</th>
+                        <th class="center no-cc">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.listCPR)
+                    {
+                        string BtnId = "Edit_" + item.PRNo.ToString();
+                        string TrId = "TR" + item.PRNo.ToString();
 
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.listCPR)
-        {
-            string BtnId = "Edit_" + item.PRNo.ToString();
-            string TrId = "TR" + item.PRNo.ToString();
-
-            <tr id="@TrId">
-                    <td class="center text-uppercase fw-medium">
-                        @item.PRNo
-                    </td>
-                <td>
-                    @item.CustomerGroup
-                </td>
-                <td>
-                    @item.Customer
-                </td>
-                <td>
-                    @item.Address
-                </td>
-                <td class="center">
-                    <button class="@ViewBag.UI.Buttons.Edit.CssClass btnEdit" data-id="@item.PRNo">
-                        <i class="@ViewBag.UI.Buttons.Edit.Icon"></i>
-                    </button>
-                    <a href="javascript:void(0);" class="btn btn-info btn-sm waves-effect waves-light btnAddVehAllocation" data-id="@item.PRNo">
-                        <i class="ri-truck-line align-bottom me-1"></i> Vehicle Allocation
-                    </a>
-                </td>
-
-            </tr>
-        }
-        </tbody>
-    </table>
-</div>
-</div>
+                        <tr id="@TrId">
+                            <td class="center text-uppercase fw-medium">@item.PRNo</td>
+                            <td>@item.CustomerGroup</td>
+                            <td>@item.Customer</td>
+                            <td>@item.Address</td>
+                            <td class="center">
+                                <button class="@ViewBag.UI.Buttons.Edit.CssClass btnEdit" data-id="@item.PRNo">
+                                    <i class="@ViewBag.UI.Buttons.Edit.Icon"></i>
+                                </button>
+                                <a href="javascript:void(0);" class="btn btn-info btn-sm waves-effect waves-light btnAddVehAllocation" data-id="@item.PRNo">
+                                    <i class="ri-truck-line align-bottom me-1"></i> Vehicle Allocation
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 <div class="modal fade" id="PRModal" tabindex="-1" aria-labelledby="PRModalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -110,9 +92,7 @@
 
 <script type="text/javascript">
     var FormComponents = function (DomainName) {
-
          var Formvalidate = function (DomainName) {
-
             var form1 = $('#form_sample');
             var error1 = $('.alert-danger', form1);
             var success1 = $('.alert-success', form1);
@@ -123,13 +103,8 @@
                 errorClass: 'help-block', // default input error message class
                 // errorClass: 'validate-inline',
                 focusInvalid: false, // do not focus the last invalid input
-
-                rules: {
-            
-                },
-                messages: {
-             
-                },
+                rules: { },
+                messages: { },
                 errorPlacement: function (error, element) { // render error placement for each input type
                     //if (element.parents('.checkbox-list').size() > 0) {
                     //    error.appendTo(element.parents('.checkbox-list').attr("data-error-container"));
@@ -139,9 +114,7 @@
                 },
                 invalidHandler: function (event, validator) { //display error alert on form submit
                     for (var i = 0; i < validator.errorList.length; i++) {
-
                     }
-
                     //validator.errorMap is an object mapping input names -> error messages
                     for (var i in validator.errorMap) {
                     }
@@ -150,16 +123,13 @@
                     App.scrollTo(error1, -200);
                 },
                 highlight: function (element) { // hightlight error inputs
-                    $(element)
-                        .closest('.form-group').addClass('has-error'); // set error class to the control group
+                    $(element).closest('.form-group').addClass('has-error'); // set error class to the control group
                 },
                 unhighlight: function (element) { // revert the change done by hightlight
-                    $(element)
-                        .closest('.form-group').removeClass('has-error'); // set error class to the control group
+                    $(element).closest('.form-group').removeClass('has-error'); // set error class to the control group
                 },
                 success: function (label) {
-                    label
-                        .closest('.form-group').removeClass('has-error'); // set success class to the control group
+                    label.closest('.form-group').removeClass('has-error'); // set success class to the control group
                 },
                 submitHandler: function (form) {
                     success1.show();
@@ -206,6 +176,7 @@
                 }
             });
         };
+
         var CallSubmitClick = function (DomainName) {
             $("#glFormSaveBtn").click(function (e) {
                 if (e.handled !== true) {
@@ -275,6 +246,4 @@
             }
         }
     }();
-
-
 </script>

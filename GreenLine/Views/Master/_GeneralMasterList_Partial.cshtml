@@ -84,28 +84,28 @@
                     @if (Model.WMG.CodeType.ToUpper() == "ZONE")
                     {
                         <td>
-                            @Html.DropDownListFor(m => item.codefor, new SelectList(mainZoneList, "LocCode", "LocName"), "", new { @class = "select2 form-control form-control-sm required2 required", placeholder = "Select Main Zone" })
+                            @Html.DropDownListFor(m => item.codefor, new SelectList(mainZoneList, "LocCode", "LocName"), "", new { @class = "select2 form-control form-control-sm required", placeholder = "Select Main Zone" })
                         </td>
                     }
                     @if (Model.WMG.CodeType.ToUpper() == "HSNCAT")
                     {
                         <td>
-                            @Html.TextBox("item_" + item.CodeId + "_codefor", item.codefor, new { @class = "form-control form-control-sm required2 required clsCodeDesc", placeholder = "SAC Code", @disabled = "true" })
+                            @Html.TextBox("item_" + item.CodeId + "_codefor", item.codefor, new { @class = "form-control form-control-sm required clsCodeDesc", placeholder = "SAC Code", @disabled = "true" })
                         </td>
                         <td>
-                            @Html.DropDownList("item_" + item.CodeId + "_noofdigits", new SelectList(GenearlList, "CodeId", "CodeDesc", item.noofdigits.ToString()), "", new { @class = "select2 form-control form-control-sm required2 required clsCodeDesc", placeholder = "Select GST %", @disabled = "true" })
+                            @Html.DropDownList("item_" + item.CodeId + "_noofdigits", new SelectList(GenearlList, "CodeId", "CodeDesc", item.noofdigits.ToString()), "", new { @class = "select2 form-control form-control-sm required clsCodeDesc", placeholder = "Select GST %", @disabled = "true" })
                         </td>
                     }
                     @if (Model.WMG.CodeType.ToUpper() == "TRN")
                     {
                         <td>
-                            @Html.DropDownList("item_" + item.CodeId + "_codefor", new SelectList(GenearlList, "CodeId", "CodeDesc", item.codefor), "", new { @class = "select2 form-control form-control-sm required2 required clsCodeDesc", @disabled = "true" })
+                            @Html.DropDownList("item_" + item.CodeId + "_codefor", new SelectList(GenearlList, "CodeId", "CodeDesc", item.codefor), "", new { @class = "select2 form-control form-control-sm required clsCodeDesc", @disabled = "true" })
                         </td>
                     }
                     @if (Model.WMG.CodeType.ToUpper() == "VENDTY" || Model.WMG.CodeType.ToUpper() == "VEHSUBSTATUS" || Model.WMG.CodeType.ToUpper() == "VEHSUBSTATUS1")
                     {
                         <td>
-                            @Html.TextBox("item_" + item.CodeId + "_codefor", item.codefor, new { @class = "form-control form-control-sm required2 required clsCodeDesc", placeholder = "Select Module", @disabled = "true" })
+                            @Html.TextBox("item_" + item.CodeId + "_codefor", item.codefor, new { @class = "form-control form-control-sm required clsCodeDesc", placeholder = "Select Module", @disabled = "true" })
                         </td>
                     }
                     @if (Model.WMG.CodeType.ToUpper() == "VSL")
