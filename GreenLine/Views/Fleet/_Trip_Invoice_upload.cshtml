@@ -112,14 +112,14 @@
         <div class="col-lg-3 col-md-6">
             <div class="form-group">
                 <label class="form-label required-label">EWayBill Date</label>
-                @Html.TextBoxFor(m => m.eway_bill_date, new { @class = "form-control date-picker required", @placeholder = "Enter EWayBillDate" })
+				@Html.TextBoxFor(m => m.eway_bill_date, new { @class = "form-control invoice-custom-datepicker required", @placeholder = "Enter EWayBillDate" })
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6">
             <div class="form-group">
                 <label class="form-label required-label">EWayBill Validity</label>
-                @Html.TextBoxFor(m => m.eway_bill_validity, new { @class = "form-control date-picker required", @placeholder = "Enter EWayBillValidity" })
+                @Html.TextBoxFor(m => m.eway_bill_validity, new { @class = "form-control invoice-custom-datepicker required", @placeholder = "Enter EWayBillValidity" })
             </div>
         </div>
 
@@ -133,7 +133,7 @@
         <div class="col-lg-3 col-md-6">
             <div class="form-group">
                 <label class="form-label required-label">Invoice Date</label>
-                @Html.TextBoxFor(m => m.invoice_date, new { @class = "form-control date-picker required", @placeholder = "Enter InvoiceDate" })
+                @Html.TextBoxFor(m => m.invoice_date, new { @class = "form-control invoice-custom-datepicker required", @placeholder = "Enter InvoiceDate" })
             </div>
         </div>
 
@@ -297,6 +297,76 @@
     window.isScanned = window.isScanned !== undefined ? window.isScanned : false;
     window.isEwbDataFetched = window.isEwbDataFetched !== undefined ? window.isEwbDataFetched : false;
     window.lastProcessedEwayBill = window.lastProcessedEwayBill !== undefined ? window.lastProcessedEwayBill : '';
+	
+	function parseCustomDate(dateStr) {
+        if (!dateStr) return null;
+        dateStr = String(dateStr).trim();
+        if (dateStr === "NA" || dateStr === "na") return null;
+
+        var parts = dateStr.split(/[\s\-\/]+/);
+        if (parts.length >= 3) {
+            var day = parseInt(parts[0], 10);
+            var year = parseInt(parts[2], 10);
+            var monthStr = parts[1];
+            
+            var month = -1;
+            var months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            var monthIdx = months.indexOf(monthStr.toLowerCase());
+            if (monthIdx !== -1) {
+                month = monthIdx;
+            } else {
+                var mNum = parseInt(monthStr, 10);
+                if (!isNaN(mNum) && mNum >= 1 && mNum <= 12) {
+                    month = mNum - 1;
+                }
+            }
+
+            if (day > 1000) {
+                var temp = day;
+                day = year;
+                year = temp;
+            }
+
+            if (day > 0 && month >= 0 && year > 0) {
+                if (year < 100) year += 2000;
+                return new Date(year, month, day);
+            }
+        }
+
+        var d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+            return d;
+        }
+        return null;
+    }
+
+    function formatToDdmmyyyy(dateObj) {
+        if (!dateObj || isNaN(dateObj.getTime())) return '';
+        var day = dateObj.getDate();
+        if (day < 10) day = '0' + day;
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var month = months[dateObj.getMonth()];
+        var year = dateObj.getFullYear();
+        return day + ' ' + month + ' ' + year;
+    }
+
+    function convertAndFormatDate(dateStr) {
+        if (!dateStr) return '';
+        var parsed = parseCustomDate(dateStr);
+        if (parsed) {
+            return formatToDdmmyyyy(parsed);
+        }
+        return dateStr;
+    }
+
+    function setDateInputValue(selector, rawDate) {
+        var formatted = isValidDateValue(rawDate) ? convertAndFormatDate(rawDate) : "";
+        var el = $(selector);
+        el.val(formatted);
+        if (el.data('datepicker')) {
+            el.datepicker('update');
+        }
+    }
 
     function toggleClsHide() {
         var ewayBillVal = ($('#eway_bill_no').val() || '').trim().toLowerCase();
@@ -316,41 +386,28 @@
         window.isEwbDataFetched = (/^\d{12}$/.test(initialEwayBill));
         window.lastProcessedEwayBill = initialEwayBill;
 
-        function parseCustomDate(dateStr) {
-            if (!dateStr) return null;
-            dateStr = dateStr.trim();
-            if (dateStr === "NA" || dateStr === "na") return null;
-
-            var d = new Date(dateStr);
-            if (!isNaN(d.getTime())) {
-                return d;
-            }
-
-            var parts = dateStr.split(/[\s\-\/]+/);
-            if (parts.length >= 3) {
-                var day = parseInt(parts[0], 10);
-                var year = parseInt(parts[2], 10);
-                var monthStr = parts[1];
-                
-                var month = -1;
-                var months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-                var monthIdx = months.indexOf(monthStr.toLowerCase());
-                if (monthIdx !== -1) {
-                    month = monthIdx;
-                } else {
-                    var mNum = parseInt(monthStr, 10);
-                    if (!isNaN(mNum) && mNum >= 1 && mNum <= 12) {
-                        month = mNum - 1;
-                    }
-                }
-
-                if (day > 0 && month >= 0 && year > 0) {
-                    if (year < 100) year += 2000;
-                    return new Date(year, month, day);
+		// Convert any existing values to 'dd M yyyy' before initializing the datepicker
+        $('#eway_bill_date, #eway_bill_validity, #invoice_date').each(function () {
+            var val = $(this).val();
+            if (val && val.toLowerCase() !== 'na') {
+                var formatted = convertAndFormatDate(val);
+                if (formatted) {
+                    $(this).val(formatted);
                 }
             }
-            return null;
-        }
+        });
+
+        // Initialize datepickers separately for EWayBill and Invoice dates with no restrictions (all dates available)
+        $('#eway_bill_date, #eway_bill_validity, #invoice_date')
+            .off('.datepicker')
+            .removeData('datepicker')
+            .removeClass('hasDatepicker')
+            .datepicker({
+                format: "dd M yyyy",
+                autoclose: true,
+                todayBtn: true,
+                pickerPosition: "bottom-left"
+		});
 
         function checkEwayBillValidity(validityDateStr) {
             if (!validityDateStr || validityDateStr === "NA" || validityDateStr === "na") return true;
@@ -417,7 +474,7 @@
         // Clear default C# DateTime values (0001-01-01 or 1900) on load so inputs show clean placeholders
         // Clear 'NA' dates ONLY if the eway_bill_no is NOT 'na'
         var ewayBillVal = ($('#eway_bill_no').val() || '').trim().toLowerCase();
-        $('input.date-picker').each(function () {
+        $('input.invoice-custom-datepicker').each(function () {
             var val = $(this).val();
             if (val) {
                 if (val.indexOf('0001') > -1 || val.indexOf('1900') > -1) {
@@ -512,7 +569,7 @@
 
         // E-Way Bill auto-fetch is handled by input/change event listener above
 
-        function clearEWBData() {
+        function clearEWBData(clearInvoiceData = false) {
             $('#invoice_no').val('');
             $('#invoice_date').val('');
             $('#userGstin').val('');
@@ -535,14 +592,16 @@
             $('#noValidDays').val('');
             $('#EwayBillJson').val('');
 
-            //$('#eway_bill_no').val('');
-            //$('#eway_bill_validity').val('');
-            //$('#eway_bill_date').val('');
-
             window.isScanned = false;
             window.isEwbDataFetched = false;
             _ewbConsigneeData = {};
-            window.toggleClsHide();
+			
+            if (!clearInvoiceData) {
+                window.toggleClsHide();
+            }
+            else {
+                window.isScanned = true;
+            }
         }
         window.clearEWBData = clearEWBData;
 
@@ -569,7 +628,8 @@
                     success: function (res) {
                         App.unblockUI();
                         if (res.success) {
-                            var d = res.data;
+                            var d = res.data;							
+							clearEWBData(true);							
                             var isValid = fillMissingFieldsFromOCR(d);
                             if (isValid !== false) {
                                 ConsigneeValidation();
@@ -670,7 +730,8 @@
 
                 var Para = {
                     "PRNo": PRNo,
-                    "From_Lane_id": From_Lane_id
+                    "From_Lane_id": From_Lane_id,
+                    "To_Lane_id": To_Lane_id
                 }
                 $.ajax({
                     url: DomainName + '/Account/GetDataWithoutAlias',
@@ -1599,7 +1660,7 @@
 
         // Handle dates
         if (isFieldEmptyOrDefault($("#invoice_date").val())) {
-            $("#invoice_date").val(isValidDateValue(d.invoice_date) ? fmtEWBDate(d.invoice_date) : "");
+			setDateInputValue("#invoice_date", d.invoice_date);
         }
 
         var ewbNoVal = ($("#eway_bill_no").val() || "").trim().toLowerCase();
@@ -1608,28 +1669,28 @@
             $("#eway_bill_validity").val("NA");
         } else {
             if (isFieldEmptyOrDefault($("#eway_bill_date").val())) {
-                $("#eway_bill_date").val(isValidDateValue(d.eway_bill_date) ? fmtEWBDate(d.eway_bill_date) : "");
+                 setDateInputValue("#eway_bill_date", d.eway_bill_date);
             }
             if (isFieldEmptyOrDefault($("#eway_bill_validity").val())) {
-                $("#eway_bill_validity").val(isValidDateValue(d.eway_bill_validity) ? fmtEWBDate(d.eway_bill_validity) : "");
+                 setDateInputValue("#eway_bill_validity", d.eway_bill_validity);
             }
         }
 
         if (isFieldEmptyOrDefault($("#lr_date").val())) {
-            $("#lr_date").val(isValidDateValue(d.lr_date) ? fmtEWBDate(d.lr_date) : "");
+			setDateInputValue("#lr_date", d.lr_date);
         }
 
         if (isFieldEmptyOrDefault($("#delivery_date").val())) {
-            $("#delivery_date").val(isValidDateValue(d.delivery_date) ? fmtEWBDate(d.delivery_date) : "");
+            setDateInputValue("#delivery_date", d.delivery_date);
         }
         if (isFieldEmptyOrDefault($("#odn_date").val())) {
-            $("#odn_date").val(isValidDateValue(d.odn_date) ? fmtEWBDate(d.odn_date) : "");
+            setDateInputValue("#odn_date", d.odn_date);
         }
         if (isFieldEmptyOrDefault($("#obd_date").val())) {
-            $("#obd_date").val(isValidDateValue(d.obd_date) ? fmtEWBDate(d.obd_date) : "");
+            setDateInputValue("#obd_date", d.obd_date);
         }
         if (isFieldEmptyOrDefault($("#eta_date").val())) {
-            $("#eta_date").val(isValidDateValue(d.eta_date) ? fmtEWBDate(d.eta_date) : "");
+            setDateInputValue("#eta_date", d.eta_date);
         }
 
         if (isFieldEmptyOrDefault($("#odn_no").val())) $("#odn_no").val(d.odn_no || "");
@@ -1728,7 +1789,7 @@
 
         var validityDateStr = "";
         if (isValidDateValue(d.validUpto)) {
-            validityDateStr = fmtEWBDate(d.validUpto);
+			validityDateStr = convertAndFormatDate(d.validUpto);
         } else if (isFieldEmptyOrDefault($('#eway_bill_validity').val())) {
             validityDateStr = "";
         } else {
@@ -1743,17 +1804,17 @@
         if (d.ewbNo) $('#eway_bill_no').val(d.ewbNo);
 
         if (isValidDateValue(d.ewayBillDate)) {
-            $('#eway_bill_date').val(fmtEWBDate(d.ewayBillDate));
+            setDateInputValue('#eway_bill_date', d.ewayBillDate);
         } else if (isFieldEmptyOrDefault($('#eway_bill_date').val())) {
-            $('#eway_bill_date').val("");
+            setDateInputValue('#eway_bill_date', "");
         }
 
         if (d.docNo) $('#invoice_no').val(d.docNo);
 
         if (isValidDateValue(d.docDate)) {
-            $('#invoice_date').val(fmtEWBDate(d.docDate));
+            setDateInputValue('#invoice_date', d.docDate);
         } else if (isFieldEmptyOrDefault($('#invoice_date').val())) {
-            $('#invoice_date').val("");
+            setDateInputValue('#invoice_date', "");
         }
 
         if (d.userGstin) $('#userGstin').val(d.userGstin);
@@ -1784,9 +1845,9 @@
         if (d.fromStateCode) $('#consignor_State').val(d.fromStateCode);
 
         if (isValidDateValue(d.validUpto)) {
-            $('#eway_bill_validity').val(fmtEWBDate(d.validUpto));
+            setDateInputValue('#eway_bill_validity', d.validUpto);
         } else if (isFieldEmptyOrDefault($('#eway_bill_validity').val())) {
-            $('#eway_bill_validity').val("");
+            setDateInputValue('#eway_bill_validity', "");
         }
 
         // Fields not present in EWay Bill API (Dates like lr_date, delivery_date, odn_date, obd_date, eta_date)

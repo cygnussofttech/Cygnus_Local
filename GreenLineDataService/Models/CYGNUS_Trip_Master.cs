@@ -126,5 +126,7 @@ namespace GreenLineDataService.Models
         public int TimeLineCount { get; set; }
         public int VehicleEventCount { get; set; }
         public int DispatchLRCount { get; set; }
+        public int TotalExpenceCount { get; set; }
+        public string VehicleCode { get; set; }
     }
 }

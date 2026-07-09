@@ -82,7 +82,7 @@
     bool isActiveStep = !isDone && isPreviousCompleted && !isNextCompleted;
     bool isStepDisabled = isDone || !isPreviousCompleted || isNextCompleted;
     bool isVisualDisabled = !isDone && (!isPreviousCompleted || isNextCompleted);
-    
+
     <div class="event-step-item timeline-step-item d-flex align-items-start @(isDone ? "is-done" : "") @(isActiveStep ? "is-active" : "") @(isStepDisabled ? "disabled-step" : "") @(isVisualDisabled ? "is-disabled" : "")"
         data-event="@stage.StageName" data-stageid="@stage.StageId"
         data-stopid="@stage.StopId"
@@ -92,7 +92,7 @@
         data-prevname="@blockedByStageName"
         data-isprevcompleted="@(isPreviousCompleted ? "true" : "false")"
         data-isnextcompleted="@(isNextCompleted ? "true" : "false")">
-        
+
         <div class="timeline-icon">
             @if (isDone)
             {
@@ -104,11 +104,19 @@
             }
         </div>
 
-        <div class="timeline-content d-flex align-items-center text-truncate">
+        <div class="timeline-content d-flex justify-content-between align-items-center text-truncate">
             <div class="text-truncate">
                 <span class="fs-13 fw-semibold @(isDone ? "text-success" : "text-dark")">
                     @stage.StageName
                 </span>
+            </div>
+            <div class="text-display">
+                @if (isDone && (!string.IsNullOrEmpty(stage.EntryBy) || !string.IsNullOrEmpty(stage.EntryDate)))
+                {
+                    <span class="fs-11 text-muted ms-2 fw-normal">
+                        @stage.EntryBy | @stage.EntryDate
+                    </span>
+                }
             </div>
         </div>
     </div>

@@ -4,22 +4,30 @@
 @{
     var Event = Model.VehicleEvent;
 
+    var VehicleType = new List<SelectListItem>();
+    var VehicleBreakDownType = new List<SelectListItem>();
+    var VehicleCodeType = Model.CTM.VehicleCode;
+    if (VehicleCodeType.ToUpper() == "FT")
+    {
+        VehicleType.Add(new SelectListItem { Text = "Full Truck", Value = "FT", Selected = true });
+
+        VehicleBreakDownType.Add(new SelectListItem { Text = "Full Truck", Value = "FT", Selected = true });
+    }
+    else
+    {
+        VehicleType.Add(new SelectListItem { Text = "Pullar", Value = "P"});
+        VehicleType.Add(new SelectListItem { Text = "Trailer", Value = "T" });
+
+        VehicleBreakDownType.Add(new SelectListItem { Text = "Pullar", Value = "P"});
+        VehicleBreakDownType.Add(new SelectListItem { Text = "Trailer", Value = "T" });
+        VehicleBreakDownType.Add(new SelectListItem { Text = "Both", Value = "B" });
+    }
+
     GreenLineDataService.Helper.Interface.IMasterService _masterService = new GreenLineDataService.Helper.MasterService();
 
     var EventStatus = new List<SelectListItem> {
     new SelectListItem { Text = "Open", Value = "OPEN", Selected = true },
     new SelectListItem { Text = "Close", Value = "CLOSE" }
-};
-
-    var VehicleType = new List<SelectListItem> {
-    new SelectListItem { Text = "Pullar", Value = "P"},
-    new SelectListItem { Text = "Trailer", Value = "T" }
-};
-
-    var VehicleBreakDownType = new List<SelectListItem> {
-    new SelectListItem { Text = "Pullar", Value = "P"},
-    new SelectListItem { Text = "Trailer", Value = "T" },
-    new SelectListItem { Text = "Both", Value = "B" }
 };
 
 
@@ -370,6 +378,7 @@
             @Html.HiddenFor(c => c.VehicleEvent.IsVehicleReplaceRequired, new { id = "hiddenIsVehicleReplaceRequired" })
             @Html.HiddenFor(c => c.VehicleEvent.Location, new { id = "hiddenLocation" })
             @Html.HiddenFor(c => c.VehicleEvent.NoOfTyers, new { id = "hiddenNoOfTyers" })
+            @Html.HiddenFor(c => c.VehicleEvent.JobOrderType, new { id = "vevtHiddenJobOrderType" })
             <div class="vevt-form-card">
                 <div class="vevt-form-header">
                     <span class="d-flex align-items-center justify-content-center rounded" style="width:34px;height:34px;background:var(--vz-primary,#405189)">
@@ -422,6 +431,18 @@
                                             @foreach (var item in YesNoList)
                                             {
                                                 <option value="@item.Value">@item.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label required-field">Job Order Type</label>
+                                        <select id="vevtJobOrderType" class="form-control required select2" data-placeholder="Select Job Order Type">
+                                            <option value=""></option>
+                                            @foreach (var item in JobOrderType)
+                                            {
+                                                <option value="@item.CodeId">@item.CodeDesc</option>
                                             }
                                         </select>
                                     </div>
@@ -700,6 +721,10 @@
                 if (fromDt) {
                     extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-calendar-event-line"></i> From: </span> <span class="fs-12 text-dark font-semibold">' + TripformatDate(fromDt) + '</span></div>';
                 }
+                var jobOrder = ev.JobOrderType || ev.jobOrderType || '';
+                if (jobOrder) {
+                    extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-bookmark-3-line"></i> Job Order Type: </span> <span class="fs-12 text-dark font-semibold">' + jobOrder + '</span></div>';
+                }
                 if (replaceReq !== undefined && replaceReq !== null && replaceReq !== '') {
                     var replaceLabel = (replaceReq === true || replaceReq === 'true' || replaceReq === 1 || replaceReq === '1') ? 'Yes' : 'No';
                     extraDetailsHtml += '<div><span class="badge bg-soft-' + color + ' text-' + color + ' fs-11"><i class="ri-repeat-line"></i> Replacement Required: </span> <span class="fs-12 text-dark font-semibold">' + replaceLabel + '</span></div>';
@@ -869,6 +894,15 @@
             $(this).valid();
         });
 
+        // Initialize Job Order Type Select2
+        $('#vevtJobOrderType').select2({
+            placeholder: "Select Job Order Type",
+            allowClear: true,
+            width: '100%'
+        }).on('change', function () {
+            $(this).valid();
+        });
+
         // Initialize Replacement Required Select2
         $('#vevtIsReplaceRequired').select2({
             placeholder: "Select Option",
@@ -919,6 +953,7 @@
             $('#vevtVehicleType').val('').trigger('change');
             $('#vevtBreakdownType').val('').trigger('change');
             $('#vevtIsReplaceRequired').val('').trigger('change');
+            $('#vevtJobOrderType').val('').trigger('change');
             $('#vevtAssetType').val('').trigger('change');
             $('#vevtNoOfTyers').val('');
             $('#vevtLNGLocationType').val('').trigger('change');
@@ -1013,12 +1048,14 @@
             $('#hiddenIsVehicleReplaceRequired').val('false');
             $('#hiddenLocation').val('');
             $('#hiddenNoOfTyers').val(0);
+            $('#vevtHiddenJobOrderType').val('');
 
             // Copy active fields to hidden inputs
             if ($('#maintenanceFieldsDiv').is(':visible')) {
                 $('#hiddenVehicleType').val($('#vevtVehicleType').val());
                 $('#hiddenVehicleBreakDownType').val($('#vevtBreakdownType').val());
                 $('#hiddenFromDate').val($('#vevtMaintFromDate').val());
+                $('#vevtHiddenJobOrderType').val($('#vevtJobOrderType').val());
                 
                 var replaceVal = $('#vevtIsReplaceRequired').val();
                 $('#hiddenIsVehicleReplaceRequired').val(replaceVal === 'true');
@@ -1070,6 +1107,7 @@
                         $('#vevtVehicleType').val('').trigger('change');
                         $('#vevtBreakdownType').val('').trigger('change');
                         $('#vevtIsReplaceRequired').val('').trigger('change');
+                        $('#vevtJobOrderType').val('').trigger('change');
                         $('#vevtAssetType').val('').trigger('change');
                         $('#vevtNoOfTyers').val('');
                         $('#vevtLNGLocationType').val('').trigger('change');

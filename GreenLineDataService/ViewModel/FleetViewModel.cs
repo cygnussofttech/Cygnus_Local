@@ -86,6 +86,8 @@ namespace GreenLineDataService.ViewModel
         public string PreviousStageId { get; set; }
         public string NextStageId { get; set; }
         public bool IsRule { get; set; }
+        public string EntryBy { get; set; }
+        public string EntryDate { get; set; }
     }
 
     public class CYGNUS_TripNotes
@@ -144,11 +146,12 @@ namespace GreenLineDataService.ViewModel
     }
 
     #endregion
-    #region Consignor Consignee Lane Master
-    public class CCLMModel
-    {
-        public List<Cygnus_Consignor_Consignee_Lane_Mapping> listCCCLM { get; set; }
-        public Cygnus_Consignor_Consignee_Lane_Mapping CCCLM { get; set; }
-    }
-#endregion
+	
+	#region Consignor Consignee Lane Master
+	public class CCLMModel
+	{
+		public List<Cygnus_Consignor_Consignee_Lane_Mapping> listCCCLM { get; set; }
+		public Cygnus_Consignor_Consignee_Lane_Mapping CCCLM { get; set; }
+	}
+	#endregion
 }

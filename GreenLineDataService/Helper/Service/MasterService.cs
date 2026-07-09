@@ -200,7 +200,7 @@ namespace GreenLineDataService.Helper
             List<CYGNUS_Master_CodeTypes> CYGNUS_Master_CodeTypesList = DataRowToObject.CreateListFromTable<CYGNUS_Master_CodeTypes>(dataTable);
 
             return CYGNUS_Master_CodeTypesList;
-        }   
+        }
         public DataTable AddEditGeneralMaster(string XML, string flag, string Finyear)
         {
             QueryString = "EXEC Usp_InsertMstData_NewPortal '" + XML + "','" + flag + "','" + Finyear + "'";
@@ -1131,7 +1131,7 @@ namespace GreenLineDataService.Helper
         }
         public bool ActiveInActive_Driver(int id, string baseusername)
         {
-            QueryString = "EXEC USP_ActiveInActive_Driver_Test " + id + ", '" + baseusername + "'";
+            QueryString = "EXEC USP_ActiveInActive_Driver " + id + ", '" + baseusername + "'";
             DataTable dataTable = GF.GetDataTableFromSP(QueryString);
             return Convert.ToBoolean(dataTable.Rows[0]["Status"]);
         }
