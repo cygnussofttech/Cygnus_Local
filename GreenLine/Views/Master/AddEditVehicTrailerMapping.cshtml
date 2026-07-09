@@ -577,6 +577,12 @@
                 Events(DomainName);
                 initCardAssignEvents(DomainName);
 
+                if ($("#VehicleId").val() != "") {
+                    setTimeout(function() {
+                        $("#VehicleId").trigger('change');
+                    }, 1000);
+
+                }
                 // Auto-load if vehicle already selected (edit mode)
                 var existingVehicle = $('#VehicleId').val();
                 if (existingVehicle) {

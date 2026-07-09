@@ -1107,6 +1107,7 @@ namespace GreenLine.Controllers
                 MstDetails = MstDetails + "<MultiLocation>" + VM.WMU.MultiLocation + "</MultiLocation>";
                 MstDetails = MstDetails + "<DOJ_ORG>" + VM.WMU.DOJ_ORG + "</DOJ_ORG>";
                 MstDetails = MstDetails + "<emptype>" + VM.WMU.emptype + "</emptype>";
+                MstDetails = MstDetails + "<driver_id>" + VM.WMU.driver_id + "</driver_id>";
                 MstDetails = MstDetails + "<EmailId>" + VM.WMU.EmailId + "</EmailId>";
                 MstDetails = MstDetails + "<mobileno>" + VM.WMU.mobileno + "</mobileno>";
                 MstDetails = MstDetails + "<resi_addr>" + VM.WMU.resi_addr + "</resi_addr>";

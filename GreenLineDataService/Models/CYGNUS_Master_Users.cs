@@ -89,6 +89,8 @@ namespace GreenLineDataService.Models
         public string EmTypDes { get; set; }
         public string COMPANY_LIST { get; set; }
         public string DEFAULT_COMPANY { get; set; }
+
+        public decimal driver_id { get; set; }
     }
 
     public partial class CYGNUS_View_Track

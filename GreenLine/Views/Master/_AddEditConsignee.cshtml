@@ -9,7 +9,7 @@
         type = "Edit";
         btn = "Update";
     }
-    List<CYGNUS_LaneMaster> ListLane = _masterService.GetLaneDetails().ToList();
+    //List<CYGNUS_LaneMaster> ListLane = _masterService.GetLaneDetails().ToList();
     List<CYGNUS_pincode_master> pincodeList = _masterService.GetPincodeMaster().ToList();
     List<CYGNUX_Master_Countries> CountryList = _masterService.GetCountryMaster().ToList();
 
@@ -100,12 +100,12 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        @*<div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label required-label">Lane</label>
                                 @Html.DropDownListFor(c => c.Consignee_Lane, new SelectList(ListLane, "Lane_ID", "Lane_Name", Model.Consignee_Lane), "", new { @class = "form-control select2 required", @placeholder = "Select Consignee Lane" })
                             </div>
-                        </div>
+                        </div>*@
                     </div>
                 </div>
 

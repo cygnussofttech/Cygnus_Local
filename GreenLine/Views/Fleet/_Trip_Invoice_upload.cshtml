@@ -200,14 +200,14 @@
         <div class="col-lg-3 col-md-6">
             <div class="form-group">
                 <label class="form-label required-label">Gross Weight</label>
-                @Html.TextBoxFor(m => m.gross_weight, new { @class = "form-control required", @placeholder = "Enter GrossWeight", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+                @Html.TextBoxFor(m => m.gross_weight, new { @class = "form-control required", @placeholder = "Enter GrossWeight", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6">
             <div class="form-group">
                 <label class="form-label required-label">Net Weight</label>
-                @Html.TextBoxFor(m => m.net_weight, new { @class = "form-control required", @placeholder = "Enter NetWeight", @onkeypress = "javascript:return validDigits(event,this.getAttribute('id'))" })
+                @Html.TextBoxFor(m => m.net_weight, new { @class = "form-control required", @placeholder = "Enter NetWeight", @onkeypress = "javascript:return validFloat(event,this.getAttribute('id'))" })
             </div>
         </div>
 
@@ -293,11 +293,28 @@
 }
 
 <script>
+    // Global state variables for the Invoice upload tab to bypass closure restrictions
+    window.isScanned = window.isScanned !== undefined ? window.isScanned : false;
+    window.isEwbDataFetched = window.isEwbDataFetched !== undefined ? window.isEwbDataFetched : false;
+    window.lastProcessedEwayBill = window.lastProcessedEwayBill !== undefined ? window.lastProcessedEwayBill : '';
+
+    function toggleClsHide() {
+        var ewayBillVal = ($('#eway_bill_no').val() || '').trim().toLowerCase();
+        var isEwayBillValid = (/^\d{12}$/.test(ewayBillVal) && window.isEwbDataFetched);
+        var fileInput = document.getElementById('UploadFile');
+        var fileUploaded = fileInput && fileInput.files && fileInput.files.length > 0;
+        if (isEwayBillValid || (fileUploaded && window.isScanned)) {
+            $('.clshide').show();
+        } else {
+            $('.clshide').hide();
+        }
+    }
+    window.toggleClsHide = toggleClsHide;
+
     function initInvoiceUploadTab() {
-        var isScanned = false;
         var initialEwayBill = ($('#eway_bill_no').val() || '').trim().toLowerCase();
-        var isEwbDataFetched = (/^\d{12}$/.test(initialEwayBill));
-        var lastProcessedEwayBill = initialEwayBill;
+        window.isEwbDataFetched = (/^\d{12}$/.test(initialEwayBill));
+        window.lastProcessedEwayBill = initialEwayBill;
 
         function parseCustomDate(dateStr) {
             if (!dateStr) return null;
@@ -345,10 +362,10 @@
             if (validityDate) {
                 validityDate.setHours(0, 0, 0, 0);
                 if (validityDate < today) {
-                    clearEWBData();
+                    window.clearEWBData();
                     TosterNotification("error", "E-Way Bill has expired.", "Expired");
                     $("#eway_bill_no").val("");
-                    toggleClsHide();
+                    window.toggleClsHide();
                     return false;
                 }
             }
@@ -356,45 +373,34 @@
         }
         window.checkEwayBillValidity = checkEwayBillValidity;
 
-        function toggleClsHide() {
-            var ewayBillVal = ($('#eway_bill_no').val() || '').trim().toLowerCase();
-            var isEwayBillValid = (/^\d{12}$/.test(ewayBillVal) && isEwbDataFetched);
-            var fileInput = document.getElementById('UploadFile');
-            var fileUploaded = fileInput && fileInput.files && fileInput.files.length > 0;
-            if (isEwayBillValid || (fileUploaded && isScanned)) {
-                $('.clshide').show();
-            } else {
-                $('.clshide').hide();
-            }
-        }
         $(document).on('input change', '#eway_bill_no', function () {
             var ewayBillNo = ($(this).val() || '').trim();
             var ewayBillVal = ewayBillNo.toLowerCase();
 
-            if (ewayBillVal === lastProcessedEwayBill) {
+            if (ewayBillVal === window.lastProcessedEwayBill) {
                 return;
             }
-            lastProcessedEwayBill = ewayBillVal;
+            window.lastProcessedEwayBill = ewayBillVal;
 
             if (ewayBillVal === "na") {
                 $("#eway_bill_no").val(ewayBillNo).prop('disabled', true).addClass('bg-light');
                 $("#eway_bill_date").val('NA').prop('disabled', true).addClass('bg-light');
                 $("#eway_bill_validity").val('NA').prop('disabled', true).addClass('bg-light');
-                isEwbDataFetched = false;
-                clearEWBData();
+                window.isEwbDataFetched = false;
+                window.clearEWBData();
                 $(".clshide").hide();
             } else if (/^\d{12}$/.test(ewayBillVal)) {
-                isEwbDataFetched = false;
-                clearEWBData();
+                window.isEwbDataFetched = false;
+                window.clearEWBData();
                 fetchEWBData(ewayBillNo);
             } else {
-                isEwbDataFetched = false;
-                clearEWBData();
+                window.isEwbDataFetched = false;
+                window.clearEWBData();
             }
         });
         $('#lrEntryForm').on('change', '#UploadFile', function () {
-            isScanned = false;
-            toggleClsHide();
+            window.isScanned = false;
+            window.toggleClsHide();
             var file = this.files[0];
             if (file) {
                 validateImageFile(file, this);
@@ -406,7 +412,7 @@
                 checkEwayBillValidity(val);
             }
         });
-        setTimeout(toggleClsHide, 100);
+        setTimeout(window.toggleClsHide, 100);
 
         // Clear default C# DateTime values (0001-01-01 or 1900) on load so inputs show clean placeholders
         // Clear 'NA' dates ONLY if the eway_bill_no is NOT 'na'
@@ -448,6 +454,45 @@
                 $('#consignee_city').val($opt.attr('data-city') || "");
                 $('#consignee_pincode').val($opt.attr('data-pincode') || "");
                 $('#Consignee_Code').val($opt.attr('data-code') || "");
+
+                // NEW LOGIC: Rebind To_Lane_id based on selected Consignee
+                var consigneeCode = $opt.attr('data-code') || "";
+                //var prNo = $('#PRNo').val();
+                var contractId = $('#Contract_Id').val();
+                BindTo_Lane();
+                //$.ajax({
+                //    url: DomainName + '/Account/GetDataWithoutAlias',
+                //    type: 'POST',
+                //    dataType: 'json',
+                //    data: {
+                //        Method: 'USP_GetLaneForConsignee',
+                //        parameters: { 
+                //            PRNo: prNo,
+                //            Contract_Id: contractId,
+                //            Consignee_Code: consigneeCode
+                //        }
+                //    },
+                //    success: function (data) {
+                //        var Consignee_To_Lane = $('#To_Lane_id');
+                //        Consignee_To_Lane.empty();
+                        
+                //        var responseData = data.Table ? data.Table : data; 
+                //        if (responseData && responseData.length > 0) {
+                //            $.each(responseData, function (i, row) {
+                //                Consignee_To_Lane.append(new Option(row.Text, row.Value, false, false));
+                //            });
+                            
+                //            // Automatically select if there is only 1 lane returned
+                //            if (responseData.length === 1) {
+                //                Consignee_To_Lane.val(responseData[0].Value).trigger('change');
+                //            }
+                //        }
+                //    },
+                //    error: function (jqXHR, exception) {
+                //        console.error("Failed to fetch lane for consignee", exception);
+                //    }
+                //});
+
             } else {
                 $('#Consignee_GST').val("");
                 $('#Consignee_PANNo').val("");
@@ -455,6 +500,8 @@
                 $('#consignee_city').val("");
                 $('#consignee_pincode').val("");
                 $('#Consignee_Code').val("");
+                
+                $('#To_Lane_id').empty();
             }
         });
 
@@ -492,16 +539,17 @@
             //$('#eway_bill_validity').val('');
             //$('#eway_bill_date').val('');
 
-            isScanned = false;
-            isEwbDataFetched = false;
+            window.isScanned = false;
+            window.isEwbDataFetched = false;
             _ewbConsigneeData = {};
-            toggleClsHide();
+            window.toggleClsHide();
         }
+        window.clearEWBData = clearEWBData;
 
         $('#btnScanInvoice').on('click', function () {
             var fileInput = document.getElementById('UploadFile');
             if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                isScanned = true;
+                window.isScanned = true;
                 // Immediately show the form details container on Scan click
                 $('.clshide').show();
 
@@ -530,7 +578,7 @@
                         } else {
                             TosterNotification("error", res.message, "Error");
                         }
-                        toggleClsHide();
+                        window.toggleClsHide();
                     },
                     error: function () {
                         App.unblockUI();
@@ -622,8 +670,7 @@
 
                 var Para = {
                     "PRNo": PRNo,
-                    "From_Lane_id": From_Lane_id,
-                    "To_Lane_id": To_Lane_id
+                    "From_Lane_id": From_Lane_id
                 }
                 $.ajax({
                     url: DomainName + '/Account/GetDataWithoutAlias',
@@ -765,11 +812,19 @@
         // Pre-fill PR details
         setTimeout(function () {
             var prNo = $('#PRNo').val();
+            var Parameter = {
+                "PRNo": prNo,
+                "ConsigneeCode": $("#Consignee_Code").val(),
+                "ConsignorCode": $("#Customer_Code").val()
+            }
             if (!prNo) return;
             $.ajax({
                 url: DomainName + '/Account/GetDataWithoutAlias',
                 type: 'POST', dataType: 'json', async: false,
-                data: { Method: 'USP_GetPRDetailsonPR', parameters: { PRNo: prNo } },
+                data: {
+                    Method: 'USP_GetPRDetailsonPR',
+                    parameters:  Parameter 
+                },
                 success: function (data) {
                     //console.log(data);
                     if (data.Table && data.Table.length > 0) {
@@ -786,25 +841,26 @@
                         }
                         loadContractAdditionalFields(data.Table[0].Contract_Id);
                         loadContractStandardCharges(data.Table[0].Contract_Id);
+                        BindTo_Lane();
                     }
 
-                    if (data.Table1 && data.Table1.length > 0) {
-                        var To_Lane_id = $('#To_Lane_id');
-                        To_Lane_id.empty().append(new Option('', '', true, true));
-                        $.each(data.Table1, function (i, row) {
-                            To_Lane_id.append(new Option(row.Text, row.Value, false, false));
-                        });
-
-                        if (data.Table1.length === 1) {
-                            To_Lane_id.val(data.Table1[0].Value).trigger('change');
-                        } else {
-                            To_Lane_id.val('').trigger('change');
-                        }
-                     }
+                     //if (data.Table1 && data.Table1.length > 0) {
+                     //    var To_Lane_id = $('#To_Lane_id');
+                     //    To_Lane_id.empty().append(new Option('', '', true, true));
+                     //    $.each(data.Table1, function (i, row) {
+                     //        To_Lane_id.append(new Option(row.Text, row.Value, false, false));
+                     //    });
+                         
+                     //    if (data.Table1.length === 1) {
+                     //        To_Lane_id.val(data.Table1[0].Value).trigger('change');
+                     //    } else {
+                     //        To_Lane_id.val('').trigger('change');
+                     //    }
+                     // }
                 }
             });
         }, 500);
-
+        
         $('#lrEntryForm').on('change', '#LRUpload', function () {
             var file = this.files[0];
             if (file) {
@@ -815,6 +871,40 @@
             var file = this.files[0];
             if (file) {
                 validateImageFile(file, this);
+            }
+        });
+    }
+
+    function BindTo_Lane() {
+        var prNo = $('#PRNo').val();
+        var Parameter = {
+            "PRNo": prNo,
+            "ConsigneeCode": $("#Consignee_Code").val(),
+            "ConsignorCode": $("#Customer_Code").val()
+        }
+        if (!prNo) return;
+        $.ajax({
+            url: DomainName + '/Account/GetDataWithoutAlias',
+            type: 'POST', dataType: 'json', async: false,
+            data: {
+                Method: 'USP_GetPRDetailsonPR',
+                parameters: Parameter
+            },
+            success: function (data) {
+               
+                if (data.Table1 && data.Table1.length > 0) {
+                    var To_Lane_id = $('#To_Lane_id');
+                    To_Lane_id.empty().append(new Option('', '', true, true));
+                    $.each(data.Table1, function (i, row) {
+                        To_Lane_id.append(new Option(row.Text, row.Value, false, false));
+                    });
+
+                    if (data.Table1.length === 1) {
+                        To_Lane_id.val(data.Table1[0].Value).trigger('change');
+                    } else {
+                        To_Lane_id.val('').trigger('change');
+                    }
+                }
             }
         });
     }
@@ -1018,13 +1108,59 @@
                      "&address=" + encodeURIComponent(modalAddress) +
                      "&pincode=" + encodeURIComponent(modalPincode);
 
-            $('#glFormModal .modal-dialog').removeClass('modal-lg').addClass('modal-xl');
+            //$('#glFormModal .modal-dialog').removeClass('modal-lg').addClass('modal-xl');
 
             GLModal.showForm({
                 title: "Add Consignee (GST Not Registered)",
                 icon: "ri-truck-line",
                 url: DomainName + '/Master/ConsigneeMaster' + qs
             });
+            // ====== TESTING CODE to rebind To_Lane_id ======
+            var prNo = $('#PRNo').val();
+            var contractId = $('#Contract_Id').val();
+
+            //if (prNo) {
+            //    $.ajax({
+            //        url: DomainName + '/Account/GetDataWithoutAlias',
+            //        type: 'POST',
+            //        dataType: 'json',
+            //        data: {
+            //            // Replace with your new SP name later
+            //            Method: 'USP_GetLaneForConsignee',
+            //            parameters: {
+            //                PRNo: prNo,
+            //                Contract_Id: contractId
+            //            }
+            //        },
+            //        success: function (data) {
+            //            var Consignee_To_Lane = $('#To_Lane_id');
+
+            //            // Clear existing options and add default
+            //            Consignee_To_Lane.empty();
+
+            //            // The structure depends on how your SP returns data (e.g., data vs data.Table)
+            //            var responseData = data.Table ? data.Table : data;
+
+            //            if (responseData && responseData.length > 0) {
+            //                $.each(responseData, function (i, row) {
+            //                    // Assuming your SP returns columns named 'Text' and 'Value'
+            //                    // Modify row.Text and row.Value below if your SP column names are different
+            //                    Consignee_To_Lane.append(new Option(row.Text, row.Value, false, false));
+            //                });
+
+            //                // Optional: Auto-select if there is only 1 lane returned
+            //                if (responseData.length === 1) {
+            //                    Consignee_To_Lane.val(responseData[0].Value).trigger('change');
+            //                }
+            //            }
+            //        },
+            //        error: function (jqXHR, exception) {
+            //            console.error("Failed to rebind To Lane data", exception);
+            //        }
+            //    });
+            //}
+            // ===============================================
+
             // Disable modal close controls for this particular modal
             disableModalClose();
             // Pre-fill the consignee modal form once the partial view has loaded
@@ -1111,6 +1247,51 @@
                             icon: "ri-truck-line",
                             url: DomainName + '/Master/ConsigneeMaster' + qs
                         });
+                        var prNo = $('#PRNo').val();
+                        var contractId = $('#Contract_Id').val();
+
+                        //if (prNo) {
+                        //    $.ajax({
+                        //        url: DomainName + '/Account/GetDataWithoutAlias',
+                        //        type: 'POST',
+                        //        dataType: 'json',
+                        //        data: {
+                        //            // Replace with your new SP name later
+                        //            Method: 'USP_GetLaneForConsignee',
+                        //            parameters: {
+                        //                PRNo: prNo,
+                        //                Contract_Id: contractId
+                        //            }
+                        //        },
+                        //        success: function (data) {
+                        //            var Consignee_To_Lane = $('#To_Lane_id');
+
+                        //            // Clear existing options and add default
+                        //            Consignee_To_Lane.empty();
+
+                        //            // The structure depends on how your SP returns data (e.g., data vs data.Table)
+                        //            var responseData = data.Table ? data.Table : data;
+
+                        //            if (responseData && responseData.length > 0) {
+                        //                $.each(responseData, function (i, row) {
+                        //                    // Assuming your SP returns columns named 'Text' and 'Value'
+                        //                    // Modify row.Text and row.Value below if your SP column names are different
+                        //                    Consignee_To_Lane.append(new Option(row.Text, row.Value, false, false));
+                        //                });
+
+                        //                // Optional: Auto-select if there is only 1 lane returned
+                        //                if (responseData.length === 1) {
+                        //                    Consignee_To_Lane.val(responseData[0].Value).trigger('change');
+                        //                }
+                        //            }
+                        //            var To_Lane_id = $("#Consignee_Lane").val();
+                        //            $("#To_Lane_id").select2(data, { id: To_Lane_id, text: To_Lane_id })
+                        //        },
+                        //        error: function (jqXHR, exception) {
+                        //            console.error("Failed to rebind To Lane data", exception);
+                        //        }
+                        //    });
+                        //}
                         // Disable modal close controls for this particular modal
                         disableModalClose();
                         // Pre-fill the consignee modal form once the partial view has loaded
@@ -1456,8 +1637,8 @@
 
         var currentEwbVal = ($("#eway_bill_no").val() || '').trim().toLowerCase();
         if (/^\d{12}$/.test(currentEwbVal)) {
-            isEwbDataFetched = true;
-            lastProcessedEwayBill = currentEwbVal;
+            window.isEwbDataFetched = true;
+            window.lastProcessedEwayBill = currentEwbVal;
         }
     }
     function handleInvoiceToggle() {
@@ -1503,15 +1684,15 @@
 
                 if (isSuccess && ewbData) {
                     $('#EwayBillJson').val(JSON.stringify(ewbData));
-                    isEwbDataFetched = true;
+                    window.isEwbDataFetched = true;
                     var isValid = populateEWB(ewbData);
                     if (isValid !== false) {
                         ConsigneeValidation();
                         TosterNotification("success", "E-Way Bill Data Fetched!", "Success");
                     }
-                    toggleClsHide();
+                    window.toggleClsHide();
                 } else {
-                    isEwbDataFetched = false;
+                    window.isEwbDataFetched = false;
                     // Extract error details from whichever shape is available
                     if (!errorCode) {
                         errorCode = res.nic_code || (res.results ? res.results.nic_code : "") || (res.data && res.data.error ? res.data.error.error_cd : "");
@@ -1531,7 +1712,7 @@
             error: function () { 
                 App.unblockUI(); 
                 TosterNotification('error', 'Request failed', 'Error'); 
-                isEwbDataFetched = false;
+                window.isEwbDataFetched = false;
                 clearEWBData();
             }
         });

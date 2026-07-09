@@ -74,6 +74,13 @@ namespace GreenLineDataService.Helper.Interface
         List<CYGNUS_DO_POD_Upload> GetAllPODList();
         CYGNUS_DO_POD_Upload GetPODById(int Id);
         bool EditPODForVerify(int id, string userName);
-        #endregion 
+        #endregion
+        #region Approve and Edit Consignor, Consignee, Lane 
+        List<Cygnus_Consignor_Consignee_Lane_Mapping> GetConsignor_Consignee_LaneList();
+        Cygnus_Consignor_Consignee_Lane_Mapping GetConsignorConsigneeById(int Id);
+        DataTable SaveConsignorConsigneeMapping(string XML, string BaseUserName, string BaseCompanyCode);
+        bool ApproveConsignorConsigneeMapping(string ConsignorCode, string ConsigneeCode, int LaneId, int id, string BaseUserName);
+        DataTable GetDuplicteMapping();
+        #endregion
     }
 }

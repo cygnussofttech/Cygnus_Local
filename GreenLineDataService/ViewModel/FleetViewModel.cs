@@ -117,6 +117,10 @@ namespace GreenLineDataService.ViewModel
         public string Remarks { get; set; }
         public string EntryDate { get; set; }
         public string EntryBy { get; set; }
+        public decimal? Latitude { get; set; }     // legacy – kept for compatibility
+        public decimal? Longitude { get; set; }    // legacy – kept for compatibility
+        public decimal? Start_Latitude { get; set; }
+        public decimal? Start_Longitute { get; set; }  // matches SP column name (typo intentional)
     }
 
     public class CYGNUS_Vehicle_Event
@@ -140,4 +144,11 @@ namespace GreenLineDataService.ViewModel
     }
 
     #endregion
+    #region Consignor Consignee Lane Master
+    public class CCLMModel
+    {
+        public List<Cygnus_Consignor_Consignee_Lane_Mapping> listCCCLM { get; set; }
+        public Cygnus_Consignor_Consignee_Lane_Mapping CCCLM { get; set; }
+    }
+#endregion
 }

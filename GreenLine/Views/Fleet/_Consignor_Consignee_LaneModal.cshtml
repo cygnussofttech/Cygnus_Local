@@ -1,0 +1,49 @@
+@model GreenLineDataService.Models.Cygnus_Consignor_Consignee_Lane_Mapping
+@using GreenLineDataService.Models;
+@{
+    GreenLineDataService.Helper.Interface.IMasterService MS = new GreenLineDataService.Helper.MasterService();
+    //List<CYGNUS_State> Liststate = MS.GetStateMaster().Where(c => c.activeflag == "Y").ToList();
+    //List<CYGNUS_citymaster> cityList = MS.GetCityMaster().Where(c => (c.activeflag == null ? c.activeflag == null : c.activeflag == "Y")).OrderBy(c => c.Location).ToList();
+
+    //List<CYGNUS_Master_General> zoneList = MS.GetGeneralMasterWithParam("ZONE").ToList();
+    List<CYGNUS_LaneMaster> laneList = MS.GetLaneDetails().ToList();
+}
+
+@using (Html.BeginForm("AddEditConsignorConsigneeLaneMapping", "Fleet", FormMethod.Post, new { id = "form_sample", @class = "form-horizontal form-modern-ui", enctype = "multipart/form-data" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <div class="section-box mb-3">
+        <h5 class="text-uppercase fw-bold fs-13 mb-3 pb-2 border-bottom border-bottom-dashed text-primary">
+            <i class="ri-map-pin-2-line align-middle me-1"></i> Consignor Consignee Lane Information
+        </h5>
+        <div class="row g-3">
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Consignor </label>
+                    @Html.TextBoxFor(m => m.ConsignorCode, new { @class = "required form-control", @placeholder = "ConsignorCode" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Consignee </label>
+                    @Html.TextBoxFor(m => m.ConsigneeCode, new { @class = "required form-control", @placeholder = "ConsigneeCode" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label required-label">Zone </label>
+                    @Html.DropDownListFor(m => m.LaneId, new SelectList(laneList, "Lane_Id", "Lane_Name", Model.LaneId), "", new { @class = "select2 required form-control", @placeholder = "Select Lane" })
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+   
+</script>

@@ -1,0 +1,266 @@
+@model GreenLineDataService.ViewModel.CCLMModel
+@using GreenLineDataService.Models;
+@{
+    ViewBag.Title = "Lane Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Consignor consignee Lane Mapping Master</h4>
+
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0 shadow-none bg-transparent">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Master</a></li>
+                    <li class="breadcrumb-item active">Consignor consignee Lane Mapping Master</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom-dashed d-flex align-items-center">
+                <h4 class="card-title mb-0 flex-grow-1">List of Consignor consignee Lane Mapping</h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle table-nowrap mb-0" id="LaneList">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Consignor</th>
+                                <th class="text-center">Consignee</th>
+                                <th class="text-center">lane</th>
+                                <th class="text-center no-cc">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.listCCCLM)
+                            {
+                                <tr>
+                                    <td class="text-center">@item.Consignor</td>
+                                    <td class="text-center">@item.Consignee</td>
+                                    <td class="text-center">@item.Lane</td>
+                                    <td class="text-center">
+                                        <button class="@ViewBag.UI.Buttons.Edit.CssClass btnEditLane" data-id="@item.Id">
+                                            <i class="@ViewBag.UI.Buttons.Edit.Icon"></i>
+                                        </button>
+                                       <button type="button" class="btn btn-sm btn-soft-success btnApproveLane" data-id="@item.Id" 
+                                                data-ConsignorCode="@item.ConsignorCode" data-ConsigneeCode="@item.ConsigneeCode"  data-LaneId="@item.LaneId">
+                                            <i class="ri-checkbox-circle-line align-middle me-1"></i>Approve
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Structure -->
+<div class="modal fade" id="LaneModal" tabindex="-1" aria-labelledby="LaneModalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content border-0 shadow" id="LaneModalContent">
+            <!-- Content loaded via AJAX -->
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var FormComponents = function (DomainName) {
+        var Formvalidate = function (DomainName) {
+            var form1 = $('#form_sample');
+            form1.validate({
+                errorElement: 'span',
+                errorClass: 'help-block text-danger small',
+                focusInvalid: true,
+                ignore: ":hidden:not(.select2-hidden-accessible)",
+                highlight: function (element) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass('is-invalid');
+                },
+                errorPlacement: function (error, element) {
+                    var errorId = (element.attr('id') || element.attr('name')) + "-error";
+                    var existingError = $('#' + errorId);
+
+                    if (existingError.length) {
+                        existingError.html(error.html());
+                        existingError.show();
+                    } else {
+                        error.attr("id", errorId);
+                        error.addClass('invalid-feedback text-danger');
+                        if (element.hasClass('select2-hidden-accessible')) {
+                            var container = element.next('.select2-container');
+                            error.insertAfter(container.length > 0 ? container : element);
+                        } else {
+                            error.insertAfter(element);
+                        }
+                        error.show();
+                    }
+                }
+            });
+        }
+
+        var GetLaneDetails = function (id, DomainName) {
+            GLModal.showForm({
+                title: "Edit Consignor consignee Lane",
+                icon: 'ri-edit-box-line',
+                url: DomainName + '/Fleet/AddEditConsignorConsigneeLaneMapping?id=' + id,
+                onLoaded: function () {
+                    $("#LaneId").select2({
+                        placeholder: "Select an option",
+                        allowClear: true,
+                        dropdownParent: $('#glFormModal')
+                    });
+                },
+                onSave: function () {
+                    if (!$('#form_sample').valid()) return false;
+                    return $.ajax({
+                        url: DomainName + '/Fleet/Consignor_Consignee_LaneList',
+                        data: $("#form_sample").serialize(),
+                        type: 'GET',
+                        success: function (data) {
+                            if (data) {
+                                //TosterNotification("success", "Record has been updated successfully..!", "Success");
+                            } else {
+                                TosterNotification("error", 'Operation fail..!! There is some issue please try again.', "Oops..!!");
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        var handleSave = function (DomainName) {
+            $("#glFormSaveBtn").off('click').on('click', function () {
+                if (!$('#form_sample').valid()) return;
+
+                App.blockUI({ boxed: true });
+                var LaneObj = {
+                    ConsignorCode: $("#ConsignorCode").val(),
+                    ConsigneeCode: $("#ConsigneeCode").val(),
+                    LaneId: $("#LaneId").val()
+                };
+
+                $.ajax({
+                    url: DomainName + '/Fleet/AddEditConsignorConsigneeLaneMapping',
+                    type: 'POST',
+                    data: JSON.stringify(LaneObj),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.Status) {
+                            TosterNotification("success", "Lane saved successfully!", "Success");
+                            //bootstrap.Modal.getInstance(document.getElementById('LaneModal')).hide();
+                            location.reload(); // Simple reload for now
+                        } else {
+                            TosterNotification("error", data.Message || 'Save failed.', "Error");
+                        }
+                        App.unblockUI();
+                    },
+                    error: function () {
+                        TosterNotification("error", 'Post failed.', "Error");
+                        App.unblockUI();
+                    }
+                });
+            });
+        }
+        //function CheckDuplicateMapping(domainname) {
+        //    var ConsignorCode = $("#ConsignorCode").val();
+        //    var ConsigneeCode = $("#ConsigneeCode").val();
+        //    var LaneId = $("#LaneId	").val();
+        //    if (!lanename) return;
+
+        //    app.blockui({
+        //        target: '#glformmodal',
+        //        overlaycolor: 'none',
+        //        centery: true,
+        //        boxed: true
+        //    });
+        //    var laneid = $("#lane_id").val() || 0;
+        //    var strurl = domainname + '/Fleet/CheckDuplicateMapping?ConsignorCode=' +  + '&laneid=' + laneid;
+        //    $.ajax({
+        //        url: strurl,
+        //        cache: false,
+        //        data: {},
+        //        type: 'post',
+        //        success: function (data) {
+        //            if (data > "0") {
+        //                tosternotification("error", 'lane <b>"' + lanename + '"</b> already exists!!!', "oops..!!");
+        //                $("#lane_name").val("").focus();
+        //            }
+        //            app.unblockui('#glformmodal');
+        //        },
+        //        error: function (req, status, error) {
+        //            tosternotification("error", 'operation fail..!! there is some issue please try again or contact your administrator for more detail.', "oops..!!");
+        //            app.unblockui('#glformmodal');
+        //        }
+        //    });
+        //}
+
+        return {
+            init: function (DomainName) {
+             
+
+                $(document).on('click', '#btnDownloadStateMasterReport', function (e) {
+                    e.preventDefault();
+                    DownloadMasterReport(DomainName, "Lane", "Lane_Master_List");
+                });
+
+                handleSave(DomainName);
+
+                $(document).on('click', ".btnEditLane", function () {
+                    var id = $(this).data('id');
+                    GetLaneDetails(id, DomainName);
+                });
+
+                GlDataTable.init('LaneList', {
+                    columnDefs: [
+                        { orderable: false, targets: [3] }
+                    ]
+                });
+
+                $(document).on("click", ".btnApproveLane", function (e) {
+                    e.preventDefault();
+                    var btn = $(this);
+                    var id = btn.data("id");
+                    var LaneId = btn.data("laneid");
+                    var ConsigneeCode = btn.data("consigneecode");
+                    var ConsignorCode = btn.data("consignorcode");
+
+                    showConfirm({
+                        title: "Approve Mapping",
+                        message: "Are you sure you want to <strong>Approve</strong> this mapping?",
+                        type: "success",
+                        onConfirm: function () {
+                            App.blockUI({ boxed: true });
+                            $.get(DomainName + '/Fleet/ApproveConsignorConsigneeMapping',
+                                { ConsignorCode: ConsignorCode, ConsigneeCode: ConsigneeCode, LaneId: LaneId, id: id },
+                                function (res) {
+                                    App.unblockUI();
+                                    if (res) {
+                                        TosterNotification("success", "Mapping approved successfully!", "Success");
+                                        window.location.reload();
+                                    } else {
+                                        TosterNotification("error", "Failed to approve mapping.", "Error");
+                                    }
+                                }
+                            ).fail(function () {
+                                App.unblockUI();
+                                TosterNotification("error", "An error occurred while approving.", "Error");
+                            });
+                        }
+                    });
+                });
+
+            }
+        }
+    }();
+
+</script>

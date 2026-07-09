@@ -42,11 +42,14 @@
     };
 
     List<CYGNUS_Master_Users> ManagerList = new List<CYGNUS_Master_Users>();
+    List<CYGNUS_FLEET_DRIVERMST> generalDriverList = MS.GetDriverObject().Where(c => c.UserId == "").ToList();
     List<CYGNUS_Master_General> DesignationList = new List<CYGNUS_Master_General>();
     if (Model.EditFlag != null && Model.EditFlag == true)
     {
         DesignationList = MS.GetDesignationFromCategory(Model.WMU.Category).ToList();
         //ManagerList = MS.GetManagerFromDesignationandLocation(Model.WMU.Category, Model.WMU.BranchCode).ToList();
+        generalDriverList = MS.GetDriverObject().Where(c => c.UserId == "" || c.Driver_Id == Model.WMU.driver_id).ToList();
+
     }
     //List<CYGNUS_Master_Users> userMasterList = MS.GetUserDetails().Where(c => c.Status == "100").OrderBy(c => c.EmpId).ToList();
     //List<CYGNUS_location> locationList = MS.GetLocationDetails().Where(c => c.ActiveFlag == "Y").OrderBy(c => c.LocName).ToList();
@@ -201,6 +204,12 @@
                                     @Html.DropDownListFor(model => model.WMU.emptype, new SelectList(UserTypeList, "CodeId", "CodeDesc", Model.WMU.emptype), "", new { @class = "form-control select2 required", @placeholder = "Select User Type" })
                                 </div>
                             </div>
+                            <div class="col-lg-3 col-md-6 clsdriver" style="display:none">
+                                <div class="form-group">
+                                    <label class="form-label">Driver</label>
+                                    @Html.DropDownListFor(model => model.WMU.driver_id, new SelectList(generalDriverList, "Driver_Id", "Driver_Name", Model.WMU.driver_id), "", new { @class = "form-control select2 required", @placeholder = "Select Driver" })
+                                </div>
+                            </div>
                             <div class="col-lg-3 col-md-6">
                                 <div class="form-group">
                                     <label class="form-label">User Status</label>
@@ -225,10 +234,16 @@
                                     @Html.DropDownListFor(model => model.WMU.Department, new SelectList(Department, "CodeId", "CodeDesc", Model.WMU.Department), "", new { @class = "form-control select2 required", @placeholder = "Select Department" })
                                 </div>
                             </div>
-                            <div class="col-lg-3 col-md-6">
+                            <div class="col-lg-3 col-md-6" style="display:none">
                                 <div class="form-group">
                                     <label class="form-label">Location</label>
-                                    @Html.TextBoxFor(m => m.WMU.BranchCode, new { placeholder = "Select Location", @class = "form-control required ClsGetManager" })
+                                    @Html.TextBoxFor(m => m.WMU.BranchCode, new { placeholder = "Select Location", @class = "form-control ClsGetManager" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Locations(Multiple)</label>
+                                    @Html.TextBoxFor(m => m.WMU.MultiLocation, new { placeholder = "Select MultiLocation", @class = "form-control required" })
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-6">
@@ -273,12 +288,6 @@
                                     @Html.DropDownListFor(m => m.DefaultCompany, Enumerable.Empty<SelectListItem>(), "", new { @class = "form-control required", placeholder = "Select Company" })
                                 </div>
                             </div>
-                            <div class="col-lg-3 col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Locations(Multiple)</label>
-                                    @Html.TextBoxFor(m => m.WMU.MultiLocation, new { placeholder = "Select MultiLocation", @class = "form-control required" })
-                                </div>
-                            </div>
                             <div class="col-lg-3 col-md-6" id="tblActive">
                                 <div class="form-group">
                                     <label class="form-label">Status</label>
@@ -302,7 +311,7 @@
     </div>
 
     @* Card 2: Bank Details *@
-    <div class="row">
+    <div class="row" style="display:none">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
@@ -339,7 +348,7 @@
     </div>
 
     @* Card 3: Identity Documents *@
-    <div class="row">
+    <div class="row d-none">
         <div class="col-md-12">
             <div class="card mb-0">
                 <div class="card-header">
@@ -485,12 +494,22 @@
                     $("#WMU_LeaveGroupId").removeClass("required");
                     $("#WMU_ShiftCode").closest('.form-group').find('label.form-label').removeClass('required-field');
                     $("#WMU_LeaveGroupId").closest('.form-group').find('label.form-label').removeClass('required-field');
+                    $(".clsdriver").hide();
+                    $("#WMU_driver_id").removeClass("required");
+                    $("#WMU_driver_id").select2('data', null);
+                }
+                else if ($('#WMU_emptype').val() == 5) {
+                    $(".clsdriver").show();
+                    $("#WMU_driver_id").addClass("required");
                 }
                 else {
                     $("#WMU_ShiftCode").addClass("required");
                     $("#WMU_LeaveGroupId").addClass("required");
                     $("#WMU_ShiftCode").closest('.form-group').find('label.form-label').addClass('required-field');
                     $("#WMU_LeaveGroupId").closest('.form-group').find('label.form-label').addClass('required-field');
+                    $(".clsdriver").hide();
+                    $("#WMU_driver_id").removeClass("required");
+                    $("#WMU_driver_id").select2('data', null);
                 }
             });
 
@@ -503,6 +522,19 @@
                     return false
                 }
             });
+
+             if ("@Model.EditFlag" == "True") {
+                 if ($("#WMU_emptype").val() == 5) {
+                     $(".clsdriver").show();
+                     $("#WMU_driver_id").addClass("required");
+                 }
+                 else {
+                     $(".clsdriver").hide();
+                     $("#WMU_driver_id").removeClass("required");
+                     $("#WMU_driver_id").select2('data', null);
+                 }
+             }
+
 
             //$("#WMU_EmpId ,  #WMU_UserId").keypress(function (e) {
             //    if ($(".hdnempid").val() != "" && $(".hdnempid").val() != undefined) {

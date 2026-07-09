@@ -85,6 +85,7 @@ namespace GreenLineDataService.Helper.Interface
         List<CYGNUS_location> GetDestinationLocationsWithHQTR(string Prefix);
         bool ActiveInActive_User(string id);
         List<CYGNUS_COMPANY_MASTER> GetCompanyDetails();
+        List<CYGNUS_FLEET_DRIVERMST> GetDriverObject();
         #endregion
 
         #region User Menu Rights

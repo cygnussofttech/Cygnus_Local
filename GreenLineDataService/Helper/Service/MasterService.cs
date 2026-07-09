@@ -200,7 +200,7 @@ namespace GreenLineDataService.Helper
             List<CYGNUS_Master_CodeTypes> CYGNUS_Master_CodeTypesList = DataRowToObject.CreateListFromTable<CYGNUS_Master_CodeTypes>(dataTable);
 
             return CYGNUS_Master_CodeTypesList;
-        }
+        }   
         public DataTable AddEditGeneralMaster(string XML, string flag, string Finyear)
         {
             QueryString = "EXEC Usp_InsertMstData_NewPortal '" + XML + "','" + flag + "','" + Finyear + "'";
@@ -501,7 +501,7 @@ namespace GreenLineDataService.Helper
 
         public DataTable InsertUser(string XML, string EditFlag)
         {
-            QueryString = "EXEC Usp_InsertUpdate_UserMaster '" + XML + "','" + EditFlag + "',''";
+            QueryString = "EXEC Usp_InsertUpdate_UserMaster '" + XML + "','" + EditFlag + "'";
             int Id = GF.SaveRequestServices(QueryString.Replace("'", "''"), "InsertUser", "", "");
             DataTable DT = GF.GetDataTableFromSP(QueryString);
             if (DT.Rows[0][0].ToString() == "Done")
@@ -530,6 +530,13 @@ namespace GreenLineDataService.Helper
             DataTable Dt = GF.GetDataTableFromSP(QueryString);
             List<CYGNUS_COMPANY_MASTER> List = DataRowToObject.CreateListFromTable<CYGNUS_COMPANY_MASTER>(Dt);
             return List;
+        }
+        public List<CYGNUS_FLEET_DRIVERMST> GetDriverObject()
+        {
+            QueryString = "SELECT Driver_Id,Driver_Name,ISNULL(UserId,'') AS UserId  FROM CYGNUS_FLEET_DRIVERMST WITH(NOLOCK)";
+            DataTable dataTable = GF.GetDataTableFromSP(QueryString);
+            List<CYGNUS_FLEET_DRIVERMST> CYGNUS_DriverList_XML = DataRowToObject.CreateListFromTable<CYGNUS_FLEET_DRIVERMST>(dataTable);
+            return CYGNUS_DriverList_XML;
         }
         #endregion
 

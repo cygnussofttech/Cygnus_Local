@@ -5,11 +5,13 @@ using GreenLineDataService.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Net.PeerToPeer;
 using System.Web;
-using System.Data.SqlClient;
+using System.Web.UI.WebControls;
 
 namespace GreenLineDataService.Helper
 {
@@ -333,6 +335,48 @@ namespace GreenLineDataService.Helper
             QueryString = "EXEC USP_Edit_POD_Upload_For_Verify '" + id + "','" + userName + "'";
             DataTable dataTable = GF.GetDataTableFromSP(QueryString);
             return Convert.ToBoolean(dataTable.Rows[0]["Status"]);
+        }
+        #endregion
+        #region Approve and Edit Consignor, Consignee, Lane 
+        public List<Cygnus_Consignor_Consignee_Lane_Mapping> GetConsignor_Consignee_LaneList()
+        {
+            QueryString = "EXEC USP_GetAll_Consignor_Consignee_LaneList";
+            DataTable dt = GF.GetDataTableFromSP(QueryString);
+            List<Cygnus_Consignor_Consignee_Lane_Mapping> CCLMList = DataRowToObject.CreateListFromTable<Cygnus_Consignor_Consignee_Lane_Mapping>(dt);
+            return CCLMList;
+        }
+        public Cygnus_Consignor_Consignee_Lane_Mapping GetConsignorConsigneeById(int Id)
+        {
+            QueryString = "EXEC USP_GetConsignorConsigneeById '" + Id + "'";
+            DataTable Dt1 = GF.GetDataTableFromSP(QueryString);
+            Cygnus_Consignor_Consignee_Lane_Mapping data = DataRowToObject.CreateListFromTable<Cygnus_Consignor_Consignee_Lane_Mapping>(Dt1).FirstOrDefault();
+            return data;
+        }
+        public DataTable SaveConsignorConsigneeMapping(string XML, string BaseUserName, string BaseCompanyCode)
+        {
+            QueryString = "EXEC USP_SaveConsignorConsigneeMapping '" + XML + "'";
+            GF.SaveRequestServices(QueryString.Replace("'", "''"), "SaveConsignorConsigneeMapping", "", "");
+            DataTable Dt = GF.GetDataTableFromSP(QueryString);
+            return Dt;
+        }
+
+        public bool ApproveConsignorConsigneeMapping(string ConsignorCode, string ConsigneeCode,int LaneId, int id, string BaseUserName)
+        {
+            QueryString = "EXEC USP_ApproveConsignorConsigneeLaneMapping '" + ConsignorCode + "','" + ConsigneeCode + "','" + LaneId + "','" + id + "','" + BaseUserName + "'";
+            DataTable dataTable = GF.GetDataTableFromSP(QueryString);
+            if (dataTable != null && dataTable.Rows.Count > 0 && dataTable.Columns.Contains("STATUS"))
+            {
+                return dataTable.Rows[0]["STATUS"].ToString() == "1" || dataTable.Rows[0]["STATUS"].ToString() == "Done";
+            }
+            return true;
+        }
+        public DataTable GetDuplicteMapping()
+        {
+            QueryString = "EXEC USP_Check_ConsignorConsigneeLaneMapping ";
+
+            DataTable Dt = GF.GetDataTableFromSP(QueryString);
+            Cygnus_Consignor_Consignee_Lane_Mapping data = DataRowToObject.CreateListFromTable<Cygnus_Consignor_Consignee_Lane_Mapping>(Dt).FirstOrDefault();
+            return Dt;
         }
         #endregion
     }

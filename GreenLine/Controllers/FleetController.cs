@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Office2010.Excel;
 using GreenLine.Classes;
 using GreenLineDataService.Helper;
 using GreenLineDataService.Helper.Interface;
@@ -1477,6 +1478,123 @@ namespace GreenLine.Controllers
                 return Json(null, JsonRequestBehavior.AllowGet);
             }
         }
-        #endregion       
+        #endregion
+
+        #region Approve and Edit Consignor, Consignee, Lane 
+       
+        public ActionResult Consignor_Consignee_LaneList()
+        {
+            CCLMModel CLVM = new CCLMModel();
+            try
+            {
+                CLVM.listCCCLM = new List<Cygnus_Consignor_Consignee_Lane_Mapping>();
+                CLVM.listCCCLM = _FS.GetConsignor_Consignee_LaneList().ToList();
+                CLVM.CCCLM = new Cygnus_Consignor_Consignee_Lane_Mapping();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.StrError = "Error " + ex.Message.ToString().Replace('\n', '_');
+                return View("Error");
+            }
+            return View(CLVM);
+        }
+
+        public ActionResult AddEditConsignorConsigneeLaneMapping(int id)
+        {
+            Cygnus_Consignor_Consignee_Lane_Mapping CL = new Cygnus_Consignor_Consignee_Lane_Mapping();
+            try
+            {
+                if (id > 0)
+                {
+                    CL = _FS.GetConsignorConsigneeById(id);
+                }
+                //ViewBag.StateList = _masterService.GetStateMaster().ToList();
+                //ViewBag.ZoneList = _masterService.GetGeneralMaster().Where(c => c.CodeType.ToUpper() == "ZONE" && c.StatusCode == "Y").ToList();
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("Consignor_Consignee_LaneList");
+            }
+            return PartialView("_Consignor_Consignee_LaneModal", CL);
+        }
+        [HttpPost]
+        public JsonResult AddEditConsignorConsigneeLaneMapping(Cygnus_Consignor_Consignee_Lane_Mapping CCCLM)
+        {
+            bool Status = false;
+            string Message = "";
+            try
+            {
+                string Query = "EXEC USP_EditConsignorConsigneeLaneMapping '" + CCCLM.ConsignorCode + "','" + CCCLM.ConsigneeCode + "','" + CCCLM.LaneId + "','" + CCCLM.Id +"','" + BaseUserName + "'";
+                DataTable dt = GF.GetDataTableFromSP(Query);
+                if (dt.Rows.Count > 0 && dt.Rows[0][0].ToString() == "Done")
+                {
+                    Status = true;
+                }
+                else
+                {
+                    Message = dt.Rows[0][0].ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = ex.Message;
+            }
+            return Json(new { Status = Status, Message = Message });
+        }
+        public JsonResult GetConsignorListJson(string searchTerm)
+        {
+            try
+            {
+                searchTerm = searchTerm ?? "";
+                var list = _MS.GetConsignnorCustomerListJson()
+                              .Where(c => string.IsNullOrEmpty(searchTerm) ||
+                                          (c.CUSTCD != null && c.CUSTCD.ToUpper().Contains(searchTerm.ToUpper())) ||
+                                          (c.CUSTNM != null && c.CUSTNM.ToUpper().Contains(searchTerm.ToUpper())))
+                              .Take(50)
+                              .Select(c => new { id = c.CUSTCD, text = c.CUSTNM + " (" + c.CUSTCD + ")" })
+                              .ToList();
+                return Json(list, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new List<object>(), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public JsonResult GetConsigneeListJson(string searchTerm)
+        {
+            try
+            {
+                searchTerm = searchTerm ?? "";
+                var list = _MS.GetConsigneeCustomerListJson()
+                              .Where(c => string.IsNullOrEmpty(searchTerm) ||
+                                          (c.CUSTCD != null && c.CUSTCD.ToUpper().Contains(searchTerm.ToUpper())) ||
+                                          (c.CUSTNM != null && c.CUSTNM.ToUpper().Contains(searchTerm.ToUpper())))
+                              .Take(50)
+                              .Select(c => new { id = c.CUSTCD, text = c.CUSTNM + " (" + c.CUSTCD + ")" })
+                              .ToList();
+                return Json(list, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new List<object>(), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult ApproveConsignorConsigneeMapping(string ConsignorCode, string ConsigneeCode,int LaneId, int id)
+        {
+            bool status = false;
+            try
+            {
+                status = _FS.ApproveConsignorConsigneeMapping(ConsignorCode, ConsigneeCode, LaneId, id, BaseUserName);
+            }
+            catch (Exception)
+            {
+            }
+            return Json(status, JsonRequestBehavior.AllowGet);
+        }
+        
+        #endregion
     }
 }
