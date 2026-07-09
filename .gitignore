@@ -22,3 +22,7 @@
 /GreenLine/Scripts
 /GreenLine/App_Data
 *.config
+*.sql
+*.lnk
+*.zip
+*.xml
