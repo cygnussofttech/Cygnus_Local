@@ -12,3 +12,13 @@
 /SQL
 /SQL_Scripts
 /SQLScripts
+/GreenLine/assets
+/GreenLine/Uploads
+/GreenLine/UploadedDocuments
+/GreenLine/UploadedFiles
+/GreenLine/Velzon_assets
+/GreenLine/SqlServerTypes
+/GreenLineDataService/SqlServerTypes
+/GreenLine/Scripts
+/GreenLine/App_Data
+*.config
